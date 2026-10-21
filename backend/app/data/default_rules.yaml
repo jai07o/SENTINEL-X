@@ -1,0 +1,98 @@
+rules:
+  - rule_id: "SX-R-AUTH-001"
+    name: "SSH Brute-Force Authentication Attempt"
+    description: "Detects multiple authentication failures across a short temporal sliding window, indicating credential guessing or automated brute-force attacks."
+    severity: "HIGH"
+    base_confidence: 0.90
+    event_category: "AUTH_FAILURE"
+    mitre_technique_id: "T1110.001"
+    mitre_tactic: "Credential Access"
+    window_seconds: 60
+    threshold: 5
+    filter_criteria:
+      process_name: "sshd"
+    is_active: true
+    version: "1.0.0"
+
+  - rule_id: "SX-R-PRIV-001"
+    name: "Sudo Privilege Escalation Execution"
+    description: "Detects execution of privileged commands via sudo or unauthorized attempts to elevate to root uid 0."
+    severity: "HIGH"
+    base_confidence: 0.85
+    event_category: "PRIVILEGE_ESCALATION"
+    mitre_technique_id: "T1548.003"
+    mitre_tactic: "Privilege Escalation"
+    window_seconds: 30
+    threshold: 1
+    filter_criteria:
+      account_uid: 0
+    is_active: true
+    version: "1.0.0"
+
+  - rule_id: "SX-R-FIM-001"
+    name: "Critical Security File Modification (FIM)"
+    description: "Monitors changes to high-integrity authentication configurations and sensitive binaries (/etc/shadow, /etc/passwd, /etc/sudoers, PAM)."
+    severity: "CRITICAL"
+    base_confidence: 0.95
+    event_category: "FILE_MODIFICATION"
+    mitre_technique_id: "T1036"
+    mitre_tactic: "Defense Evasion"
+    window_seconds: 15
+    threshold: 1
+    filter_criteria:
+      file_path_patterns:
+        - "/etc/shadow"
+        - "/etc/passwd"
+        - "/etc/sudoers"
+        - "/etc/pam.d/"
+        - "/bin/login"
+    is_active: true
+    version: "1.0.0"
+
+  - rule_id: "SX-R-NET-001"
+    name: "Unusual Outbound Network Activity"
+    description: "Detects abnormal outbound connections or high-frequency communication targeting external suspicious or non-standard ports."
+    severity: "MEDIUM"
+    base_confidence: 0.80
+    event_category: "NETWORK_OUTBOUND_UNUSUAL"
+    mitre_technique_id: "T1071.001"
+    mitre_tactic: "Command and Control"
+    window_seconds: 120
+    threshold: 3
+    filter_criteria:
+      is_outbound: true
+    is_active: true
+    version: "1.0.0"
+
+  - rule_id: "SX-R-CRON-001"
+    name: "Scheduled Task / Cron Persistence Modification"
+    description: "Detects unauthorized insertion or modifications to user crontabs or system-wide cron directories."
+    severity: "MEDIUM"
+    base_confidence: 0.85
+    event_category: "SCHEDULED_TASK_CHANGE"
+    mitre_technique_id: "T1053.003"
+    mitre_tactic: "Persistence"
+    window_seconds: 60
+    threshold: 1
+    filter_criteria:
+      file_path_patterns:
+        - "/etc/crontab"
+        - "/etc/cron."
+        - "/var/spool/cron/"
+    is_active: true
+    version: "1.0.0"
+
+  - rule_id: "SX-R-LOG-001"
+    name: "Endpoint Security Collector Service Failure"
+    description: "Detects abrupt failures or deliberate termination of endpoint telemetry collectors (auditd, journald, sentinel agent)."
+    severity: "HIGH"
+    base_confidence: 0.95
+    event_category: "SECURITY_SERVICE_FAILURE"
+    mitre_technique_id: "T1562.001"
+    mitre_tactic: "Defense Evasion"
+    window_seconds: 30
+    threshold: 1
+    filter_criteria:
+      status: "FAILED"
+    is_active: true
+    version: "1.0.0"

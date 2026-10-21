@@ -1,0 +1,23 @@
+[Unit]
+Description=SENTINEL-X Linux Endpoint Telemetry Agent
+Documentation=https://github.com/sentinel-x/sentinel-x
+After=network.target syslog.target auditd.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/sentinel-agent
+ExecStart=/opt/sentinel-agent/.venv/bin/python -m agent.sentinel_agent.agent
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65535
+
+# Security Hardening
+ProtectSystem=full
+ProtectHome=read-only
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+{
+  "name": "sentinel-x-desktop",
+  "version": "0.1.0",
+  "description": "SENTINEL-X Native SOC Desktop Console",
+  "scripts": {
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "desktop:preview": "python run_desktop.py"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0-beta"
+  }
+}

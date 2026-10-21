@@ -1,0 +1,22 @@
+[Unit]
+Description=SENTINEL-X Central SOC API Service
+After=network.target
+
+[Service]
+Type=simple
+User=sentinel
+Group=sentinel
+WorkingDirectory=/opt/sentinel-x
+ExecStart=/opt/sentinel-x/.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 4
+Restart=always
+RestartSec=5s
+
+# Security sandboxing
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/sentinel-x/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

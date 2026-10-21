@@ -510,6 +510,21 @@ export class ApiClient {
       body: JSON.stringify({ drive_letter: driveLetter, device_id: deviceId }),
     });
   }
+
+  // Platform Self-Defense & Security Armor Posture
+  public static async getSecurityPosture() {
+    return this.request<any>('/health/security-posture');
+  }
+
+  public static async getSelfIntegrity() {
+    return this.request<any>('/health/integrity');
+  }
+
+  public static async reanchorSelfIntegrity() {
+    return this.request<any>('/health/integrity/reanchor', {
+      method: 'POST',
+    });
+  }
 }
 
 

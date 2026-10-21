@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131.svg?style=flat&logo=tauri)](https://tauri.app)
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4.svg?style=flat&logo=googlechrome)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/Tests-40%2F40_Passed-success.svg)](#10-automated-test-suite--benchmarking)
+[![Tests](https://img.shields.io/badge/Tests-45%2F45_Passed-success.svg)](#10-automated-test-suite--benchmarking)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
@@ -36,6 +36,7 @@
    - [5.16 Autonomous Real-Time Background Sentinel (Laptop & Mobile)](#516-autonomous-real-time-background-sentinel-laptop--mobile)
    - [5.17 Cable-Connected Hardware, Pendrive Injection & Port Quarantine Sentinel](#517-cable-connected-hardware-pendrive-injection--port-quarantine-sentinel)
    - [5.18 Universal Data Management & Database Purge Engine](#518-universal-data-management--database-purge-engine)
+   - [5.19 Platform Self-Defense, Anti-Brute-Force & Security Armor](#519-platform-self-defense-anti-brute-force--security-armor)
 6. [The 25 SOC Operations Web Views](#6-the-25-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -542,6 +543,32 @@ Provides full data lifecycle and deletion capabilities across every entity in th
 
 ---
 
+### 5.19 Platform Self-Defense, Anti-Brute-Force & Security Armor
+Ensures the SENTINEL-X platform and website themselves operate under military-grade, zero-trust defense-in-depth:
+- **Cryptographic Code Self-Integrity Verification (`integrity_service.py`)**:
+  - Automatically calculates and anchors a SHA-256 cryptographic baseline of all 14 core engine modules (`main.py`, `security.py`, `middleware.py`, `rate_limiter.py`, `normalization.py`, `rules_engine.py`, `ewcc_engine.py`, `hardware_port_service.py`, `cli.py`, etc.).
+  - Continuously audited during the Autonomous Sentinel background cycle; detects if an attacker, malware, or rootkit tampers with or injects code into the tool itself on disk, raising an instantaneous `PLATFORM_CORE_INTEGRITY_VIOLATION` alert.
+  - Accessible via `GET /api/v1/health/integrity`, `GET /api/v1/health/security-posture`, and `python cli.py audit-integrity`.
+- **Adaptive In-Memory Anti-Brute-Force & Rate-Limiting Shield (`rate_limiter.py`)**:
+  - Tracks authentication attempts across client IP addresses and user accounts using sliding window state machines.
+  - Automatically engages a **15-Minute Defensive Lockout (HTTP 429 Too Many Requests)** after 5 consecutive failures within a 5-minute window, issuing RFC-compliant `Retry-After: 900` headers.
+  - Eliminates credential stuffing and automated password spraying.
+- **Grade A+ Transport & Browser Armor (Hardened Middleware)**:
+  - **HSTS Preload**: `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (2-year HSTS preload directive).
+  - **Anti-Clickjacking**: `X-Frame-Options: DENY` preventing framing in external sites.
+  - **MIME-Sniff Defense**: `X-Content-Type-Options: nosniff`.
+  - **Cross-Origin Isolation**: `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Resource-Policy: same-origin`.
+  - **Strict Content-Security-Policy (CSP)**: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';`.
+  - **Zero-Cache Forensics**: Appends `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` to all API endpoints, guaranteeing proxies and browsers never retain sensitive forensic logs or JWT tokens.
+- **Anti-DoS Request Payload Ceiling**:
+  - Enforces a 25MB maximum request body ceiling directly at the middleware layer before memory buffering, protecting the platform from memory starvation and buffer overflow attacks (`413 Payload Too Large`).
+- **Path Traversal & Shell Injection Defenses (`security.py`)**:
+  - `validate_safe_path`: Enforces canonical path resolution with `.relative_to()` boundary checks and null-byte (`\x00`) rejection on all file operations.
+  - `sanitize_shell_argument`: Strips shell metacharacters (`;`, `&`, `|`, `` ` ``, `$`, `>`, `<`) before subprocess execution.
+  - Constant-time token and key comparisons via `secrets.compare_digest` to prevent side-channel timing attacks.
+
+---
+
 ## 6. The 25 SOC Operations Web Views
 
 The SENTINEL-X web interface provides 25 dedicated, fully wired operational views:
@@ -979,7 +1006,7 @@ The test suite validates all defensive boundaries, normalization logic, and end-
 python3 -m pytest -v
 ```
 
-### Verified Test Matrix (40/40 Passing)
+### Verified Test Matrix (45/45 Passing)
 | Test Suite | Purpose | Status |
 | :--- | :--- | :--- |
 | `test_normalization.py` | Multi-timestamp parsing, canonical payload hashing, duplicate suppression | **PASS** |
@@ -991,6 +1018,7 @@ python3 -m pytest -v
 | `test_api_workflows.py` | Full lifecycle: Telemetry ingest -> Incident -> Host isolation -> Report export | **PASS** |
 | `test_omni_scanner.py` | Link heuristics, deep path software analysis, QR matrix, steganography, macros, autonomous daemon lifecycle | **PASS** |
 | `test_data_management_and_ports.py` | Universal database purge, storage stats, hardware port enumeration, cable device virus detection, host immunization, drive vaccination, BadUSB scanning, and port quarantine/release | **PASS** |
+| `test_platform_armor_and_security.py` | Cryptographic code self-integrity audit, adaptive anti-brute-force lockout, path traversal guard, shell injection sanitizer, and military-grade HTTP security headers | **PASS** |
 
 ---
 

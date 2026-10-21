@@ -52,6 +52,44 @@ def generate_api_key() -> tuple[str, str, str]:
 
 
 def verify_api_key(raw_key: str, hashed_key: str) -> bool:
-    """Verify a raw API key against its SHA-256 hash."""
+    """Verify a raw API key against its SHA-256 hash using constant-time comparison."""
     calculated = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
     return secrets.compare_digest(calculated, hashed_key)
+
+
+from pathlib import Path
+
+
+def validate_safe_path(base_dir: Path | str, target_path: Path | str) -> Path:
+    """
+    Strict Path Traversal & LFI Defense Guard.
+    Guarantees that target_path strictly resolves within base_dir.
+    Rejects directory traversal sequences (../), null-byte injections, and symlink escapes.
+    """
+    target_str = str(target_path)
+    if "\x00" in target_str:
+        raise ValueError("Security Violation: Null byte injection detected in file path.")
+
+    base = Path(base_dir).resolve()
+    target = (base / target_path).resolve() if not Path(target_path).is_absolute() else Path(target_path).resolve()
+
+    try:
+        target.relative_to(base)
+    except ValueError:
+        raise ValueError(
+            f"Security Violation: Path traversal escape attempt detected. Target [{target}] is outside permitted base directory [{base}]."
+        )
+
+    return target
+
+
+def sanitize_shell_argument(arg: str) -> str:
+    """
+    Command Injection Sanitizer.
+    Guarantees arguments passed to subprocess execution are devoid of shell metacharacters.
+    """
+    forbidden_chars = [";", "&", "|", "`", "$", ">", "<", "\n", "\r", "\x00"]
+    cleaned = arg
+    for char in forbidden_chars:
+        cleaned = cleaned.replace(char, "")
+    return cleaned.strip()

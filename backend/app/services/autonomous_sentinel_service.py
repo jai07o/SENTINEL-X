@@ -325,6 +325,33 @@ class AutonomousSentinelService:
                 except Exception as port_err:
                     logger.debug(f"Hardware port audit iteration: {port_err}")
 
+                # 5. Platform Self-Defense & Anti-Tamper Integrity Audit
+                if self.stats["cycles_completed"] % 6 == 0:  # Every 30 seconds
+                    try:
+                        from backend.app.services.integrity_service import platform_integrity_sentinel
+                        integ_res = platform_integrity_sentinel.audit_integrity()
+                        if not integ_res.get("is_intact"):
+                            threat_id = "THREAT-CORE-INTEGRITY-COMPROMISED"
+                            threat = {
+                                "id": threat_id,
+                                "category": "PLATFORM_CORE_INTEGRITY_VIOLATION",
+                                "severity": "CRITICAL",
+                                "title": "SENTINEL-X Self-Defense Alert: Core Engine File Tampering Detected",
+                                "details": f"Tampered modules: {integ_res.get('tampered_files')}, Missing: {integ_res.get('missing_files')}",
+                                "timestamp": cycle_time,
+                            }
+                            if not any(t["id"] == threat_id for t in self.active_threats):
+                                self.active_threats.insert(0, threat)
+                                self.stats["threats_intercepted"] += 1
+                                self._log_event("SELF_INTEGRITY_TAMPER", threat["title"], "CRITICAL", threat)
+                                await ws_manager.broadcast({
+                                    "type": "PLATFORM_INTEGRITY_TAMPER_DETECTED",
+                                    "threat": threat,
+                                    "integrity_result": integ_res,
+                                })
+                    except Exception as integ_err:
+                        logger.debug(f"Self-integrity audit iteration: {integ_err}")
+
                 # Broadcast live telemetry update every 2 cycles (10s)
                 if self.stats["cycles_completed"] % 2 == 0:
 

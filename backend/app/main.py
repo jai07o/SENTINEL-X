@@ -149,6 +149,35 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     )
 
 
+from backend.app.services.integrity_service import platform_integrity_sentinel
+
+
+@app.get("/api/v1/health/integrity", tags=["Health & Status"])
+async def verify_platform_integrity():
+    """
+    Self-Defense & Anti-Tamper Audit.
+    Cryptographically verifies SHA-256 integrity of all core platform engine modules.
+    Detects if any file in the tool has been modified by malware, an attacker, or a rootkit.
+    """
+    return platform_integrity_sentinel.audit_integrity()
+
+
+@app.get("/api/v1/health/security-posture", tags=["Health & Status"])
+async def get_platform_security_posture():
+    """
+    Returns full military-grade operational security posture report of SENTINEL-X.
+    Audits self-integrity, transport headers, anti-brute-force state, and hardware shields.
+    """
+    return platform_integrity_sentinel.get_security_posture_summary()
+
+
+@app.post("/api/v1/health/integrity/reanchor", tags=["Health & Status"])
+async def reanchor_platform_integrity():
+    """Re-anchor cryptographic SHA-256 baseline of core modules after an authorized update."""
+    platform_integrity_sentinel.rebuild_baseline()
+    return {"message": "Cryptographic baseline re-anchored successfully", "status": "success"}
+
+
 # Mount Production Frontend SPA if compiled dist exists
 from fastapi import HTTPException
 from fastapi.staticfiles import StaticFiles

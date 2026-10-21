@@ -471,6 +471,84 @@ def cmd_purge_data(category: str = "all", confirm: bool = False):
 
 
 # ---------------------------------------------------------
+# Command 15: Platform Self-Defense & Code Integrity Audit
+# ---------------------------------------------------------
+def cmd_audit_integrity():
+    print(f"\n{CYAN}{BOLD}[*] Performing Platform Self-Defense & Code Integrity Audit...{RESET}")
+    from backend.app.services.integrity_service import platform_integrity_sentinel
+    res = platform_integrity_sentinel.audit_integrity()
+
+    is_intact = res.get("is_intact", False)
+    status_badge = f"{GREEN}{BOLD}[INTEGRITY VERIFIED - CLEAN]{RESET}" if is_intact else f"{RED}{BOLD}[INTEGRITY COMPROMISED - TAMPER DETECTED]{RESET}"
+    
+    print(f"\n{BOLD}Verdict:{RESET} {status_badge}")
+    print(f"{BOLD}Modules Monitored:{RESET} {res.get('modules_monitored')}")
+    print(f"{BOLD}Modules Verified Clean:{RESET} {res.get('modules_verified')}")
+    print(f"{BOLD}Tampered Files Count:{RESET} {res.get('tampered_count')}")
+    print(f"{BOLD}Missing Files Count:{RESET} {res.get('missing_count')}")
+
+    if res.get("tampered_files"):
+        print(f"\n{RED}{BOLD}ALERT: The following files were tampered with or modified on disk:{RESET}")
+        for tf in res["tampered_files"]:
+            print(f"  - {RED}{tf}{RESET}")
+
+    if res.get("missing_files"):
+        print(f"\n{RED}{BOLD}ALERT: The following core modules are missing:{RESET}")
+        for mf in res["missing_files"]:
+            print(f"  - {RED}{mf}{RESET}")
+
+    if is_intact:
+        print(f"\n{GREEN}[+] All core engine files match their cryptographic SHA-256 baselines. No tampering detected.{RESET}")
+
+
+# ---------------------------------------------------------
+# Command 16: Military-Grade Security Armor Posture Report
+# ---------------------------------------------------------
+def cmd_security_armor():
+    print(f"\n{CYAN}{BOLD}[*] Evaluating SENTINEL-X Military-Grade Security Armor Posture...{RESET}")
+    from backend.app.services.integrity_service import platform_integrity_sentinel
+    res = platform_integrity_sentinel.get_security_posture_summary()
+
+    print(f"\n{MAGENTA}{BOLD}======================================================================{RESET}")
+    print(f"  {BOLD}SENTINEL-X DEFENSE-IN-DEPTH SECURITY POSTURE REPORT{RESET}")
+    print(f"{MAGENTA}{BOLD}======================================================================{RESET}")
+    print(f"  {BOLD}Security Grade:{RESET} {GREEN}{BOLD}{res.get('security_grade')}{RESET}")
+    
+    integ = res.get("self_integrity", {})
+    integ_badge = f"{GREEN}PASS{RESET}" if integ.get("is_intact") else f"{RED}FAIL{RESET}"
+    print(f"\n  {BOLD}[1] Platform Self-Defense & Code Integrity:{RESET} {integ_badge}")
+    print(f"      - Modules Monitored: {integ.get('modules_monitored')}")
+    print(f"      - Tampered Files: {integ.get('tampered_count')}")
+
+    trans = res.get("transport_security", {})
+    print(f"\n  {BOLD}[2] Transport & Browser Armor (Grade A+):{RESET}")
+    print(f"      - Strict-Transport-Security: max-age=63072000 (HSTS Preload Ready)")
+    print(f"      - Content-Security-Policy: {trans.get('content_security_policy')}")
+    print(f"      - Anti-Clickjacking: {trans.get('x_frame_options')}")
+    print(f"      - MIME-Sniffing Defense: {trans.get('x_content_type_options')}")
+    print(f"      - Permissions-Policy: {trans.get('permissions_policy')}")
+
+    ac = res.get("access_control", {})
+    print(f"\n  {BOLD}[3] Authentication & Anti-Brute-Force Shield:{RESET}")
+    print(f"      - Adaptive Lockout: Active (Max {ac.get('max_failures_threshold')} failures per {ac.get('lockout_duration_seconds')}s)")
+    print(f"      - Active IP Lockouts: {ac.get('active_lockouts')}")
+    print(f"      - Timing-Attack Resistance: {ac.get('timing_attack_resistance')}")
+
+    hw = res.get("hardware_and_ports", {})
+    immun_badge = f"{GREEN}IMMUNIZED{RESET}" if hw.get("autorun_immunization_active") else f"{YELLOW}NOT IMMUNIZED{RESET}"
+    print(f"\n  {BOLD}[4] Hardware & Removable USB Injection Defense:{RESET}")
+    print(f"      - Windows AutoRun Registry Immunization: {immun_badge}")
+    print(f"      - Windows IniFileMapping Redirection: {hw.get('inifilemapping_disabled')}")
+    print(f"      - BadUSB / Rubber Ducky Microcontroller Heuristics: {hw.get('badusb_heuristics')}")
+
+    mem = res.get("memory_and_payload_defenses", {})
+    print(f"\n  {BOLD}[5] Memory & Payload Exhaustion Defenses:{RESET}")
+    print(f"      - Request Payload Ceiling: {mem.get('max_request_payload_mb')} MB (DoS Prevention)")
+    print(f"      - Path Traversal & LFI Guard: {mem.get('path_traversal_guards')}")
+    print(f"{MAGENTA}{BOLD}======================================================================{RESET}")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
@@ -490,10 +568,12 @@ def run_interactive_menu():
         print("  [12] Immunize Host Laptop (Disable AutoRun / AutoPlay Injections)")
         print("  [13] Vaccinate a Pendrive / Removable Drive (Lock autorun.inf)")
         print("  [14] Purge / Delete Operational Data (Wipe Tables)")
-        print("  [15] Exit")
+        print("  [15] Audit Platform Self-Defense & Code Integrity (Anti-Tamper)")
+        print("  [16] Show Full Military-Grade Platform Security Posture")
+        print("  [17] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [1-15]: ").strip()
+        choice = input("Select an option [1-17]: ").strip()
 
         if choice == "1":
             url = input("Enter URL to scan: ").strip()
@@ -555,7 +635,13 @@ def run_interactive_menu():
             cat = input("Enter category to purge (events, incidents, malware, forensics, all): ").strip()
             cmd_purge_data(cat or "all")
             input("\nPress Enter to return to menu...")
-        elif choice in ("15", "q", "exit"):
+        elif choice == "15":
+            cmd_audit_integrity()
+            input("\nPress Enter to return to menu...")
+        elif choice == "16":
+            cmd_security_armor()
+            input("\nPress Enter to return to menu...")
+        elif choice in ("17", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
         else:
@@ -623,6 +709,12 @@ def main():
     p_purge.add_argument("--category", default="all", help="Category: events, incidents, malware, forensics, all")
     p_purge.add_argument("--yes", action="store_true", help="Skip confirmation prompt")
 
+    # audit-integrity
+    subparsers.add_parser("audit-integrity", help="Cryptographically audit SHA-256 integrity of platform core modules")
+
+    # security-armor
+    subparsers.add_parser("security-armor", help="Display full military-grade security posture report of SENTINEL-X")
+
     # interactive
     subparsers.add_parser("interactive", help="Launch interactive menu console")
 
@@ -658,6 +750,10 @@ def main():
         cmd_vaccinate_drive(args.drive)
     elif args.command == "purge-data":
         cmd_purge_data(args.category, confirm=args.yes)
+    elif args.command == "audit-integrity":
+        cmd_audit_integrity()
+    elif args.command == "security-armor":
+        cmd_security_armor()
 
 
 if __name__ == "__main__":

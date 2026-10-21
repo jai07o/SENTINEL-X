@@ -28,28 +28,55 @@ from backend.app.schemas.auth import (
 router = APIRouter(prefix="/auth", tags=["Authentication & Access Control"])
 
 
+from starlette.requests import Request
+from backend.app.core.rate_limiter import brute_force_protector
+
+
 @router.post("/login", response_model=Token)
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Authenticate user via OAuth2 password form and issue signed JWT.
+    Authenticate user via OAuth2 password form with Adaptive Anti-Brute-Force Shield.
+    Issues signed JWT access token upon successful verification.
     """
+    client_ip = request.client.host if request.client else "127.0.0.1"
+
+    # Pre-auth lockout check
+    is_locked, remaining_seconds = brute_force_protector.is_locked_out(client_ip)
+    if is_locked:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many failed login attempts from this IP ({client_ip}). Defensive lockout active for {remaining_seconds}s.",
+            headers={"Retry-After": str(remaining_seconds)},
+        )
+
     result = await db.execute(
         select(User).options(selectinload(User.role)).where(User.username == form_data.username)
     )
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
+        is_locked_now, attempts_left, lock_duration = brute_force_protector.record_failure(client_ip)
+        if is_locked_now:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Maximum failed login threshold exceeded. IP {client_ip} has been locked out for {lock_duration}s by SENTINEL-X Shield.",
+                headers={"Retry-After": str(lock_duration)},
+            )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail=f"Incorrect username or password. Warning: {attempts_left} attempts remaining before temporary lockout.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user account")
+
+    # Auth succeeded: reset brute force counters
+    brute_force_protector.record_success(client_ip)
 
     user.last_login = datetime.utcnow()
     await db.commit()

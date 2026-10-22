@@ -44,7 +44,7 @@ def start_web_platform():
         print("[*] Spawning Backend Server (http://127.0.0.1:8000)...")
         if sys.platform == "win32":
             subprocess.Popen(
-                ["cmd", "/k", f'"{VENV_PYTHON}" -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload'],
+                [str(VENV_PYTHON), "-m", "uvicorn", "backend.app.main:app", "--host", "127.0.0.1", "--port", "8000", "--reload"],
                 cwd=str(ROOT_DIR),
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
@@ -93,7 +93,7 @@ def start_agent():
     print("\n[+] Starting Endpoint Monitoring Agent...")
     if sys.platform == "win32":
         subprocess.Popen(
-            ["cmd", "/k", f'"{VENV_PYTHON}" -m agent.sentinel_agent.agent'],
+            [str(VENV_PYTHON), "-m", "agent.sentinel_agent.agent"],
             cwd=str(ROOT_DIR),
             creationflags=subprocess.CREATE_NEW_CONSOLE,
         )

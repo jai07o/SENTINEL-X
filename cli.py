@@ -737,6 +737,134 @@ def cmd_rectify_threat(target: str):
 
 
 # ---------------------------------------------------------
+# Commands 21-26: Wi-Fi, Fake Network, Rogue AP & ARP Safeguards
+# ---------------------------------------------------------
+def cmd_scan_wifi():
+    print(f"\n{CYAN}{BOLD}[*] Engaging SENTINEL-X Wi-Fi, Rogue AP & Network Defense Audit...{RESET}")
+    from backend.app.services.wifi_guard_service import WiFiThreatDetector
+
+    report = WiFiThreatDetector.audit_wifi_and_network_security()
+    wifi = report.get("current_wifi", {})
+    gw = report.get("default_gateway", {})
+    dns = report.get("dns_servers", [])
+
+    print(f"{BOLD}Physical Host State:{RESET}")
+    print(f"  - Interface Name:     {wifi.get('interface_name') or 'N/A'}")
+    print(f"  - Connected SSID:     {GREEN if wifi.get('connected') else YELLOW}{wifi.get('ssid') or 'Disconnected'}{RESET}")
+    print(f"  - Access Point BSSID: {wifi.get('bssid') or 'N/A'}")
+    print(f"  - Authentication:     {wifi.get('authentication') or 'N/A'}")
+    print(f"  - Encryption Cipher:  {wifi.get('cipher') or 'N/A'}")
+    print(f"  - Radio / Channel:    {wifi.get('radio_type')} (Ch {wifi.get('channel')})")
+    print(f"  - Signal Strength:    {wifi.get('signal_percent') or 'N/A'}")
+    print(f"  - Default Gateway:    {gw.get('ip')} ({gw.get('mac')})")
+    dns_str = ', '.join([d.get('ip') for d in dns]) if dns else 'None'
+    print(f"  - Active DNS Servers: {dns_str}")
+
+    threats = report.get("threats", [])
+    if not threats:
+        print(f"\n{GREEN}{BOLD}[+] WI-FI & NETWORK STATUS: 100% SECURE & PROTECTED.{RESET}")
+        print(f"    Zero Evil Twins, Rogue APs, or ARP Spoofing attacks detected.\n")
+    else:
+        print(f"\n{RED}{BOLD}[!] CRITICAL: {len(threats)} NETWORK INTRUSION THREAT(S) DETECTED!{RESET}")
+        for i, t in enumerate(threats, 1):
+            print(f"  [{i}] {RED}{BOLD}{t.get('category')}{RESET} - {t.get('title')}")
+            print(f"      Risk Score:  {t.get('risk_score')}/100 ({t.get('severity')})")
+            print(f"      Rationale:   {t.get('description')}")
+            print(f"      Action:      {YELLOW}{t.get('recommended_action')}{RESET}")
+
+        if sys.stdin.isatty():
+            ans = input("\nImmediately Rectify Threat (Freeze Forensics, Sever Wi-Fi, Flush Caches)? [Y/n]: ").strip().lower()
+            if ans != "n":
+                cmd_rectify_wifi()
+        else:
+            print(f"\n{YELLOW}[!] Run 'python cli.py rectify-wifi' or 'python cli.py disconnect-wifi' to sever and preserve evidence.{RESET}\n")
+
+
+def cmd_guard_wifi(continuous: bool = False):
+    print(f"\n{CYAN}{BOLD}[*] Starting SENTINEL-X Real-Time Wi-Fi & Network Guardian...{RESET}")
+    from backend.app.services.wifi_guard_service import wifi_guard_daemon
+    if continuous:
+        async def _run():
+            await wifi_guard_daemon.start(interval_seconds=4, auto_sever=True)
+            print(f"{GREEN}{BOLD}[+] Wi-Fi Guardian engaged in continuous monitoring mode (Ctrl+C to stop)...{RESET}")
+            try:
+                while True:
+                    await asyncio.sleep(1)
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                wifi_guard_daemon.stop()
+                print(f"\n{YELLOW}[*] Wi-Fi Guardian safely stopped.{RESET}")
+        try:
+            asyncio.run(_run())
+        except KeyboardInterrupt:
+            print(f"\n{YELLOW}[*] Stopped.{RESET}")
+    else:
+        cmd_scan_wifi()
+
+
+def cmd_harden_network():
+    print(f"\n{CYAN}{BOLD}[*] Applying Physical Host Network Stack Hardening...{RESET}")
+    from backend.app.services.wifi_guard_service import WiFiNetworkHardener
+    res = WiFiNetworkHardener.harden_network_host_defenses()
+    print(f"{GREEN}{BOLD}[+] Hardening status: {res.get('status')}{RESET}")
+    for act in res.get("applied_hardening", []):
+        print(f"  - {act}")
+    print()
+
+
+def cmd_trust_wifi():
+    from backend.app.services.wifi_guard_service import WiFiNetworkAuditor, WiFiTrustedStore
+    wifi = WiFiNetworkAuditor.get_current_wifi_details()
+    if not wifi.get("connected") or not wifi.get("ssid"):
+        print(f"{RED}[-] Host is not currently connected to any Wi-Fi network.{RESET}")
+        return
+    pinned = WiFiTrustedStore.trust_wifi_network(
+        ssid=wifi.get("ssid"),
+        bssid=wifi.get("bssid"),
+        cipher=wifi.get("cipher") or "WPA2",
+        authentication=wifi.get("authentication") or "WPA2-Personal",
+    )
+    print(f"\n{GREEN}{BOLD}[+] Wi-Fi Network Pinned as Trusted Baseline Signature!{RESET}")
+    print(f"  SSID:            {pinned.get('ssid')}")
+    print(f"  Trusted BSSID:   {pinned.get('trusted_bssids')}")
+    print(f"  Expected Cipher: {pinned.get('expected_cipher')}")
+    print(f"  Expected Auth:   {pinned.get('expected_auth')}")
+    print(f"  Timestamp:       {pinned.get('pinned_at')}\n")
+
+
+def cmd_disconnect_wifi():
+    from backend.app.services.wifi_guard_service import WiFiNetworkHardener
+    print(f"\n{YELLOW}{BOLD}[!] Executing Emergency Severance from Wi-Fi...{RESET}")
+    res = WiFiNetworkHardener.emergency_disconnect_wifi()
+    if res.get("success"):
+        print(f"{GREEN}[+] Successfully severed connection from Wi-Fi.{RESET}\n")
+    else:
+        print(f"{RED}[-] Disconnect command result: {res.get('details')}{RESET}\n")
+
+
+def cmd_rectify_wifi():
+    from backend.app.services.wifi_guard_service import WiFiThreatDetector, WiFiForensicVault
+    print(f"\n{CYAN}{BOLD}[*] Executing Supreme Wi-Fi & Network Incident Rectification...{RESET}")
+    report = WiFiThreatDetector.audit_wifi_and_network_security()
+    res = asyncio.run(WiFiForensicVault.freeze_network_crime_scene_and_rectify(audit_report=report, auto_disconnect=True))
+    print(f"\n{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"  {GREEN}{BOLD}[+] WI-FI INCIDENT RECTIFIED & PHYSICAL HOST IMMUNIZED!{RESET}")
+    print(f"{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"{BOLD}Incident ID:{RESET}          {res.get('incident_id')}")
+    ev = res.get("evidence", {})
+    print(f"  [1] Court-Admissible Forensics Vault:")
+    print(f"      - Evidence Record:  {ev.get('evidence_number')}")
+    print(f"      - SHA-256 Digest:   {ev.get('sha256')}")
+    print(f"      - Vault File Path:  {ev.get('vault_path')}")
+    print(f"      - Security Lock:    {GREEN}{ev.get('security')}{RESET}")
+    rem = res.get("remediation", {})
+    print(f"  [2] Network Disarming & Remediation:")
+    print(f"      - Wi-Fi Disconnected:       {rem.get('disconnected')}")
+    print(f"      - Malicious Profile Purged: {rem.get('profile_purged')}")
+    print(f"      - Rectification Certificate:{rem.get('certificate_path')}")
+    print(f"\n{GREEN}{BOLD}[+] Host network security restored to: 100% CLEAN & PROTECTED.{RESET}\n")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
@@ -763,10 +891,14 @@ def run_interactive_menu():
         print("  [19] Show Full Military-Grade Platform Security Posture")
         print("  [20] Run Cross-Platform Controlled Attack Simulation (Kali RAT, Windows Shell, Mobile)")
         print("  [21] Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
-        print("  [22] Exit")
+        print("  [22] Audit Physical Wi-Fi, Rogue AP & ARP Poisoning Security (Evil Twin / MitM)")
+        print("  [23] Harden Network Stack (Disable LLMNR, Disable ICMP Redirects, Flush Caches)")
+        print("  [24] Pin & Trust Current Wi-Fi Network Signature (Prevent Clone Spoofing)")
+        print("  [25] Emergency Disconnect / Sever Connection from Wi-Fi")
+        print("  [26] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [1-22]: ").strip()
+        choice = input("Select an option [1-26]: ").strip()
 
         if choice == "1":
             cmd_live_safeguard(continuous=False)
@@ -853,7 +985,19 @@ def run_interactive_menu():
             inc = input("Enter Incident ID to contain & preserve (or leave blank for 'latest'): ").strip() or "latest"
             cmd_contain_and_preserve(inc)
             input("\nPress Enter to return to menu...")
-        elif choice in ("22", "q", "exit"):
+        elif choice == "22":
+            cmd_scan_wifi()
+            input("\nPress Enter to return to menu...")
+        elif choice == "23":
+            cmd_harden_network()
+            input("\nPress Enter to return to menu...")
+        elif choice == "24":
+            cmd_trust_wifi()
+            input("\nPress Enter to return to menu...")
+        elif choice == "25":
+            cmd_disconnect_wifi()
+            input("\nPress Enter to return to menu...")
+        elif choice in ("26", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
         else:
@@ -943,6 +1087,25 @@ def main():
     p_cap = subparsers.add_parser("contain-and-preserve", help="Contain incident and seal forensic crime scene evidence")
     p_cap.add_argument("incident_id", nargs="?", default="latest", help="Incident ID to contain (default: 'latest')")
 
+    # scan-wifi
+    subparsers.add_parser("scan-wifi", help="Audit physical Wi-Fi, Rogue AP, Evil Twin & ARP Poisoning security")
+
+    # guard-wifi
+    p_gwifi = subparsers.add_parser("guard-wifi", help="Real-time continuous Wi-Fi and network guardian daemon")
+    p_gwifi.add_argument("--continuous", action="store_true", help="Run persistent background guardian daemon")
+
+    # harden-network
+    subparsers.add_parser("harden-network", help="Apply OS network hardening (disable LLMNR, ICMP redirects, flush caches)")
+
+    # trust-wifi
+    subparsers.add_parser("trust-wifi", help="Pin current connected Wi-Fi as trusted baseline signature")
+
+    # disconnect-wifi
+    subparsers.add_parser("disconnect-wifi", help="Emergency immediate physical severance from connected Wi-Fi")
+
+    # rectify-wifi
+    subparsers.add_parser("rectify-wifi", help="Freeze network crime-scene evidence into vault (0400), disconnect, and issue certificate")
+
     # interactive
     subparsers.add_parser("interactive", help="Launch interactive menu console")
 
@@ -954,6 +1117,18 @@ def main():
         cmd_live_safeguard(continuous=args.continuous)
     elif args.command == "rectify":
         cmd_rectify_threat(args.target)
+    elif args.command == "scan-wifi":
+        cmd_scan_wifi()
+    elif args.command == "guard-wifi":
+        cmd_guard_wifi(continuous=args.continuous)
+    elif args.command == "harden-network":
+        cmd_harden_network()
+    elif args.command == "trust-wifi":
+        cmd_trust_wifi()
+    elif args.command == "disconnect-wifi":
+        cmd_disconnect_wifi()
+    elif args.command == "rectify-wifi":
+        cmd_rectify_wifi()
     elif args.command == "scan-link":
         cmd_scan_link(args.url)
     elif args.command == "deep-scan":

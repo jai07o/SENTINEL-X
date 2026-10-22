@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131.svg?style=flat&logo=tauri)](https://tauri.app)
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4.svg?style=flat&logo=googlechrome)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/Tests-49%2F49_Passed-success.svg)](#10-automated-test-suite--benchmarking)
+[![Tests](https://img.shields.io/badge/Tests-55%2F55_Passed-success.svg)](#10-automated-test-suite--benchmarking)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
@@ -40,6 +40,7 @@
    - [5.20 Unified Threat Containment & Digital Forensics Orchestrator](#520-unified-threat-containment--digital-forensics-orchestrator)
    - [5.21 End-to-End Controlled Attack Simulation & Defense Verification Pipeline](#521-end-to-end-controlled-attack-simulation--defense-verification-pipeline)
    - [5.22 Supreme Real-Time Physical Host Safeguard, Forensics Freeze & Automated Incident Rectifier](#522-supreme-real-time-physical-host-safeguard-forensics-freeze--automated-incident-rectifier)
+   - [5.23 Supreme Real-Time Wi-Fi, Rogue AP, Evil Twin & Network Intrusion Safeguard Engine](#523-supreme-real-time-wi-fi-rogue-ap-evil-twin--network-intrusion-safeguard-engine)
 6. [The 25 SOC Operations Web Views](#6-the-25-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -645,6 +646,38 @@ Provides production-grade, physical host protection, active crime scene evidence
 
 ---
 
+### 5.23 Supreme Real-Time Wi-Fi, Rogue AP, Evil Twin & Network Intrusion Safeguard Engine
+Protects laptops, PCs, and mobile companions from wireless airborne hacking, cloned access points, and local subnet Man-in-the-Middle attacks (`wifi_guard_service.py`):
+- **Evil Twin & Rogue Access Point Hunter (`WiFiThreatDetector`)**:
+  - **BSSID Signature Integrity**: Pins known trusted BSSIDs (hardware MAC addresses of legitimate routers) for saved SSIDs into `data/trusted_wifi_signatures.json`. If your device connects to the same SSID but an unexpected BSSID is detected, it raises a **CRITICAL EVIL TWIN ROGUE AP** alert (Wi-Fi Pineapple, Karma, or airbase-ng clone).
+  - **Security Downgrade Stripping Detection**: Detects if a known WPA2/WPA3 network suddenly broadcasts as an unauthenticated or "Open" network (`ROGUE_AP_CIPHER_DOWNGRADE`).
+  - **Duplicate SSID Collisions**: Scans all visible nearby BSSIDs (`netsh wlan show networks mode=bssid` or `nmcli dev wifi`). If an unauthorized rogue AP broadcasts an identical SSID with conflicting ciphers, it raises proximity collision alerts.
+- **Insecure Open Wi-Fi Honeypot Shield**:
+  - Automatically identifies unencrypted wireless connections (`Authentication: Open`, `Cipher: None`).
+  - Alerts the operator that cleartext credentials and sessions are exposed to airborne packet capture (`INSECURE_OPEN_WIFI_HAZARD`).
+  - Auto-severs connection or provides one-click emergency disconnect (`netsh wlan disconnect` or `nmcli dev disconnect`).
+  - Purges open Wi-Fi profiles from the OS store so the laptop never auto-reconnects to public honeypots.
+- **ARP Poisoning & Gateway Hijack Detector (Ettercap / Bettercap MitM)**:
+  - Audits the physical host's active ARP table (`arp -a`).
+  - **Duplicate MAC Analysis**: Detects if the Default Gateway IP shares its physical MAC address with another local peer machine on the subnet.
+  - Flags active ARP spoofing and Man-in-the-Middle traffic interception with **CRITICAL** severity.
+- **Rogue DNS & DHCP Resolver Monitor**:
+  - Audits active DNS client server addresses on physical adapters.
+  - Flags unexpected external DNS resolvers that differ from the gateway and known secure public providers (Cloudflare `1.1.1.1`, Google `8.8.8.8`, Quad9 `9.9.9.9`).
+- **Physical Host Network Stack Hardening (`WiFiNetworkHardener`)**:
+  - **LLMNR Disabling**: Hardens Windows Registry (`HKLM\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\EnableMulticast = 0`) to defeat Responder / Inveigh multicast credential theft.
+  - **ICMP Redirect Disabling**: Disables ICMP route redirects (`netsh int ip set global icmpredirects=disabled`).
+  - **Poison Cache Flush**: Clears ARP poison bindings and flushes DNS cache (`ipconfig /flushdns` and `netsh interface ip delete arpcache`).
+- **Pre-Severance Volatile Network Forensics Vault (`WiFiForensicVault`)**:
+  - Seals active network crime-scene evidence (BSSID, cipher, visible APs, ARP table, gateway MAC, DNS resolvers, active sockets) into `data/evidence/WIFI_SCENE_{evidence_number}.json` with read-only lock (`0400`).
+  - Issues signed **Wi-Fi & Network Incident Rectification Certificate** (`data/reports/CERT-WIFI-RECTIFY-*.md`).
+  - Automatically records `Incident`, `ForensicCase`, `EvidenceItem`, `ChainOfCustodyRecord`, and `ResponseAction` into the central database.
+- **Unified Engine Access**:
+  - **Terminal CLI**: `python cli.py scan-wifi`, `python cli.py guard-wifi [--continuous]`, `python cli.py harden-network`, `python cli.py trust-wifi`, `python cli.py disconnect-wifi`, `python cli.py rectify-wifi`.
+  - **REST API**: `GET /api/v1/wifi-guard/status`, `GET /api/v1/wifi-guard/audit`, `POST /api/v1/wifi-guard/trust`, `POST /api/v1/wifi-guard/harden`, `POST /api/v1/wifi-guard/disconnect`, `POST /api/v1/wifi-guard/rectify`.
+
+---
+
 ## 6. The 25 SOC Operations Web Views
 
 The SENTINEL-X web interface provides 25 dedicated, fully wired operational views:
@@ -861,6 +894,18 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `POST` | `/api/v1/safeguard/daemon/start` | Admin | Start real-time background protection daemon with configurable poll interval. |
 | `POST` | `/api/v1/safeguard/daemon/stop` | Admin | Terminate the real-time background protection daemon cleanly. |
 | `POST` | `/api/v1/safeguard/rectify` | Admin | Atomically freeze crime-scene forensics, kill threat process tree, wipe persistence, quarantine dropper, and issue signed Rectification Certificate. |
+
+### Supreme Wi-Fi, Rogue AP & Network Defense (`/wifi-guard`)
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/wifi-guard/status` | Bearer | Retrieve live Wi-Fi connection parameters, background daemon state, and pulse metrics. |
+| `GET` | `/api/v1/wifi-guard/audit` | Bearer | Execute full physical Wi-Fi sweep (BSSID, cipher, ARP cache, gateway MAC, DNS resolvers, Evil Twin detection). |
+| `POST` | `/api/v1/wifi-guard/trust` | Analyst | Pin active Wi-Fi SSID, BSSID, and Cipher as trusted baseline signature to detect clone APs. |
+| `POST` | `/api/v1/wifi-guard/harden` | Admin | Apply OS-level network stack hardening (disable LLMNR multicast, disable ICMP redirects, flush poison caches). |
+| `POST` | `/api/v1/wifi-guard/disconnect` | Admin | Emergency immediate physical severance from hostile/rogue Wi-Fi. |
+| `POST` | `/api/v1/wifi-guard/rectify` | Admin | Atomically freeze network crime-scene evidence into vault (`0400`), disconnect from rogue AP, purge profile, flush caches, and issue signed certificate. |
+| `POST` | `/api/v1/wifi-guard/daemon/start` | Admin | Engage real-time continuous background Wi-Fi and network guardian daemon with auto-sever. |
+| `POST` | `/api/v1/wifi-guard/daemon/stop` | Admin | Terminate the continuous background Wi-Fi guardian loop cleanly. |
 
 ---
 
@@ -1079,6 +1124,12 @@ python launcher.py cli
 | **One-Click Contain & Preserve** | `python cli.py contain-and-preserve [ID]` | Freezes volatile crime-scene memory & socket evidence in cryptographically locked vault (`0400`), marks incident Contained, isolates host network, and updates custody ledger. |
 | **Supreme Live Host Safeguard** | `python cli.py safeguard [-c]` | Real-time physical host intrusion hunt (RATs, reverse shells, masqueraded binaries, C2 beacons, miners) with optional continuous background daemon mode (`-c`). |
 | **Supreme Incident Rectification** | `python cli.py rectify <PID_OR_NAME>` | Atomically freezes volatile physical crime-scene evidence into immutable vault (`0400`), terminates process tree, wipes registry & startup persistence, quarantines dropper, flushes DNS cache, and generates signed Rectification Certificate. |
+| **Physical Wi-Fi Security Audit** | `python cli.py scan-wifi` | Audits physical Wi-Fi connection, detects Evil Twin clone APs, flags open honeypot Wi-Fi, inspects ARP cache for duplicate MAC gateway hijacking, and checks DNS server legitimacy. |
+| **Wi-Fi Guardian Daemon** | `python cli.py guard-wifi [--continuous]`| Real-time background daemon continuously auditing Wi-Fi, automatically executing emergency severance upon detecting rogue APs or ARP poisoning. |
+| **Host Network Stack Hardening** | `python cli.py harden-network` | Hardens physical OS network stack: disables LLMNR multicast (defeats Responder NTLM relay theft), disables ICMP redirects, flushes ARP and DNS caches. |
+| **Pin & Trust Wi-Fi Signature** | `python cli.py trust-wifi` | Pins active Wi-Fi SSID, BSSID, and cipher as trusted baseline to detect future Evil Twin and clone AP spoofing attacks. |
+| **Emergency Wi-Fi Severance** | `python cli.py disconnect-wifi` | Instantly severs connection from hostile or rogue Wi-Fi access point. |
+| **Wi-Fi Incident Rectification** | `python cli.py rectify-wifi` | Freezes network crime-scene evidence into vault (`0400`), severs connection from rogue AP, purges malicious profile, flushes caches, and produces signed certificate. |
 
 ---
 
@@ -1095,7 +1146,7 @@ The test suite validates all defensive boundaries, normalization logic, and end-
 python3 -m pytest -v
 ```
 
-### Verified Test Matrix (49/49 Passing)
+### Verified Test Matrix (55/55 Passing)
 | Test Suite | Purpose | Status |
 | :--- | :--- | :--- |
 | `test_normalization.py` | Multi-timestamp parsing, canonical payload hashing, duplicate suppression | **PASS** |
@@ -1109,6 +1160,7 @@ python3 -m pytest -v
 | `test_data_management_and_ports.py` | Universal database purge, storage stats, hardware port enumeration, cable device virus detection, host immunization, drive vaccination, BadUSB scanning, and port quarantine/release | **PASS** |
 | `test_platform_armor_and_security.py` | Cryptographic code self-integrity audit, adaptive anti-brute-force lockout, path traversal guard, shell injection sanitizer, and military-grade HTTP security headers | **PASS** |
 | `test_live_hack_containment_forensics.py` | Cross-platform controlled attack simulations (Kali Linux RAT, Windows reverse shell, Mobile spyware), automated crime-scene volatile evidence vault preservation, SHA-256 verification, safe host containment, and one-click API | **PASS** |
+| `test_wifi_network_guardian.py` | Wi-Fi Evil Twin / Rogue AP detection, cipher downgrade stripping, open Wi-Fi honeypots, ARP poisoning / MitM gateway duplicate MAC hijack, network stack hardening, and pre-severance volatile evidence vaulting | **PASS** |
 
 ---
 

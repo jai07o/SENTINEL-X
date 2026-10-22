@@ -46,17 +46,51 @@ WHITE = "\033[97m"
 
 
 def print_banner():
+    try:
+        import socket
+        import platform
+        hname = socket.gethostname()
+        os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
+        battery = psutil.sensors_battery()
+        dev_type = "Mobile / Handheld" if os.path.exists("/data/data/com.termux") else ("Laptop" if battery else "Desktop PC")
+        bat_str = f" | Battery: {round(battery.percent)}% {'[Charging]' if battery.power_plugged else '[Discharging]'}" if battery else " | Power: AC Line"
+    except Exception:
+        hname = "Connected Host"
+        os_info = "Multi-OS Target"
+        dev_type = "Physical Device"
+        bat_str = ""
+
     banner = f"""{CYAN}{BOLD}
-======================================================================
-  ███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗     
-  ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║     
-  ███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║     
-  ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║     
-  ███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
-  ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝
-             SENTINEL-X 360° TOTAL SAFEGUARD ANALYZER               
-   Created by: K. Jaideep Raj (Student) | Powered by Google Antigravity
-======================================================================{RESET}"""
+                   /\\                                    /\\  
+                  /  \\  .------------------------.  /  \\ 
+                 |    \\/   .----------------.   \\/    |
+                 |    /   /   {BLUE}\\          /   {CYAN}\\   \\    |
+                 |   |   |     {BLUE}\\        /     {CYAN}|   |   |
+                 |   |   |   {GREEN}==[{BLUE}\\      /{GREEN}]==   {CYAN}|   |   |
+                 |   |   |       {BLUE}\\    /       {CYAN}|   |   |
+                 |   |   |        {BLUE}\\  /        {CYAN}|   |   |
+                 |   |   |         {WHITE}><         {CYAN}|   |   |
+                 |   |   |        {BLUE}/  \\        {CYAN}|   |   |
+                 |   |   |       {BLUE}/    \\       {CYAN}|   |   |
+                 |   |   |   {GREEN}==[{BLUE}/      \\{GREEN}]==   {CYAN}|   |   |
+                 |   |   |     {BLUE}/        \\     {CYAN}|   |   |
+                 |    \\   \\   {BLUE}/          \\   {CYAN}/   /    |
+                 |    /\\   '----------------'   /\\    |
+                  \\  /  \\                        /  \\  / 
+                   \\/    '------------------------'    \\/
+
+        ____  _____ _   _ _____ ___ _   _ _____ _     __  __ 
+       / ___|| ____| \\ | |_   _|_ _| \\ | | ____| |    \\ \\/ / 
+       \\___ \\|  _| |  \\| | | |  | ||  \\| |  _| | |     \\  /  
+        ___) | |___| |\\  | | |  | || |\\  | |___| |___  /  \\  
+       |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ 
+{RESET}========================================================================
+ {WHITE}{BOLD}SENTINEL-X -- Unified Cyber Defense, Testing, Forensics & Investigation Platform{RESET}
+ {WHITE}Author & Creator:{RESET} {GREEN}{BOLD}K. Jaideep Raj (Student & Security Enthusiast){RESET} via {CYAN}{BOLD}Google Antigravity{RESET}
+ {WHITE}Architecture:{RESET} {YELLOW}Multi-OS Live Guard (Windows, Linux, Android & Chrome Extension){RESET}
+ {WHITE}Edition:{RESET} {YELLOW}Enterprise SOC v2.4.0{RESET} | {WHITE}Status:{RESET} {GREEN}[SHIELD ONLINE - ZERO-TRUST REAL-TIME GUARD]{RESET}
+ {WHITE}Connected Host:{RESET} {CYAN}{BOLD}{hname}{RESET} ({dev_type}) | {WHITE}OS:{RESET} {os_info}{bat_str}
+========================================================================"""
     print(banner)
 
 
@@ -1580,7 +1614,11 @@ def main():
 
     if not args.command or args.command == "interactive":
         run_interactive_menu()
-    elif args.command == "list-ports":
+        return
+
+    print_banner()
+
+    if args.command == "list-ports":
         cmd_list_all_hardware_ports()
     elif args.command == "system-scan":
         cmd_active_system_scan()

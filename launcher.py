@@ -197,20 +197,71 @@ except Exception:
     pass
 
 
+# ANSI Color Codes
+RESET = "\033[0m"
+BOLD = "\033[1m"
+CYAN = "\033[96m"
+BLUE = "\033[94m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+WHITE = "\033[97m"
+
+
 def print_banner():
-    print("=" * 65)
-    print("   ____  _____ _   _ _____ ___ _   _ _____ _     __  __ ")
-    print("  / ___|| ____| \\ | |_   _|_ _| \\ | | ____| |    \\ \\/ / ")
-    print("  \\___ \\|  _| |  \\| | | |  | ||  \\| |  _| | |     \\  /  ")
-    print("   ___) | |___| |\\  | | |  | || |\\  | |___| |___  /  \\  ")
-    print("  |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ ")
-    print("                 SENTINEL-X CONTROL CENTER              ")
-    print("=" * 65)
+    try:
+        import socket
+        import platform
+        import psutil
+        hname = socket.gethostname()
+        os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
+        battery = psutil.sensors_battery()
+        dev_type = "Mobile / Handheld" if os.path.exists("/data/data/com.termux") else ("Laptop" if battery else "Desktop PC")
+        bat_str = f" | Battery: {round(battery.percent)}% {'[Charging]' if battery.power_plugged else '[Discharging]'}" if battery else " | Power: AC Line"
+    except Exception:
+        hname = "Connected Host"
+        os_info = "Multi-OS Target"
+        dev_type = "Physical Device"
+        bat_str = ""
+
+    banner = f"""{CYAN}{BOLD}
+                   /\\                                    /\\  
+                  /  \\  .------------------------.  /  \\ 
+                 |    \\/   .----------------.   \\/    |
+                 |    /   /   {BLUE}\\          /   {CYAN}\\   \\    |
+                 |   |   |     {BLUE}\\        /     {CYAN}|   |   |
+                 |   |   |   {GREEN}==[{BLUE}\\      /{GREEN}]==   {CYAN}|   |   |
+                 |   |   |       {BLUE}\\    /       {CYAN}|   |   |
+                 |   |   |        {BLUE}\\  /        {CYAN}|   |   |
+                 |   |   |         {WHITE}><         {CYAN}|   |   |
+                 |   |   |        {BLUE}/  \\        {CYAN}|   |   |
+                 |   |   |       {BLUE}/    \\       {CYAN}|   |   |
+                 |   |   |   {GREEN}==[{BLUE}/      \\{GREEN}]==   {CYAN}|   |   |
+                 |   |   |     {BLUE}/        \\     {CYAN}|   |   |
+                 |    \\   \\   {BLUE}/          \\   {CYAN}/   /    |
+                 |    /\\   '----------------'   /\\    |
+                  \\  /  \\                        /  \\  / 
+                   \\/    '------------------------'    \\/
+
+        ____  _____ _   _ _____ ___ _   _ _____ _     __  __ 
+       / ___|| ____| \\ | |_   _|_ _| \\ | | ____| |    \\ \\/ / 
+       \\___ \\|  _| |  \\| | | |  | ||  \\| |  _| | |     \\  /  
+        ___) | |___| |\\  | | |  | || |\\  | |___| |___  /  \\  
+       |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ 
+{RESET}========================================================================
+ {WHITE}{BOLD}SENTINEL-X -- Unified Cyber Defense, Testing, Forensics & Investigation Platform{RESET}
+ {WHITE}Author & Creator:{RESET} {GREEN}{BOLD}K. Jaideep Raj (Student & Security Enthusiast){RESET} via {CYAN}{BOLD}Google Antigravity{RESET}
+ {WHITE}Architecture:{RESET} {YELLOW}Multi-OS Live Guard (Windows, Linux, Android & Chrome Extension){RESET}
+ {WHITE}Edition:{RESET} {YELLOW}Enterprise SOC Control Center v2.4.0{RESET}
+ {WHITE}Connected Host:{RESET} {CYAN}{BOLD}{hname}{RESET} ({dev_type}) | {WHITE}OS:{RESET} {os_info}{bat_str}
+========================================================================"""
+    print(banner)
 
 
 def main():
     if len(sys.argv) > 1:
         cmd = sys.argv[1].lower()
+        if cmd not in ("cli", "terminal", "scan", "deep-scan", "system-scan", "repair", "fix", "system-repair"):
+            print_banner()
         if cmd in ("web", "start", "run"):
             start_web_platform()
             return

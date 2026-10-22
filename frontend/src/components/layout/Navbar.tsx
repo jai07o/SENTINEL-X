@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useWebSocket } from '../../context/WebSocketContext';
-import { Shield, Bell, LogOut, Radio, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Shield, Bell, LogOut, Radio, User, Laptop } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -30,6 +31,16 @@ export const Navbar: React.FC = () => {
             Stream: {isConnected ? <span className="text-emerald-400 font-medium">LIVE</span> : <span className="text-slate-500">OFFLINE</span>}
           </span>
         </div>
+
+        {/* Active Local System Guard Pill */}
+        <Link
+          to="/active-system"
+          className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-xs font-mono text-cyan-300 transition"
+          title="Active System & Connected Devices Real-Time Guard"
+        >
+          <Laptop className="w-3.5 h-3.5 text-cyan-400" />
+          <span>ACTIVE HOST & DEVICES GUARD</span>
+        </Link>
       </div>
 
       {/* Right Controls: Notifications, User, Logout */}

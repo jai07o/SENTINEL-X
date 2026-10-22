@@ -36,6 +36,19 @@ def check_url(url: str, timeout: float = 2.0) -> bool:
 
 
 def start_web_platform():
+    try:
+        import psutil
+        import socket
+        import platform
+        hname = socket.gethostname()
+        battery = psutil.sensors_battery()
+        dev_type = "Laptop" if battery else "Desktop PC"
+        bat_str = f" [Battery: {round(battery.percent)}% {'Charging' if battery.power_plugged else 'Battery'}]" if battery else " [AC Power]"
+        print(f"\n[+] Active Host Detected: {hname} ({dev_type} - {platform.system()} {platform.release()}){bat_str}")
+        print("[+] Connecting Live Telemetry & In-Depth Real-Time OS Scanner...")
+    except Exception:
+        pass
+
     print("\n[+] Launching SENTINEL-X Web Platform...")
     backend_running = check_url("http://127.0.0.1:8000/api/v1/health")
     frontend_running = check_url("http://127.0.0.1:5173/")

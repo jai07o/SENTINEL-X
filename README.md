@@ -49,7 +49,8 @@
    - [5.25 Real-Time Socket Guardian, Rogue Backdoor Port Defense & Network Forensics](#525-real-time-socket-guardian-rogue-backdoor-port-defense--network-forensics)
    - [5.26 24/7 Persistent Offline Protection & Autonomous OS Watchdog Shield](#526-247-persistent-offline-protection--autonomous-os-watchdog-shield)
    - [5.27 Supreme 360° Total Safeguard Engine (All 6 Defensive Sectors, 99%-100% Precision & One-Click Total Repair All)](#527-supreme-360-total-safeguard-engine-all-6-defensive-sectors-99-100-precision--one-click-total-repair-all)
-6. [The 26 SOC Operations Web Views](#6-the-26-soc-operations-web-views)
+   - [5.28 Active System Auto-Connection, In-Depth Real-Time OS Deep Scanner & Connected Devices Guard](#528-active-system-auto-connection-in-depth-real-time-os-deep-scanner--connected-devices-guard)
+6. [The 27 SOC Operations Web Views](#6-the-27-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
 9. [Multi-Platform Deployment & Installation Guide](#9-multi-platform-deployment--installation-guide)
@@ -856,11 +857,38 @@ Inspired by the multi-engine paradigm of 360 Total Security and engineered to fa
   - **Terminal CLI**: `python cli.py total-safeguard` and `python cli.py rectify-360`.
   - **REST API**: `GET /api/v1/total-360/audit`, `POST /api/v1/total-360/rectify`, `GET /api/v1/total-360/status`.
 
+### 5.28 Active System Auto-Connection, In-Depth Real-Time OS Deep Scanner & Connected Devices Guard
+- **Automatic Host Connection on Startup**:
+  - Automatically identifies and connects to the active system (Laptop, Desktop PC, or Linux Workstation) where SENTINEL-X is executing.
+  - Distinguishes Laptops from Desktop PCs via hardware battery sensors, AC power plug status, and chassis indicators.
+  - Gathers real-time hardware telemetry: OS build (e.g., Windows 11 Build 26300, Ubuntu 24.04), processor cores (logical and physical), RAM (total and usage percentage), physical disk partitions, and active network interfaces (primary IP and MAC address).
+  - Automatically syncs and registers the local host into the database inventory `hosts` table with status `ONLINE` and initializes 5 dedicated health collectors (`active_host_monitor`, `deep_os_scanner`, `connected_device_guard`, `c2_socket_monitor`, `hardware_port_sentinel`).
+- **Real-Time Telemetry Background Daemon**:
+  - Periodically collects real CPU, RAM, and battery metrics and broadcasts `LOCAL_SYSTEM_TELEMETRY_TICK` events across WebSockets (`/api/v1/ws/live`) to keep operator dashboards live.
+- **In-Depth Real-Time Deep OS Scanner (`execute_deep_os_scan`)**:
+  - **Live Process Inspection**: Evaluates all running processes (`psutil.process_iter()`), checks for binaries executing from temporary/AppData folders, masqueraded system executables, Base64 shell commands, and cryptominers consuming >85% CPU.
+  - **Listening Sockets & C2 Backdoors**: Audits open listening ports (flags suspicious ports 4444, 1337, 5555, 8888, 31337) and active remote network sessions.
+  - **File System Hygiene**: Inspects temporary directories and Downloads for double-extension droppers (`.pdf.exe`), script polyglots, and unauthorized files.
+  - **Security Health Score (0-100%)**: Computes overall posture (`SECURE`, `ATTENTION`, or `COMPROMISED`) with actionable remediation recommendations for every detected anomaly.
+- **Connected Devices Discovery & Targeted Deep Scanning**:
+  - **Connected Mobile Smartphones & Tablets (Android / iOS)**: Discovers devices connected via USB (MTP, ADB, or USB Tethering). Enforces Juice-Jacking Shielding (throttling data pins to charging-only handshake) and scans phone storage for malicious payloads.
+  - **External USB Storage & Removable Drives**: Detects plugged-in flash drives and external disks, inspects volume labels and file systems, auto-immunizes, and scans files for autorun exploits (`autorun.inf`).
+  - **Connected Peripherals (Bluetooth & USB)**: Discovers Bluetooth accessories (headphones, wearables) and USB input devices, applying BadUSB protection.
+  - **Local Subnet / Wi-Fi Network Neighbors**: Inspects ARP neighbor caches to discover active devices and smartphones sharing the local network.
+- **Dedicated Web Console Interface (`/active-system`)**:
+  - Features real-time host hardware gauges, live battery status, one-click `[RUN IN-DEPTH DEEP SCAN]`, and direct `[Deep Scan Mobile]` / `[Deep Scan Drive]` actions.
+- **REST API Endpoints**:
+  - `GET /api/v1/system/active-host`: Returns live hardware profile, battery status, and OS environment.
+  - `POST /api/v1/system/deep-scan`: Triggers real-time in-depth OS scan.
+  - `GET /api/v1/system/connected-devices`: Discovers all connected mobiles, USB drives, Bluetooth peripherals, and network neighbors.
+  - `POST /api/v1/system/scan-connected-device`: Deep scans a chosen mobile phone or USB drive.
+  - `POST /api/v1/system/sync-local-host`: Syncs host identity with database inventory.
+
 ---
 
-## 6. The 26 SOC Operations Web Views
+## 6. The 27 SOC Operations Web Views
 
-The SENTINEL-X web interface provides 26 dedicated, fully wired operational views:
+The SENTINEL-X web interface provides 27 dedicated, fully wired operational views:
 
 ```
 [Overview]           [Omni Threat Scanner]├── [Live Events]        [Incidents]
@@ -928,6 +956,8 @@ The SENTINEL-X web interface provides 26 dedicated, fully wired operational view
     API key management, database connection stats, retention policies, and Universal Data Management Purge Card (table-by-table purges and Master Data Wipe with confirmation modal).
 26. **360° Total Safeguard Console (`/total-360`)**:
     Full 360-degree unified multi-sector defense console inspired by 360 Total Security: scans all 6 physical and virtual attack vectors (Physical Hardware/Chargers, Wi-Fi/Network, Sockets/Backdoors, Processes/Memory, Privacy/Camera, and Zero-Runtime OS Shield) with 99.8% precision, and features One-Click Total Repair All with immutable crime-scene evidence freezing and Master Certificate generation.
+27. **Active System & Connected Devices Guard (`/active-system`)**:
+    Real-time local machine profile (Laptop vs Desktop detection, battery status, logical & physical CPU cores, RAM load, storage partitions, and primary IP/MAC address) with one-click In-Depth OS Deep Scan (processes, listening sockets, autostart persistence, temporary files), live Connected Devices Guard (Smartphones/Mobiles via USB MTP/ADB, external USB storage, Bluetooth accessories, local network peers), and targeted device juice-jacking and malware scans.
 
 ---
 
@@ -1115,6 +1145,15 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `GET` | `/api/v1/total-360/audit` | Bearer | Comprehensive full-spectrum sweep across all 6 defensive sectors (Physical, Wi-Fi, Sockets, Processes, Privacy, Zero-Runtime Shield); returns 99.8% precision score and sector health metrics. |
 | `POST` | `/api/v1/total-360/rectify` | Admin | One-Click Total Repair All: atomically freezes volatile multi-sector crime scene into evidence vault (`0400`), neutralizes active intrusions, hardens OS policies, installs persistent 24/7 background watchdog, and issues master certificate. |
 | `GET` | `/api/v1/total-360/status` | Bearer | Real-time status of all 6 defensive sectors, overall system security score (0-100%), and active protection engines. |
+
+### Active System & Connected Devices Guard (`/system`)
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/system/active-host` | Bearer | Retrieve live active host hardware telemetry (Laptop vs Desktop classification, battery percentage & charging status, CPU/RAM/disks, primary IP, and MAC address). |
+| `POST` | `/api/v1/system/deep-scan` | Analyst | Execute real-time in-depth OS deep scan (processes, listening sockets, autostart persistence, temporary files); computes overall security health score. |
+| `GET` | `/api/v1/system/connected-devices` | Bearer | Enumerate all connected physical and wireless devices (mobile smartphones via USB MTP/ADB, external USB storage, Bluetooth accessories, local Wi-Fi neighbors). |
+| `POST` | `/api/v1/system/scan-connected-device` | Analyst | Execute targeted deep scan on a connected mobile device or USB drive (checks Juice-Jacking protection, autorun exploits, and file integrity). |
+| `POST` | `/api/v1/system/sync-local-host` | Analyst | Force synchronizes and registers the active machine's hardware identity into the central database inventory table. |
 
 ---
 

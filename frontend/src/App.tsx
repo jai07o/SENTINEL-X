@@ -32,6 +32,7 @@ import { FolderScannerPage } from './pages/FolderScannerPage';
 import { OmniScanPage } from './pages/OmniScanPage';
 import { HardwarePortsPage } from './pages/HardwarePortsPage';
 import { Total360SafeguardPage } from './pages/Total360SafeguardPage';
+import { ActiveSystemPage } from './pages/ActiveSystemPage';
 
 const ProtectedLayout: React.FC<{ children?: React.ReactNode }> = () => {
   const { user, isLoading } = useAuth();
@@ -57,6 +58,7 @@ const ProtectedLayout: React.FC<{ children?: React.ReactNode }> = () => {
         <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
           <Routes>
             <Route path="/" element={<OverviewPage />} />
+            <Route path="/active-system" element={<ActiveSystemPage />} />
             <Route path="/total-360" element={<Total360SafeguardPage />} />
             <Route path="/omniscan" element={<OmniScanPage />} />
             <Route path="/hardware-ports" element={<HardwarePortsPage />} />

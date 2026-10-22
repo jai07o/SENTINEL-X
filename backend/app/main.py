@@ -92,11 +92,22 @@ async def lifespan(app: FastAPI):
                     version=r.get("version", "1.0.0"),
                 )
                 session.add(rule_model)
-        await session.commit()
+        # 4. Auto-connect to active local system (laptop/desktop) and register hardware identity
+        try:
+            from backend.app.services.active_system_service import active_system_guardian
+            await active_system_guardian.auto_connect_and_register()
+            active_system_guardian.start_realtime_daemon()
+        except Exception:
+            pass
 
     yield
 
     # Shutdown
+    try:
+        from backend.app.services.active_system_service import active_system_guardian
+        await active_system_guardian.stop_daemon()
+    except Exception:
+        pass
     try:
         from backend.app.services.autonomous_sentinel_service import autonomous_sentinel_service
         await autonomous_sentinel_service.stop()

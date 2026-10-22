@@ -249,7 +249,6 @@ def print_banner():
        |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ 
 {RESET}========================================================================
  {WHITE}{BOLD}SENTINEL-X -- Unified Cyber Defense, Testing, Forensics & Investigation Platform{RESET}
- {WHITE}Author & Creator:{RESET} {GREEN}{BOLD}K. Jaideep Raj (Student & Security Enthusiast){RESET} via {CYAN}{BOLD}Google Antigravity{RESET}
  {WHITE}Architecture:{RESET} {YELLOW}Multi-OS Live Guard (Windows, Linux, Android & Chrome Extension){RESET}
  {WHITE}Edition:{RESET} {YELLOW}Enterprise SOC Control Center v2.4.0{RESET}
  {WHITE}Connected Host:{RESET} {CYAN}{BOLD}{hname}{RESET} ({dev_type}) | {WHITE}OS:{RESET} {os_info}{bat_str}

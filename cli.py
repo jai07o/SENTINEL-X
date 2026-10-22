@@ -86,7 +86,6 @@ def print_banner():
        |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ 
 {RESET}========================================================================
  {WHITE}{BOLD}SENTINEL-X -- Unified Cyber Defense, Testing, Forensics & Investigation Platform{RESET}
- {WHITE}Author & Creator:{RESET} {GREEN}{BOLD}K. Jaideep Raj (Student & Security Enthusiast){RESET} via {CYAN}{BOLD}Google Antigravity{RESET}
  {WHITE}Architecture:{RESET} {YELLOW}Multi-OS Live Guard (Windows, Linux, Android & Chrome Extension){RESET}
  {WHITE}Edition:{RESET} {YELLOW}Enterprise SOC v2.4.0{RESET} | {WHITE}Status:{RESET} {GREEN}[SHIELD ONLINE - ZERO-TRUST REAL-TIME GUARD]{RESET}
  {WHITE}Connected Host:{RESET} {CYAN}{BOLD}{hname}{RESET} ({dev_type}) | {WHITE}OS:{RESET} {os_info}{bat_str}
@@ -1004,8 +1003,7 @@ def cmd_offline_shield_status():
     print(f"\n{BOLD}Autonomous OS Watchdog Task:{RESET}")
     print(f"  - Task Name:       {wd.get('task_name')}")
     print(f"  - Status:          {wd.get('status')}")
-    print(f"  - Watchdog Script: {wd.get('watchdog_script')}")
-    print(f"  - Architect:       K. Jaideep Raj | Google Antigravity\n")
+    print(f"  - Watchdog Script: {wd.get('watchdog_script')}\n")
 
 
 def cmd_apply_offline_hardening():
@@ -1193,8 +1191,7 @@ def cmd_list_all_hardware_ports():
     from backend.app.services.active_system_service import active_system_guardian
     print(f"\n{CYAN}{BOLD}{'=' * 78}{RESET}")
     print(f" {CYAN}{BOLD}SENTINEL-X PHYSICAL & HARDWARE PORT MATRIX (ALL PORTS INSPECTION){RESET}")
-    print(f"{CYAN}{BOLD}{'=' * 78}{RESET}")
-    print(f" Creator:  K. Jaideep Raj (Student & Security Enthusiast) via Google Antigravity\n")
+    print(f"{CYAN}{BOLD}{'=' * 78}{RESET}\n")
 
     ports_data = active_system_guardian.enumerate_all_hardware_ports()
     cats = ports_data.get("categories", {})

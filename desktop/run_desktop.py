@@ -97,7 +97,6 @@ def find_browser_binaries():
 def main():
     print("=" * 65)
     print("  SENTINEL-X — Dedicated Native Desktop SOC Console")
-    print("  Creator: K. Jaideep Raj (Student & Security Enthusiast)")
     print("=" * 65)
 
     # 1. Ensure backend is running

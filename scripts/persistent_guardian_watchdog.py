@@ -41,7 +41,6 @@ logger = logging.getLogger("SENTINELX_WATCHDOG")
 def run_watchdog_loop(poll_interval: float = 4.0):
     logger.info("=" * 70)
     logger.info("SENTINEL-X Autonomous Persistent Perimeter Watchdog Started")
-    logger.info("Architect & Creator: K. Jaideep Raj | Google Antigravity")
     logger.info(f"Target: {os.environ.get('COMPUTERNAME') or 'LOCAL_HOST'} ({sys.platform})")
     logger.info(f"Logging to: {LOG_FILE}")
     logger.info("=" * 70)

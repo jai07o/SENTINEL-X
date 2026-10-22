@@ -111,12 +111,8 @@ export const Total360SafeguardPage: React.FC = () => {
                   </span>
                 </h1>
                 <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-                  <Award className="w-3.5 h-3.5 text-amber-400" />
-                  <span>
-                    Created & Developed by: <strong className="text-slate-200">K. Jaideep Raj</strong> (Student & Security Enthusiast)
-                  </span>
-                  <span className="text-slate-600">|</span>
-                  <span>Powered by <strong className="text-cyan-400">Google Antigravity</strong></span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Full-Spectrum 6-Sector Unified Perimeter Defense & Real-Time Incident Rectification</span>
                 </p>
               </div>
             </div>

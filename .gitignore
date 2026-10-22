@@ -38,6 +38,9 @@ venv.bak/
 *.sqlite
 *.sqlite3
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 sentinel_dev.db
 data/uploads/*
 !data/uploads/.gitkeep

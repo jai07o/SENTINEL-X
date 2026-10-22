@@ -1,6 +1,6 @@
 """
 SENTINEL-X Autonomous Persistent Hardware & Socket Watchdog
-Creator & Chief Security Architect: K. Jaideep Raj
+Creator & Developer: K. Jaideep Raj (Student & Security Enthusiast)
 Platform: Google Antigravity
 
 Runs autonomously 24/7 as an OS background service / scheduled task.

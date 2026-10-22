@@ -44,7 +44,7 @@ class PhysicalPerimeterForensicVault:
     SHA-256/MD5 payload hashes, Shannon entropy, PE metadata, origin details)
     into data/evidence/PHYSICAL_SCENE_<INC_ID>.json and marks read-only (0400).
     Issues signed court-admissible Incident Rectification Certificate in data/reports/
-    authored and signed by K. Jaideep Raj (Chief Security Architect) using Google Antigravity.
+    authored and signed by K. Jaideep Raj (Student & Security Enthusiast) using Google Antigravity.
     """
 
     @classmethod
@@ -176,7 +176,7 @@ class PhysicalPerimeterForensicVault:
 
         cert_md = f"""# SENTINEL-X HARDWARE & PHYSICAL CABLE INCIDENT RECTIFICATION CERTIFICATE
 **Certificate ID**: `{cert_id}`  
-**Chief Security Architect & Creator**: **K. Jaideep Raj**  
+**Project Creator & Developer**: **K. Jaideep Raj** (Student & Security Enthusiast)  
 **Engineering Platform**: Google Antigravity  
 **Issuing Authority**: SENTINEL-X Supreme Hardware & Cable Perimeter Defense Engine  
 **Execution Timestamp**: `{now.isoformat()}`  

@@ -10,7 +10,7 @@ Verifies:
 4. SocketForensicVault freezes volatile socket crime scene (0400) and produces signed certificate
 5. SocketThreatNeutralizer terminates process and creates emergency firewall isolation rule
 6. PersistentShieldService audits OS hardening policies and registers autonomous scheduled task
-7. Project Attribution: K. Jaideep Raj (Chief Security Architect) via Google Antigravity verified
+7. Project Attribution: K. Jaideep Raj (Student & Security Enthusiast) via Google Antigravity verified
 """
 import os
 import sys

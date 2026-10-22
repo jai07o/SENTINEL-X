@@ -13,7 +13,7 @@ export class ApiClient {
     localStorage.removeItem('sx_access_token');
   }
 
-  private static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  public static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = this.getToken();
     const headers = new Headers(options.headers || {});
 
@@ -525,7 +525,49 @@ export class ApiClient {
       method: 'POST',
     });
   }
+
+  // 360° Total Safeguard
+  public static async getTotal360Audit() {
+    return this.request<any>('/total-360/audit');
+  }
+
+  public static async rectifyTotal360() {
+    return this.request<any>('/total-360/rectify', {
+      method: 'POST',
+    });
+  }
+
+  public static async getTotal360Status() {
+    return this.request<any>('/total-360/status');
+  }
 }
+
+export const api = {
+  get: async <T = any>(endpoint: string) => {
+    const data = await ApiClient.request<T>(endpoint);
+    return { data };
+  },
+  post: async <T = any>(endpoint: string, body?: any) => {
+    const data = await ApiClient.request<T>(endpoint, {
+      method: 'POST',
+      body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    return { data };
+  },
+  patch: async <T = any>(endpoint: string, body?: any) => {
+    const data = await ApiClient.request<T>(endpoint, {
+      method: 'PATCH',
+      body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    return { data };
+  },
+  delete: async <T = any>(endpoint: string) => {
+    const data = await ApiClient.request<T>(endpoint, {
+      method: 'DELETE',
+    });
+    return { data };
+  },
+};
 
 
 

@@ -54,7 +54,7 @@ class SocketForensicVault:
     Freezes all volatile socket parameters, process lineage, executable hashes,
     local/remote endpoints, and memory strings before process termination or firewall isolation.
     Produces court-admissible signed Incident Rectification Certificate in data/reports/
-    authored and signed by K. Jaideep Raj (Chief Security Architect) using Google Antigravity.
+    authored and signed by K. Jaideep Raj (Student & Security Enthusiast) using Google Antigravity.
     """
 
     @classmethod
@@ -168,7 +168,7 @@ class SocketForensicVault:
 
         cert_md = f"""# SENTINEL-X NETWORK SOCKET & ROGUE PORT RECTIFICATION CERTIFICATE
 **Certificate ID**: `{cert_id}`  
-**Chief Security Architect & Creator**: **K. Jaideep Raj**  
+**Project Creator & Developer**: **K. Jaideep Raj** (Student & Security Enthusiast)  
 **Engineering Platform**: Google Antigravity  
 **Issuing Authority**: SENTINEL-X Supreme Socket & Network Port Defense Engine  
 **Execution Timestamp**: `{now.isoformat()}`  

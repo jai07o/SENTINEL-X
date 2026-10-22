@@ -42,6 +42,7 @@ class PersistentShieldService:
     def __init__(self):
         self.project_root = PROJECT_ROOT
         self.python_exe = sys.executable
+        self.watchdog_task_name = WATCHDOG_TASK_NAME
 
     def get_hardening_status(self) -> Dict[str, Any]:
         """

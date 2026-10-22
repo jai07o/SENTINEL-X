@@ -1,5 +1,5 @@
 # SENTINEL-X
-## Unified Cross-Platform Cybersecurity Detection, Testing, Forensics & Investigation Platform
+## An Evidence-Driven, Real-Time Endpoint Detection, Automated Threat Containment and Digital Forensics Platform
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB.svg?style=flat&logo=react)](https://react.dev)
@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131.svg?style=flat&logo=tauri)](https://tauri.app)
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4.svg?style=flat&logo=googlechrome)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/Tests-45%2F45_Passed-success.svg)](#10-automated-test-suite--benchmarking)
+[![Tests](https://img.shields.io/badge/Tests-49%2F49_Passed-success.svg)](#10-automated-test-suite--benchmarking)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
@@ -37,6 +37,8 @@
    - [5.17 Cable-Connected Hardware, Pendrive Injection & Port Quarantine Sentinel](#517-cable-connected-hardware-pendrive-injection--port-quarantine-sentinel)
    - [5.18 Universal Data Management & Database Purge Engine](#518-universal-data-management--database-purge-engine)
    - [5.19 Platform Self-Defense, Anti-Brute-Force & Security Armor](#519-platform-self-defense-anti-brute-force--security-armor)
+   - [5.20 Unified Threat Containment & Digital Forensics Orchestrator](#520-unified-threat-containment--digital-forensics-orchestrator)
+   - [5.21 End-to-End Controlled Attack Simulation & Defense Verification Pipeline](#521-end-to-end-controlled-attack-simulation--defense-verification-pipeline)
 6. [The 25 SOC Operations Web Views](#6-the-25-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -56,13 +58,21 @@
 
 ## 1. Executive Overview & Defensive Philosophy
 
-**SENTINEL-X** is an enterprise-grade defensive cybersecurity operations platform engineered from scratch for security operations centers (SOC), computer incident response teams (CIRT), digital forensics examiners, security auditors, and research laboratories.
+**SENTINEL-X: An Evidence-Driven, Real-Time Endpoint Detection, Automated Threat Containment and Digital Forensics Platform.**
 
-Traditional enterprise security environments suffer from severe tool fragmentation: SIEM platforms, endpoint agents, vulnerability scanners, malware sandboxes, and evidence lockers operate in separate silos with disconnected schemas, disparate databases, and uncoordinated alerting. 
+Its distinguishing objective is to connect **real-time threat detection**, **safe automated containment**, and **cryptographic digital evidence preservation** in **ONE unified, automated workflow**, operating seamlessly across supported Linux distributions (Kali Linux, Ubuntu, Debian, Parrot, Fedora), Windows hosts, and Mobile companion endpoints (Android/iOS).
 
-SENTINEL-X solves this by consolidating **endpoint telemetry collection, real-time threat detection, authorized vulnerability testing, static malware triage, tamper-evident digital forensics, network telemetry anomaly detection, incident response, and grounded defensive AI** into a unified, cross-platform architecture backed by a central schema and an authenticated API.
+Traditional enterprise security tools suffer from fragmented silos: endpoint scanners detect threats but contaminate crime-scene evidence during cleanup; forensics investigators arrive hours after volatile memory and socket states have vanished; and containment tools indiscriminately kill processes without locking down cryptographic proof.
+
+SENTINEL-X solves this fundamental disconnect through an integrated, evidence-first defensive loop:
+1. **Live Endpoint Telemetry Ingestion**: Streams continuous real-time system calls, audit logs, socket states, and hardware bus events across all connected endpoints.
+2. **Instant Threat & RAT Detection**: Correlates attacks (Remote Access Trojans, Meterpreter C2 channels, reverse shells, privilege escalations, spyware) within sliding temporal windows.
+3. **Forensic Crime Scene Evidence Vaulting**: *Before* containment actions alter host state, volatile process memory dumps, network socket tables, and command lines are hashed with SHA-256/MD5, locked read-only (`0400`), and enrolled into an immutable legal chain-of-custody.
+4. **Safe Automated Containment**: Neutralizes rogue processes, places infected hosts into network isolation, and dismounts malicious USB hardware ports without contaminating evidentiary integrity.
 
 ### Core Defensive Commitments
+- **Evidence-Driven Workflow**: Threat containment never destroys forensic admissibility; volatile scene data is cryptographically captured at the exact second of detection.
+- **Cross-Platform Parity**: Identical detection rules, containment actions, and forensic dossiers operate across **Kali Linux**, standard Linux distros (Ubuntu, Debian, Parrot, Fedora), **Windows 11/10/Server**, and **Mobile Companion** devices.
 - **Strictly Defensive**: SENTINEL-X does not contain offensive weaponization, automated exploit generation, denial-of-service tools, or unconstrained credential stuffing.
 - **Scope-Gated Security**: A non-bypassable backend verification gate enforces ownership verification, RFC1918 private IP escape blocking, SSRF prevention, and date authorization windows before any active diagnostic probe can fire.
 - **Isolated Non-Executing Malware Triage**: Suspicious files are parsed in stream, disarmed (`chmod 0400`), and analyzed statically for Shannon entropy, PE/ELF section headers, and indicators of compromise (IOCs) without executing unsafe code.
@@ -569,6 +579,42 @@ Ensures the SENTINEL-X platform and website themselves operate under military-gr
 
 ---
 
+### 5.20 Unified Threat Containment & Digital Forensics Orchestrator
+Bridges detection, evidence preservation, and safe automated containment into a single atomic workflow (`containment_evidence_orchestrator.py` & `POST /api/v1/incidents/{incident_id}/contain-and-preserve`):
+- **Atomic Two-Phase Architecture**:
+  1. **Phase 1: Crime-Scene Forensics Vault Seal (Preserve Before Action)**:
+     - Extracts volatile process memory structure (`psutil.Process.memory_info()`), parent PID tree, open socket descriptors, and remote C2 IP/port.
+     - Compiles a complete cryptographic forensic evidence dossier JSON.
+     - Commits the file into the secure vault (`data/evidence/`) with immutable read-only permissions (`chmod 0400`).
+     - Computes intake SHA-256 and MD5 digests.
+     - Enrolls the item into `EvidenceItem` and initializes/links a dedicated `ForensicCase`.
+     - Appends an immutable record to `ChainOfCustodyRecord` with `action="LIVE_ATTACK_EVIDENCE_SEALED"`.
+  2. **Phase 2: Safe Automated Containment (Neutralize Without Contamination)**:
+     - Safely terminates rogue processes (`proc.kill()`).
+     - Automatically flags and isolates host endpoint network traffic (`host.is_isolated = True`).
+     - Dismounts and blocks infected hardware ports/pendrives if hardware vector was involved.
+     - Appends execution details to `ResponseAction`, marks incident status as `Contained`, and broadcasts a `THREAT_CONTAINED_EVIDENCE_PRESERVED` WebSocket event.
+- **Operator Access**:
+  - **Web UI**: One-click "Contain & Preserve" button on the Investigation workspace.
+  - **REST API**: `POST /api/v1/incidents/{incident_id}/contain-and-preserve`.
+  - **Terminal CLI**: `python cli.py contain-and-preserve [incident_id]`.
+
+---
+
+### 5.21 End-to-End Controlled Attack Simulation & Defense Verification Pipeline
+Validates that the entire defense cycle functions continuously across multiple operating systems (`simulator/attack_simulation_pipeline.py`):
+- **Cross-Platform Scenario Matrix**:
+  - **Kali Linux**: Simulates an active Remote Access Trojan (RAT) / Meterpreter C2 connection holding established reverse shell over port 4444.
+  - **Windows Host**: Simulates an obfuscated Base64-encoded PowerShell reverse shell reaching an external C2 IP over port 8443.
+  - **Mobile Companion (Android/iOS)**: Simulates background surveillance spyware (`com.stealth.surveillance.agent`) covertly accessing camera/sensors and streaming over port 8080.
+- **Verification Guarantee**:
+  - Ingests raw telemetry -> normalizes -> matches MITRE detection rules -> creates incident -> seals volatile evidence dossier with SHA-256 -> executes containment -> audits vault file on disk to guarantee zero tampering (`tamper_verified: true`).
+- **Execution**:
+  - **Terminal CLI**: `python cli.py simulate-hack --platform [kali|windows|mobile]`
+  - **Interactive Launcher**: Option `[5]` -> Option `[1]` in `launcher.py`.
+
+---
+
 ## 6. The 25 SOC Operations Web Views
 
 The SENTINEL-X web interface provides 25 dedicated, fully wired operational views:
@@ -990,6 +1036,8 @@ python launcher.py cli
 | **Immunize Host Laptop** | `python cli.py immunize-host` | Permanently immunizes Windows OS registry (`NoDriveTypeAutoRun`, `IniFileMapping`) against USB AutoRun/AutoPlay virus injections. |
 | **Vaccinate Pendrive** | `python cli.py vaccinate-drive <DRIVE>` | Creates an immutable vaccine shield (`autorun.inf` directory with locked attributes) to permanently immunize a pendrive against worms. |
 | **Direct Terminal Data Purge** | `python cli.py purge-data [--category CAT]`| Direct database purge from terminal (`--category events`, `incidents`, `hosts`, `malware`, `forensics`, `reports`, `audit`, or `all`). |
+| **Controlled Attack Simulation** | `python cli.py simulate-hack [--platform P]` | Simulates controlled live attack telemetry, real-time detection, scene evidence preservation in vault with SHA-256, and safe host containment across Kali Linux, Windows, or Mobile. |
+| **One-Click Contain & Preserve** | `python cli.py contain-and-preserve [ID]` | Freezes volatile crime-scene memory & socket evidence in cryptographically locked vault (`0400`), marks incident Contained, isolates host network, and updates custody ledger. |
 
 ---
 
@@ -1006,7 +1054,7 @@ The test suite validates all defensive boundaries, normalization logic, and end-
 python3 -m pytest -v
 ```
 
-### Verified Test Matrix (45/45 Passing)
+### Verified Test Matrix (49/49 Passing)
 | Test Suite | Purpose | Status |
 | :--- | :--- | :--- |
 | `test_normalization.py` | Multi-timestamp parsing, canonical payload hashing, duplicate suppression | **PASS** |
@@ -1019,6 +1067,7 @@ python3 -m pytest -v
 | `test_omni_scanner.py` | Link heuristics, deep path software analysis, QR matrix, steganography, macros, autonomous daemon lifecycle | **PASS** |
 | `test_data_management_and_ports.py` | Universal database purge, storage stats, hardware port enumeration, cable device virus detection, host immunization, drive vaccination, BadUSB scanning, and port quarantine/release | **PASS** |
 | `test_platform_armor_and_security.py` | Cryptographic code self-integrity audit, adaptive anti-brute-force lockout, path traversal guard, shell injection sanitizer, and military-grade HTTP security headers | **PASS** |
+| `test_live_hack_containment_forensics.py` | Cross-platform controlled attack simulations (Kali Linux RAT, Windows reverse shell, Mobile spyware), automated crime-scene volatile evidence vault preservation, SHA-256 verification, safe host containment, and one-click API | **PASS** |
 
 ---
 

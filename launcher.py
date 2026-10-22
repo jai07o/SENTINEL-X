@@ -104,11 +104,30 @@ def start_agent():
 def run_simulator():
     print("\n[+] Running Telemetry & Attack Simulator...")
     print("Choose simulator action:")
-    print("  1. Run Detection & EWCC Benchmark")
-    print("  2. Inject SSH Brute-Force & PrivEsc Scenarios into live backend")
-    choice = input("Enter option [1 or 2]: ").strip()
+    print("  1. Run Controlled Attack Simulation Pipeline (Kali RAT, Windows Shell, Mobile Spyware)")
+    print("     [Verifies: Live Telemetry -> Attack Detection -> Forensic Vault Seal -> Containment]")
+    print("  2. Run Detection & EWCC Benchmark")
+    print("  3. Inject SSH Brute-Force & PrivEsc Scenarios into live backend")
+    choice = input("Enter option [1, 2, or 3] (default: 1): ").strip() or "1"
 
     if choice == "1":
+        print("\nSelect target platform:")
+        print("  [1] Kali Linux (Remote Access Trojan & Meterpreter C2)")
+        print("  [2] Windows Host (Encoded PowerShell Reverse Shell)")
+        print("  [3] Mobile Companion (Background Spyware & Sensor Hijack)")
+        print("  [4] All Platforms (Sequential Full Matrix)")
+        p_choice = input("Select platform [1-4] (default: 1): ").strip() or "1"
+        plat_map = {"1": "kali", "2": "windows", "3": "mobile", "4": "all"}
+        target = plat_map.get(p_choice, "kali")
+        
+        cli_path = ROOT_DIR / "cli.py"
+        if target == "all":
+            for p in ("kali", "windows", "mobile"):
+                subprocess.run([str(VENV_PYTHON), str(cli_path), "simulate-hack", "--platform", p], cwd=str(ROOT_DIR))
+        else:
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "simulate-hack", "--platform", target], cwd=str(ROOT_DIR))
+
+    elif choice == "2":
         subprocess.run([str(VENV_PYTHON), "-m", "simulator.benchmark"], cwd=str(ROOT_DIR))
     else:
         script = """

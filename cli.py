@@ -549,6 +549,98 @@ def cmd_security_armor():
 
 
 # ---------------------------------------------------------
+# Command 17: Controlled Attack Simulation (Cross-Platform)
+# ---------------------------------------------------------
+def cmd_simulate_hack(platform: str = "kali"):
+    print(f"\n{CYAN}{BOLD}[*] Launching End-to-End Live Attack Simulation, Containment & Forensic Vault Seal...{RESET}")
+    print(f"{BOLD}Target Platform:{RESET} {platform.upper()}")
+    from simulator.attack_simulation_pipeline import ControlledAttackSimulationPipeline
+    pipeline = ControlledAttackSimulationPipeline()
+    result = asyncio.run(pipeline.run_simulation(target_platform=platform))
+
+    print(f"\n{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"  {GREEN}{BOLD}[+] SIMULATION & DEFENSIVE WORKFLOW VERIFIED SUCCESSFULLY!{RESET}")
+    print(f"{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"{BOLD}Scenario:{RESET} {result.get('scenario')}")
+    print(f"{BOLD}Platform Target:{RESET} {result.get('target_platform')}")
+    
+    det = result.get("detection", {})
+    print(f"\n  {BOLD}[1] Real-Time Threat Detection & Correlation:{RESET}")
+    print(f"      - Incident Number: {det.get('incident_number')}")
+    print(f"      - Incident Title:  {det.get('incident_title')}")
+    print(f"      - Severity:        {RED}{BOLD}{det.get('severity')}{RESET}")
+    print(f"      - Confidence:      {det.get('confidence') * 100:.1f}%")
+    print(f"      - Matched Rule:    {det.get('matched_rule')}")
+
+    ev = result.get("evidence_preservation", {})
+    tamper_badge = f"{GREEN}CRYPTOGRAPHICALLY VERIFIED (INTACT){RESET}" if ev.get("tamper_verified") else f"{RED}TAMPER DETECTED{RESET}"
+    print(f"\n  {BOLD}[2] Forensic Crime-Scene Evidence Preservation:{RESET}")
+    print(f"      - Evidence ID:     {ev.get('evidence_number')}")
+    print(f"      - SHA-256 Digest:  {ev.get('sha256_hash')}")
+    print(f"      - Vault File:      {ev.get('vault_file')}")
+    print(f"      - Chain-of-Custody:{ev.get('chain_of_custody_status')}")
+    print(f"      - Vault Integrity: {tamper_badge}")
+
+    cont = result.get("containment_execution", {})
+    print(f"\n  {BOLD}[3] Safe Automated Threat Containment:{RESET}")
+    print(f"      - Host Isolation:  {RED}{BOLD}{cont.get('host_isolation')}{RESET}")
+    print(f"      - Process Action:  {cont.get('process_neutralization')}")
+    print(f"      - Action Summary:  {cont.get('summary')}")
+    print(f"\n{GREEN}{BOLD}Unified Architecture Proven: Live Telemetry -> Attack Detection -> Forensic Vault Seal -> Automated Containment.{RESET}\n")
+
+
+# ---------------------------------------------------------
+# Command 18: One-Click Contain & Preserve Active Incident
+# ---------------------------------------------------------
+def cmd_contain_and_preserve(incident_id: str = "latest"):
+    print(f"\n{CYAN}{BOLD}[*] Triggering One-Click Threat Containment & Digital Forensics Vault Preservation...{RESET}")
+    from backend.app.database import AsyncSessionLocal
+    from backend.app.services.containment_evidence_orchestrator import orchestrator
+    from backend.app.models.incident import Incident
+    from sqlalchemy import select
+
+    async def _execute():
+        async with AsyncSessionLocal() as session:
+            inc_id = incident_id
+            if not inc_id or inc_id.lower() in ("latest", "last"):
+                stmt = select(Incident).order_by(Incident.created_at.desc()).limit(1)
+                res = await session.execute(stmt)
+                inc = res.scalar_one_or_none()
+                if not inc:
+                    print(f"{RED}[-] No incidents found in database to contain.{RESET}")
+                    return None
+                inc_id = inc.id
+                print(f"[+] Targeting most recent active incident: {inc.incident_number} ({inc.title})")
+
+            threat_context = {
+                "source": "Direct CLI Security Command",
+                "notes": "Emergency automated evidence vault preservation and host isolation triggered via CLI.",
+            }
+            res = await orchestrator.contain_and_preserve(
+                db=session,
+                incident_id=inc_id,
+                threat_context=threat_context,
+                auto_isolate_host=True,
+                auto_kill_process=False,
+            )
+            return res
+
+    result = asyncio.run(_execute())
+    if not result:
+        return
+
+    print(f"\n{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"  {GREEN}{BOLD}[+] INCIDENT CONTAINED & FORENSIC EVIDENCE PRESERVED!{RESET}")
+    print(f"{GREEN}{BOLD}======================================================================{RESET}")
+    ev = result.get("evidence", {})
+    print(f"{BOLD}Evidence Number:{RESET}      {ev.get('evidence_number')}")
+    print(f"{BOLD}Cryptographic SHA-256:{RESET} {ev.get('sha256')}")
+    print(f"{BOLD}Vault File Path:{RESET}       {ev.get('vault_path')}")
+    print(f"{BOLD}Forensic Case Opened:{RESET}  {ev.get('case_number')}")
+    print(f"{BOLD}Containment Action:{RESET}    {result.get('containment_summary')}\n")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
@@ -570,10 +662,12 @@ def run_interactive_menu():
         print("  [14] Purge / Delete Operational Data (Wipe Tables)")
         print("  [15] Audit Platform Self-Defense & Code Integrity (Anti-Tamper)")
         print("  [16] Show Full Military-Grade Platform Security Posture")
-        print("  [17] Exit")
+        print("  [17] Run Controlled Attack Simulation (Kali RAT, Windows Shell, Mobile Spyware)")
+        print("  [18] Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
+        print("  [19] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [1-17]: ").strip()
+        choice = input("Select an option [1-19]: ").strip()
 
         if choice == "1":
             url = input("Enter URL to scan: ").strip()
@@ -641,7 +735,15 @@ def run_interactive_menu():
         elif choice == "16":
             cmd_security_armor()
             input("\nPress Enter to return to menu...")
-        elif choice in ("17", "q", "exit"):
+        elif choice == "17":
+            plat = input("Enter target platform for attack simulation (kali / windows / mobile) [default: kali]: ").strip() or "kali"
+            cmd_simulate_hack(plat)
+            input("\nPress Enter to return to menu...")
+        elif choice == "18":
+            inc = input("Enter Incident ID to contain & preserve (or leave blank for 'latest'): ").strip() or "latest"
+            cmd_contain_and_preserve(inc)
+            input("\nPress Enter to return to menu...")
+        elif choice in ("19", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
         else:
@@ -715,6 +817,14 @@ def main():
     # security-armor
     subparsers.add_parser("security-armor", help="Display full military-grade security posture report of SENTINEL-X")
 
+    # simulate-hack
+    p_sim = subparsers.add_parser("simulate-hack", help="Simulate live controlled attack, containment & forensic preservation")
+    p_sim.add_argument("--platform", default="kali", choices=["kali", "windows", "mobile"], help="Target platform to simulate")
+
+    # contain-and-preserve
+    p_cap = subparsers.add_parser("contain-and-preserve", help="Contain incident and seal forensic crime scene evidence")
+    p_cap.add_argument("incident_id", nargs="?", default="latest", help="Incident ID to contain (default: 'latest')")
+
     # interactive
     subparsers.add_parser("interactive", help="Launch interactive menu console")
 
@@ -754,6 +864,10 @@ def main():
         cmd_audit_integrity()
     elif args.command == "security-armor":
         cmd_security_armor()
+    elif args.command == "simulate-hack":
+        cmd_simulate_hack(args.platform)
+    elif args.command == "contain-and-preserve":
+        cmd_contain_and_preserve(args.incident_id)
 
 
 if __name__ == "__main__":

@@ -158,5 +158,13 @@ class DetectionRulesEngine:
 
         return triggered_incidents
 
+    def evaluate(self, event: Dict[str, Any], host_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Convenience evaluator for an event dictionary.
+        Determines host context and executes process_event.
+        """
+        target_host = host_id or event.get("host_id") or "simulated-host"
+        return self.process_event(target_host, event)
+
 
 rules_engine = DetectionRulesEngine()

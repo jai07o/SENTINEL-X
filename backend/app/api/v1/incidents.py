@@ -238,6 +238,61 @@ async def approve_containment_action(
     return action
 
 
+from backend.app.services.containment_evidence_orchestrator import orchestrator
+
+
+@router.post("/{incident_id}/contain-and-preserve")
+async def contain_and_preserve_incident(
+    incident_id: str,
+    threat_override: Optional[dict] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_analyst),
+):
+    """
+    Unified Automated Threat Containment & Digital Forensics Evidence Preservation.
+    Simultaneously:
+    1. Captures volatile digital forensic evidence at the scene of the hack.
+    2. Seals evidence with SHA-256 in the Digital Forensics Vault with Chain of Custody.
+    3. Safely terminates rogue malware/RAT processes and isolates the affected host.
+    """
+    res = await db.execute(
+        select(Incident)
+        .options(selectinload(Incident.event_links).selectinload(IncidentEventLink.event))
+        .where(Incident.id == incident_id)
+    )
+    incident = res.scalar_one_or_none()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    context = threat_override or {}
+    if not context and incident.event_links:
+        ev = incident.event_links[0].event
+        if ev:
+            context = {
+                "process_pid": ev.process_pid,
+                "process_name": ev.process_name,
+                "process_cmdline": ev.process_cmdline,
+                "src_ip": ev.src_ip,
+                "dst_ip": ev.dst_ip,
+                "dst_port": ev.dst_port,
+                "category": ev.event_category,
+                "title": incident.title,
+            }
+
+    try:
+        result = await orchestrator.contain_and_preserve(
+            db=db,
+            incident_id=incident_id,
+            threat_context=context,
+            executed_by_id=current_user.id,
+            auto_isolate_host=True,
+            auto_kill_process=True,
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Containment and preservation error: {e}")
+
+
 @router.get("/{incident_id}/export")
 async def export_incident(
     incident_id: str,

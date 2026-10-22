@@ -141,3 +141,7 @@ class EventNormalizer:
         }
 
         return normalized, dup_flag
+
+
+# Global singleton instance for easy engine/simulator pipeline usage
+normalizer = EventNormalizer()

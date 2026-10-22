@@ -3,6 +3,28 @@
 All notable changes to the **SENTINEL-X** Cybersecurity Platform will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0-core] - 2026-10-22
+
+### Added
+- **Core Platform Architecture Transition**: Re-centered SENTINEL-X as an *Evidence-Driven, Real-Time Endpoint Detection, Automated Threat Containment and Digital Forensics Platform*.
+- **Unified Threat Containment & Forensics Orchestrator (`containment_evidence_orchestrator.py`)**:
+  - Connects real-time detection, safe containment, and evidence preservation into one automated atomic workflow.
+  - Phase 1: Cryptographically freezes volatile scene context (PID, parent PID, memory footprint, socket connections, remote C2 endpoints) into a read-only vault (`0400`) before any containment alters host state.
+  - Generates intake SHA-256/MD5 hashes, initializes a linked `ForensicCase`, and writes an immutable `ChainOfCustodyRecord`.
+  - Phase 2: Safely neutralizes malicious processes (`proc.kill()`), isolates host endpoint network (`host.is_isolated = True`), dismounts infected USB storage ports, and logs `ResponseAction`.
+- **Cross-Platform Controlled Attack Simulation Pipeline (`attack_simulation_pipeline.py`)**:
+  - Controlled live attack simulations validating detection, containment, and forensics across:
+    - **Kali Linux**: Remote Access Trojan (RAT) / Meterpreter C2 connection.
+    - **Windows Host**: Base64-encoded PowerShell reverse shell reaching external C2 port.
+    - **Mobile Companion**: Covert background surveillance spyware hijacking camera and network streaming.
+- **REST API & CLI Integration**:
+  - Added `POST /api/v1/incidents/{incident_id}/contain-and-preserve` endpoint for one-click containment and evidence preservation.
+  - Added `python cli.py simulate-hack [--platform kali|windows|mobile]` to execute the entire defense cycle from terminal.
+  - Added `python cli.py contain-and-preserve [incident_id]` to contain active threats and vault evidence directly from terminal.
+  - Added option `[5] -> [1]` in `launcher.py` to launch live cross-platform attack simulations and verify automated defense.
+- **Automated Verification Test Suite**:
+  - Added `backend/tests/test_live_hack_containment_forensics.py` bringing total passing test suite to **49/49 Passing**.
+
 ## [0.1.0-alpha] - 2026-10-21
 
 ### Added

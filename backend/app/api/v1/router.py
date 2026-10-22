@@ -20,6 +20,7 @@ from backend.app.api.v1.scanner import router as scanner_router
 from backend.app.api.v1.omniscan import router as omniscan_router
 from backend.app.api.v1.data_management import router as data_management_router
 from backend.app.api.v1.hardware_ports import router as hardware_ports_router
+from backend.app.api.v1.safeguard import router as safeguard_router
 
 api_router = APIRouter()
 
@@ -46,5 +47,6 @@ api_router.include_router(scanner_router, prefix="/scanner", tags=["Workspace Fo
 api_router.include_router(omniscan_router, prefix="/omniscan", tags=["Omni Threat Scanner"])
 api_router.include_router(data_management_router)
 api_router.include_router(hardware_ports_router)
+api_router.include_router(safeguard_router)
 
 

@@ -10,9 +10,10 @@ DATA_DIR = PROJECT_ROOT / "data"
 UPLOAD_DIR = DATA_DIR / "uploads"
 EVIDENCE_DIR = DATA_DIR / "evidence"
 REPORTS_DIR = DATA_DIR / "reports"
+QUARANTINE_DIR = DATA_DIR / "quarantine"
 RULES_DIR = BASE_DIR / "app" / "data"
 
-for directory in (DATA_DIR, UPLOAD_DIR, EVIDENCE_DIR, REPORTS_DIR, RULES_DIR):
+for directory in (DATA_DIR, UPLOAD_DIR, EVIDENCE_DIR, REPORTS_DIR, QUARANTINE_DIR, RULES_DIR):
     directory.mkdir(parents=True, exist_ok=True)
 
 

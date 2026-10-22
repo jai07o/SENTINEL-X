@@ -39,6 +39,7 @@
    - [5.19 Platform Self-Defense, Anti-Brute-Force & Security Armor](#519-platform-self-defense-anti-brute-force--security-armor)
    - [5.20 Unified Threat Containment & Digital Forensics Orchestrator](#520-unified-threat-containment--digital-forensics-orchestrator)
    - [5.21 End-to-End Controlled Attack Simulation & Defense Verification Pipeline](#521-end-to-end-controlled-attack-simulation--defense-verification-pipeline)
+   - [5.22 Supreme Real-Time Physical Host Safeguard, Forensics Freeze & Automated Incident Rectifier](#522-supreme-real-time-physical-host-safeguard-forensics-freeze--automated-incident-rectifier)
 6. [The 25 SOC Operations Web Views](#6-the-25-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -615,6 +616,35 @@ Validates that the entire defense cycle functions continuously across multiple o
 
 ---
 
+### 5.22 Supreme Real-Time Physical Host Safeguard, Forensics Freeze & Automated Incident Rectifier
+Provides production-grade, physical host protection, active crime scene evidence sealing, process termination, and persistence remediation (`live_safeguard_rectifier.py`):
+- **Continuous Physical Host Threat Hunting (`LiveThreatHunter`)**:
+  - Audits live physical OS processes, loaded modules, arguments, and parentage trees across Windows, Kali Linux, and Mobile companions.
+  - **Masquerading Detection**: Identifies rogue binaries attempting to disguise as critical Windows system binaries (e.g. rogue `svchost.exe`, `lsass.exe`, `explorer.exe` running outside legitimate system paths).
+  - **C2 & Reverse Shell Interception**: Correlates live sockets against known RAT / C2 ports (e.g. 4444, 1337, 31337, 5555, 6667, 4443, 8088).
+  - **Encoded Execution Cradles**: Intercepts obfuscated Base64 PowerShell execution cradles (`-enc`, `iex`, `downloadstring`) and interactive bash socket reverse shells (`/dev/tcp/`, `nc -e`).
+  - **Cryptominer Detection**: Detects sustained CPU spikes originating from volatile temporary paths (`AppData\Local\Temp`, `/tmp`, `/dev/shm`).
+- **Pre-Containment Forensics Crime-Scene Freeze (`LiveForensicInvestigator`)**:
+  - **Golden Forensics Rule**: Captures and cryptographically seals volatile evidence *before* altering host process state.
+  - Extracts process memory strings, thread count, loaded DLL/module list, active socket file descriptors, binary disk path, file size, SHA-256 and MD5 hashes, and calculates Shannon entropy.
+  - Seals the volatile crime-scene evidence into `data/evidence/LIVE_SCENE_{evidence_number}.json` with immutable read-only permissions (`0400`).
+  - Updates the official Chain of Custody ledger with intake SHA-256 verification.
+- **Surgical Threat Neutralization (`LiveThreatNeutralizer`)**:
+  - Terminates the malicious process and its entire descendant child process tree using kernel-level process management (`psutil` + `taskkill /F /T /PID` on Windows or `kill -9` on Linux).
+  - Blocks foreign C2 network endpoints dynamically via Windows Defender Firewall (`netsh advfirewall firewall add rule ... action=block`) or Linux `iptables`.
+- **Complete Incident Rectification & System Normalization (`LiveIncidentRectifier`)**:
+  - **Persistence Wipe**: Scans and cleans Windows Registry Run/RunOnce persistence keys (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, `HKLM\Software\Microsoft\Windows\CurrentVersion\Run`, `RunOnce`) removing attacker hooks.
+  - **Startup Remediation**: Cleans unauthorized shortcut links (`.lnk`) and scripts in user/system Startup directories.
+  - **Dropper Disarming & Quarantine**: Moves malicious binary files into `data/quarantine/{sha256}_{filename}.quarantined` with strict zero-execution permissions (`chmod 0000`).
+  - **DNS Resolution Cache Purge**: Flushes the host DNS resolver cache (`ipconfig /flushdns` or `resolvectl flush-caches`) to sever cached malicious domain resolutions.
+  - **Incident Rectification Certificate**: Issues a digitally signed and sealed remediation certificate (`data/reports/CERT-RECTIFY-*.md`) suitable for compliance, auditing, and court submission.
+- **Unified Engine Access**:
+  - **Terminal CLI**: `python cli.py safeguard` (one-shot audit) or `python cli.py safeguard -c` (continuous guardian).
+  - **Direct Rectify**: `python cli.py rectify <PID_OR_NAME>`.
+  - **REST API**: `GET /api/v1/safeguard/status`, `GET /api/v1/safeguard/hunt`, `POST /api/v1/safeguard/rectify`.
+
+---
+
 ## 6. The 25 SOC Operations Web Views
 
 The SENTINEL-X web interface provides 25 dedicated, fully wired operational views:
@@ -822,6 +852,15 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `DELETE` | `/api/v1/forensics/cases/{id}` | Admin | Delete forensic case and disassociate evidence. |
 | `DELETE` | `/api/v1/forensics/evidence/{id}` | Admin | Delete forensic evidence record and purge file from vault. |
 | `DELETE` | `/api/v1/reports/{id}` | Admin | Delete generated investigation report dossier. |
+
+### Supreme Live Safeguard & Forensics Rectifier (`/safeguard`)
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/safeguard/status` | Bearer | Retrieve live operational status, background guardian state, and metrics. |
+| `GET` | `/api/v1/safeguard/hunt` | Bearer | Execute instant physical host sweep; returns active intrusions and risk indicators. |
+| `POST` | `/api/v1/safeguard/daemon/start` | Admin | Start real-time background protection daemon with configurable poll interval. |
+| `POST` | `/api/v1/safeguard/daemon/stop` | Admin | Terminate the real-time background protection daemon cleanly. |
+| `POST` | `/api/v1/safeguard/rectify` | Admin | Atomically freeze crime-scene forensics, kill threat process tree, wipe persistence, quarantine dropper, and issue signed Rectification Certificate. |
 
 ---
 
@@ -1038,6 +1077,8 @@ python launcher.py cli
 | **Direct Terminal Data Purge** | `python cli.py purge-data [--category CAT]`| Direct database purge from terminal (`--category events`, `incidents`, `hosts`, `malware`, `forensics`, `reports`, `audit`, or `all`). |
 | **Controlled Attack Simulation** | `python cli.py simulate-hack [--platform P]` | Simulates controlled live attack telemetry, real-time detection, scene evidence preservation in vault with SHA-256, and safe host containment across Kali Linux, Windows, or Mobile. |
 | **One-Click Contain & Preserve** | `python cli.py contain-and-preserve [ID]` | Freezes volatile crime-scene memory & socket evidence in cryptographically locked vault (`0400`), marks incident Contained, isolates host network, and updates custody ledger. |
+| **Supreme Live Host Safeguard** | `python cli.py safeguard [-c]` | Real-time physical host intrusion hunt (RATs, reverse shells, masqueraded binaries, C2 beacons, miners) with optional continuous background daemon mode (`-c`). |
+| **Supreme Incident Rectification** | `python cli.py rectify <PID_OR_NAME>` | Atomically freezes volatile physical crime-scene evidence into immutable vault (`0400`), terminates process tree, wipes registry & startup persistence, quarantines dropper, flushes DNS cache, and generates signed Rectification Certificate. |
 
 ---
 

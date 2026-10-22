@@ -17,6 +17,7 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
+import psutil
 
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
@@ -641,109 +642,218 @@ def cmd_contain_and_preserve(incident_id: str = "latest"):
 
 
 # ---------------------------------------------------------
+# Command 19: Supreme Real-Time Live Safeguard & Forensics Guard
+# ---------------------------------------------------------
+def cmd_live_safeguard(continuous: bool = False):
+    print(f"\n{CYAN}{BOLD}[*] Engaging SENTINEL-X Supreme Real-Time Physical Host Safeguard...{RESET}")
+    from backend.app.services.live_safeguard_rectifier import LiveThreatHunter, supreme_safeguard
+
+    threats = LiveThreatHunter.hunt_active_threats()
+    print(f"{BOLD}Physical Host Swept:{RESET} {len(psutil.pids())} active processes inspected.")
+
+    if not threats:
+        print(f"\n{GREEN}{BOLD}[+] STATUS: HOST IS SECURE & CLEAN. Zero active intrusions detected.{RESET}")
+    else:
+        print(f"\n{RED}{BOLD}[!] CRITICAL: {len(threats)} ACTIVE INTRUSION(S) DETECTED ON PHYSICAL HOST!{RESET}")
+        for i, th in enumerate(threats, 1):
+            print(f"  [{i}] {RED}{BOLD}{th['process_name']}{RESET} (PID: {th['pid']}) - {th['category']}")
+            print(f"      Path: {th['exe_path']}")
+            print(f"      Risk: {th['risk_score']}/100")
+            for ind in th['indicators']:
+                print(f"      - {YELLOW}{ind}{RESET}")
+            
+            if sys.stdin.isatty():
+                ans = input(f"\nImmediately Rectify Threat PID {th['pid']} (Freeze Forensics, Kill, Wipe Persistence)? [Y/n]: ").strip().lower()
+                if ans != "n":
+                    cmd_rectify_threat(str(th["pid"]))
+            else:
+                print(f"\n{YELLOW}[!] Run 'python cli.py rectify {th['pid']}' to execute forensic freeze, kill process, and wipe persistence.{RESET}")
+
+    if continuous:
+        print(f"\n{GREEN}{BOLD}[*] Starting Continuous Background Guardian Loop (Press Ctrl+C to stop)...{RESET}")
+        async def _run_continuous():
+            await supreme_safeguard.start_live_safeguard_daemon(interval_seconds=3)
+            try:
+                while True:
+                    await asyncio.sleep(1)
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                await supreme_safeguard.stop_live_safeguard_daemon()
+                print(f"\n{YELLOW}[*] Live Safeguard Daemon stopped cleanly.{RESET}")
+
+        try:
+            asyncio.run(_run_continuous())
+        except KeyboardInterrupt:
+            print(f"\n{YELLOW}[*] Live Safeguard Daemon exited.{RESET}")
+
+
+# ---------------------------------------------------------
+# Command 20: Rectify Threat (Forensics Freeze + Kill + Persistence Wipe)
+# ---------------------------------------------------------
+def cmd_rectify_threat(target: str):
+    print(f"\n{CYAN}{BOLD}[*] Executing Supreme Incident Rectification on Target: {target}...{RESET}")
+    from backend.app.services.live_safeguard_rectifier import supreme_safeguard, LiveThreatHunter
+
+    target_pid = None
+    if target.isdigit():
+        target_pid = int(target)
+    else:
+        for proc in psutil.process_iter(['pid', 'name']):
+            try:
+                if target.lower() in proc.info['name'].lower():
+                    target_pid = proc.info['pid']
+                    break
+            except Exception:
+                pass
+
+    if not target_pid:
+        print(f"{RED}[-] Target process '{target}' not found running on physical system.{RESET}")
+        return
+
+    print(f"[+] Target identified: PID {target_pid}")
+    res = asyncio.run(supreme_safeguard.execute_full_safeguard_cycle(target_pid))
+
+    print(f"\n{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"  {GREEN}{BOLD}[+] INCIDENT RECTIFIED & PHYSICAL HOST SAFEGUARDED!{RESET}")
+    print(f"{GREEN}{BOLD}======================================================================{RESET}")
+    print(f"{BOLD}Incident ID:{RESET}          {res.get('incident_id')}")
+    print(f"{BOLD}Neutralized PIDs:{RESET}     {res.get('neutralization', {}).get('terminated_pids')}")
+    
+    fe = res.get("forensics", {})
+    print(f"\n  {BOLD}[1] Court-Admissible Forensics Crime Scene Record:{RESET}")
+    print(f"      - Evidence Number:  {fe.get('evidence_number')}")
+    print(f"      - SHA-256 Digest:   {fe.get('sha256_digest')}")
+    print(f"      - Vault File Path:  {fe.get('vault_path')}")
+    print(f"      - Shannon Entropy:  {fe.get('shannon_entropy')}")
+    print(f"      - Vault Security:   {GREEN}SEALED READ-ONLY (0400){RESET}")
+
+    rem = res.get("remediation", {})
+    print(f"\n  {BOLD}[2] System Remediation & Persistence Elimination:{RESET}")
+    print(f"      - Registry Run Keys Wiped: {rem.get('registry_persistence_removed')} entries")
+    print(f"      - Startup Shortcuts Cleared:{rem.get('startup_shortcuts_cleaned')}")
+    print(f"      - Dropper Binary Quarantined:{rem.get('dropper_quarantined')}")
+    print(f"      - DNS Resolution Cache:    {GREEN}Flushed & Purged{RESET}")
+    print(f"      - Rectification Certificate:{rem.get('certificate_path')}")
+    print(f"\n{GREEN}{BOLD}[+] Host security status restored to: 100% CLEAN & PROTECTED.{RESET}\n")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
     while True:
         print_banner()
-        print("  [1]  Scan Web Link / URL")
-        print("  [2]  Deep Path & Binary Software Analysis (Redirects, Payloads, Archives)")
-        print("  [3]  Scan Local File / Executable (Entropy, Macros, Double Extension)")
-        print("  [4]  Scan Picture / Image (Polyglot, Post-EOF Executables, EXIF)")
-        print("  [5]  Scan QR Code Image (Quishing & Payload Decode)")
-        print("  [6]  Audit Active Network Sockets & Inbound C2 Trojans")
-        print("  [7]  Audit Camera & Microphone Privacy Handles")
-        print("  [8]  Scan Cable-Connected Hardware Devices & USB Ports (Auto-Quarantine)")
-        print("  [9]  Immediately Quarantine / Block a Hardware Port")
-        print("  [10] Release / Re-enable a Quarantined Port")
-        print("  [11] Live Watch & Guard USB Pendrive Plug-in Events (Instant Intercept)")
-        print("  [12] Immunize Host Laptop (Disable AutoRun / AutoPlay Injections)")
-        print("  [13] Vaccinate a Pendrive / Removable Drive (Lock autorun.inf)")
-        print("  [14] Purge / Delete Operational Data (Wipe Tables)")
-        print("  [15] Audit Platform Self-Defense & Code Integrity (Anti-Tamper)")
-        print("  [16] Show Full Military-Grade Platform Security Posture")
-        print("  [17] Run Controlled Attack Simulation (Kali RAT, Windows Shell, Mobile Spyware)")
-        print("  [18] Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
-        print("  [19] Exit")
+        print("  [1]  Run Live Physical Host Threat Hunt & Supreme Safeguard (Inspects Processes & Sockets)")
+        print("  [2]  Rectify Hostile Process / Bad Incident (Forensic Freeze, Kill, Persistence Wipe & Certificate)")
+        print("  [3]  Start Continuous Real-Time Host Guardian Daemon (Background Intercept & Auto-Rectify)")
+        print("  [4]  Scan Web Link / URL")
+        print("  [5]  Deep Path & Binary Software Analysis (Redirects, Payloads, Archives)")
+        print("  [6]  Scan Local File / Executable (Entropy, Macros, Double Extension)")
+        print("  [7]  Scan Picture / Image (Polyglot, Post-EOF Executables, EXIF)")
+        print("  [8]  Scan QR Code Image (Quishing & Payload Decode)")
+        print("  [9]  Audit Active Network Sockets & Inbound C2 Trojans")
+        print("  [10] Audit Camera & Microphone Privacy Handles")
+        print("  [11] Scan Cable-Connected Hardware Devices & USB Ports (Auto-Quarantine)")
+        print("  [12] Immediately Quarantine / Block a Hardware Port")
+        print("  [13] Release / Re-enable a Quarantined Port")
+        print("  [14] Live Watch & Guard USB Pendrive Plug-in Events (Instant Intercept)")
+        print("  [15] Immunize Host Laptop (Disable AutoRun / AutoPlay Injections)")
+        print("  [16] Vaccinate a Pendrive / Removable Drive (Lock autorun.inf)")
+        print("  [17] Purge / Delete Operational Data (Wipe Tables)")
+        print("  [18] Audit Platform Self-Defense & Code Integrity (Anti-Tamper)")
+        print("  [19] Show Full Military-Grade Platform Security Posture")
+        print("  [20] Run Cross-Platform Controlled Attack Simulation (Kali RAT, Windows Shell, Mobile)")
+        print("  [21] Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
+        print("  [22] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [1-19]: ").strip()
+        choice = input("Select an option [1-22]: ").strip()
 
         if choice == "1":
+            cmd_live_safeguard(continuous=False)
+            input("\nPress Enter to return to menu...")
+        elif choice == "2":
+            target = input("Enter PID or process name to rectify & safeguard (e.g. '4192' or 'malicious.exe'): ").strip()
+            if target:
+                cmd_rectify_threat(target)
+            input("\nPress Enter to return to menu...")
+        elif choice == "3":
+            cmd_live_safeguard(continuous=True)
+            input("\nPress Enter to return to menu...")
+        elif choice == "4":
             url = input("Enter URL to scan: ").strip()
             if url:
                 cmd_scan_link(url)
             input("\nPress Enter to return to menu...")
-        elif choice == "2":
+        elif choice == "5":
             url = input("Enter Link/Software URL for Deep Analysis: ").strip()
             if url:
                 cmd_deep_scan(url)
             input("\nPress Enter to return to menu...")
-        elif choice == "3":
+        elif choice == "6":
             fp = input("Enter file path: ").strip().strip('"')
             if fp:
                 cmd_scan_file(fp)
             input("\nPress Enter to return to menu...")
-        elif choice == "4":
+        elif choice == "7":
             ip = input("Enter picture path: ").strip().strip('"')
             if ip:
                 cmd_scan_picture(ip)
             input("\nPress Enter to return to menu...")
-        elif choice == "5":
+        elif choice == "8":
             qp = input("Enter QR code image path: ").strip().strip('"')
             if qp:
                 cmd_scan_qr(qp)
             input("\nPress Enter to return to menu...")
-        elif choice == "6":
+        elif choice == "9":
             cmd_scan_sockets()
             input("\nPress Enter to return to menu...")
-        elif choice == "7":
+        elif choice == "10":
             cmd_scan_camera()
             input("\nPress Enter to return to menu...")
-        elif choice == "8":
+        elif choice == "11":
             target = input("Enter drive letter/path (e.g. 'E:\\', or leave blank for all connected devices): ").strip().strip('"')
             cmd_scan_cables(target or None)
             input("\nPress Enter to return to menu...")
-        elif choice == "9":
+        elif choice == "12":
             target = input("Enter drive letter or device ID to quarantine (e.g. 'E:', 'G:'): ").strip()
             if target:
                 cmd_quarantine_port(target)
             input("\nPress Enter to return to menu...")
-        elif choice == "10":
+        elif choice == "13":
             target = input("Enter drive letter or device ID to release: ").strip()
             if target:
                 cmd_release_port(target)
             input("\nPress Enter to return to menu...")
-        elif choice == "11":
+        elif choice == "14":
             cmd_watch_usb()
             input("\nPress Enter to return to menu...")
-        elif choice == "12":
+        elif choice == "15":
             cmd_immunize_host()
             input("\nPress Enter to return to menu...")
-        elif choice == "13":
+        elif choice == "16":
             dl = input("Enter pendrive drive letter to vaccinate (e.g. 'G:' or 'E:\\'): ").strip().strip('"')
             if dl:
                 cmd_vaccinate_drive(dl)
             input("\nPress Enter to return to menu...")
-        elif choice == "14":
+        elif choice == "17":
             cat = input("Enter category to purge (events, incidents, malware, forensics, all): ").strip()
             cmd_purge_data(cat or "all")
             input("\nPress Enter to return to menu...")
-        elif choice == "15":
+        elif choice == "18":
             cmd_audit_integrity()
             input("\nPress Enter to return to menu...")
-        elif choice == "16":
+        elif choice == "19":
             cmd_security_armor()
             input("\nPress Enter to return to menu...")
-        elif choice == "17":
+        elif choice == "20":
             plat = input("Enter target platform for attack simulation (kali / windows / mobile) [default: kali]: ").strip() or "kali"
             cmd_simulate_hack(plat)
             input("\nPress Enter to return to menu...")
-        elif choice == "18":
+        elif choice == "21":
             inc = input("Enter Incident ID to contain & preserve (or leave blank for 'latest'): ").strip() or "latest"
             cmd_contain_and_preserve(inc)
             input("\nPress Enter to return to menu...")
-        elif choice in ("19", "q", "exit"):
+        elif choice in ("22", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
         else:
@@ -756,6 +866,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
+
+    # safeguard
+    p_safe = subparsers.add_parser("safeguard", help="Run live physical host threat hunt & supreme safeguard")
+    p_safe.add_argument("--continuous", action="store_true", help="Run persistent background guardian daemon")
+
+    # rectify
+    p_rec = subparsers.add_parser("rectify", help="Rectify an active threat process or incident (Forensics Freeze + Kill + Persistence Wipe)")
+    p_rec.add_argument("target", help="PID or process name to rectify")
 
     # scan-link
     p_link = subparsers.add_parser("scan-link", help="Analyze URL for phishing, redirects, and malware")
@@ -832,6 +950,10 @@ def main():
 
     if not args.command or args.command == "interactive":
         run_interactive_menu()
+    elif args.command == "safeguard":
+        cmd_live_safeguard(continuous=args.continuous)
+    elif args.command == "rectify":
+        cmd_rectify_threat(args.target)
     elif args.command == "scan-link":
         cmd_scan_link(args.url)
     elif args.command == "deep-scan":

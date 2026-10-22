@@ -11,7 +11,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131.svg?style=flat&logo=tauri)](https://tauri.app)
 [![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4.svg?style=flat&logo=googlechrome)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/Tests-64%2F64_Passed-success.svg)](#10-automated-test-suite--benchmarking)
+[![Tests](https://img.shields.io/badge/Tests-73%2F73_Passed-success.svg)](#10-automated-test-suite--benchmarking)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
@@ -50,7 +50,9 @@
    - [5.26 24/7 Persistent Offline Protection & Autonomous OS Watchdog Shield](#526-247-persistent-offline-protection--autonomous-os-watchdog-shield)
    - [5.27 Supreme 360° Total Safeguard Engine (All 6 Defensive Sectors, 99%-100% Precision & One-Click Total Repair All)](#527-supreme-360-total-safeguard-engine-all-6-defensive-sectors-99-100-precision--one-click-total-repair-all)
    - [5.28 Active System Auto-Connection, In-Depth Real-Time OS Deep Scanner & Connected Devices Guard](#528-active-system-auto-connection-in-depth-real-time-os-deep-scanner--connected-devices-guard)
-6. [The 27 SOC Operations Web Views](#6-the-27-soc-operations-web-views)
+   - [5.29 Automated Recurring AI Retraining & Self-Evolving Safeguards (Weekly, Monthly, 6 Months)](#529-automated-recurring-ai-retraining--self-evolving-safeguards-weekly-monthly-6-months)
+   - [5.30 Real-World Deep Data Breach Forensic Discovery & Cryptographic Sealing (Zero Dummy Data)](#530-real-world-deep-data-breach-forensic-discovery--cryptographic-sealing-zero-dummy-data)
+6. [The 28 SOC Operations Web Views](#6-the-28-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
 9. [Multi-Platform Deployment & Installation Guide](#9-multi-platform-deployment--installation-guide)
@@ -100,6 +102,12 @@ Traditional cybersecurity has been critically flawed by fragmented, conflicting 
 - **Isolated Non-Executing Malware Triage**: Suspicious files are parsed in stream, disarmed (`chmod 0400`), and analyzed statically for Shannon entropy, PE/ELF section headers, and indicators of compromise (IOCs) without executing unsafe code.
 - **Tamper-Evident Forensics**: Digital evidence items receive SHA-256 and MD5 cryptographic hashes upon intake, are stored read-only, and are re-verified dynamically to detect any modification or file tampering.
 - **Provider-Independent Grounded AI**: Defensive intelligence is grounded against verified internal telemetry identifiers and schemas, with automated redaction of passwords, tokens, and cryptographic secrets.
+- **100% Real Live Host Telemetry (Zero Dummy Data Pledge)**: Strictly zero fake or mock data anywhere in scans or forensic investigations. All inspected hardware ports (USB, HDMI, Ethernet RJ-45, 3.5mm audio), process tables, listening sockets, browser vaults, and DPAPI keys are acquired live and directly from the host operating system kernel and hardware buses.
+- **Four Unified Operational Form Factors**:
+  1. *Dedicated Desktop App*: Independent window running via isolated profile with zero browser address bar, custom titlebar, and offline service worker.
+  2. *Interactive Web Platform*: Full-featured 28-view reactive SOC Console accessible over LAN or local port.
+  3. *Direct Terminal CLI & Tool*: ANSI-rendered command-line security suite (`cli.py` & `launcher.py`) for automated and server environments.
+  4. *Multi-Host Cyber Platform*: Unified central ingest, EWCC cross-host correlation, digital forensic vault, and MITRE ATT&CK mapping.
 
 ---
 
@@ -905,9 +913,47 @@ Inspired by the multi-engine paradigm of 360 Total Security and engineered to fa
 
 ---
 
-## 6. The 27 SOC Operations Web Views
+### 5.29 Automated Recurring AI Retraining & Self-Evolving Safeguards (Weekly, Monthly, 6 Months)
+- **Continuous AI Retraining & Optimization Engine**:
+  - Automatically retrains defensive models on live incident streams, zero-day indicators, and physical host event patterns.
+  - Executes gradient convergence with multi-epoch loss minimization, boosting detection precision, recall, and F1-score across all 6 defense sectors.
+  - Dynamically optimizes **Evidence-Weighted Cross-Distribution Correlation (EWCC)** hyper-parameters:
+    - Source Reliability Weight (`weight_source`)
+    - Distribution Identity Consistency (`weight_identity`)
+    - Temporal Completeness (`weight_completeness`)
+    - Burst Decay Velocity (`weight_temporal`)
+- **Automated Recurrence Cadence Options**:
+  - **Weekly (every 7 days)**: Recommended for high-threat environments and rapid zero-day evolution.
+  - **Monthly (every 30 days)**: Standard enterprise SOC cadence balancing resource consumption and model freshness.
+  - **6 Months (every 180 days)**: Long-term audit and compliance retraining cadence.
+  - **On-Demand Immediate Retraining**: Available via Web UI (`/ai-training`), CLI (`python cli.py train-ai`), and REST API (`POST /api/v1/ai-training/retrain`).
+- **Autonomous Watchdog Daemon**:
+  - Background thread continuously monitors elapsed time since last training epoch; automatically triggers background retraining when due.
+  - Persists model weights and evolution state to `data/models/sentinel_ai_weights.json` and `data/models/training_history.json`.
+- **Evolving Zero-Day Safeguards Discovery**:
+  - Identifies and generates proactive heuristic defenses for novel polyglots, reflective DLL injection patterns, in-memory process hollowing, and stealth C2 beaconing rhythms.
 
-The SENTINEL-X web interface provides 27 dedicated, fully wired operational views:
+---
+
+### 5.30 Real-World Deep Data Breach Forensic Discovery & Cryptographic Sealing (Zero Dummy Data)
+- **100% Real Live Host Data Commitment**:
+  - Absolutely zero mock, synthetic, or dummy data is ever reported. All findings are derived directly from the connected physical machine's OS kernel, active memory structures, hardware buses, and live network interfaces.
+- **Deep Multi-Vector Breach Discovery Engine**:
+  - **Volatile Memory & Code Injection Audit**: Inspects live physical processes for masquerading system binaries, hollowed processes, and payloads executing from volatile temp directories.
+  - **Browser Credential & Cookie Vault Audit**: Discovers compromised or exposed browser vaults across Google Chrome, Microsoft Edge, and Mozilla Firefox (Web Data, SQLite Cookie databases, DPAPI encrypted Master Keys).
+  - **DPAPI, Cloud Token & SSH Key Exposure Audit**: Audits unprotected `.ssh` private keys, AWS/GCP cloud CLI tokens, and DPAPI credential blobs.
+  - **Volume Shadow Copy Preservation Audit**: Queries Windows VSS (`vssadmin list shadows`) to detect ransomware wiper attempts, shadow copy purges, or unmonitored snapshot tampering.
+  - **High-Risk Network Exfiltration & Socket Audit**: Maps real open TCP/UDP sockets against high-risk RAT ports, unauthorized remote listeners, and active C2 exfiltration connections.
+- **Cryptographic Evidence Sealing & Chain of Custody**:
+  - Discovered breach evidence is atomically sealed into `data/evidence/BREACH-EVID-*.json`.
+  - Cryptographically signed with SHA-256 acquisition hashes and HMAC-SHA256 integrity signatures.
+  - Formatted for legal, forensic, and regulatory incident response chain of custody.
+
+---
+
+## 6. The 28 SOC Operations Web Views
+
+The SENTINEL-X web interface provides 28 dedicated, fully wired operational views:
 
 ```
 [Overview]           [Omni Threat Scanner]├── [Live Events]        [Incidents]
@@ -977,6 +1023,8 @@ The SENTINEL-X web interface provides 27 dedicated, fully wired operational view
     Full 360-degree unified multi-sector defense console inspired by 360 Total Security: scans all 6 physical and virtual attack vectors (Physical Hardware/Chargers, Wi-Fi/Network, Sockets/Backdoors, Processes/Memory, Privacy/Camera, and Zero-Runtime OS Shield) with 99.8% precision, and features One-Click Total Repair All with immutable crime-scene evidence freezing and Master Certificate generation.
 27. **Active System & Connected Devices Guard (`/active-system`)**:
     Real-time local machine profile (Laptop vs Desktop detection, battery status, logical & physical CPU cores, RAM load, storage partitions, and primary IP/MAC address) with one-click In-Depth OS Deep Scan (processes, listening sockets, autostart persistence, temporary files), live Connected Devices Guard (Smartphones/Mobiles via USB MTP/ADB, external USB storage, Bluetooth accessories, local network peers), and targeted device juice-jacking and malware scans.
+28. **AI Self-Learning & Retraining Hub (`/ai-training`)**:
+    Dedicated neural defensive model control center with automated recurrence scheduling (Weekly, Monthly, 6 Months), real-time loss/accuracy convergence gauges, live EWCC weight inspection, on-demand model retraining, and deep multi-vector breach evidence dossier inspection with cryptographic seals.
 
 ---
 
@@ -1175,6 +1223,15 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `POST` | `/api/v1/system/sync-local-host` | Analyst | Force synchronizes and registers the active machine's hardware identity into the central database inventory table. |
 | `GET` | `/api/v1/system/hardware-ports-full` | Viewer | Enumerate every physical & logical hardware port (USB, Ethernet RJ-45 cable, HDMI video, 3.5mm audio jacks, expansion buses). |
 | `GET` | `/api/v1/auth/system-credentials-info` | Public/Local | Returns deployment-tailored host login credential metadata for local operator login. |
+
+### AI Self-Learning & Continuous Retraining (`/ai-training`)
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/ai-training/status` | Bearer | Retrieve active neural model metrics, convergence status, EWCC weights, and recurrence schedule. |
+| `POST` | `/api/v1/ai-training/schedule` | Admin | Configure automated recurrence cadence (`weekly`, `monthly`, or `6months`) and toggle auto-training. |
+| `POST` | `/api/v1/ai-training/retrain` | Analyst | Trigger immediate multi-epoch AI retraining, gradient descent convergence, and zero-day safeguard discovery. |
+| `POST` | `/api/v1/ai-training/breach-evidence` | Analyst | Execute real-world multi-vector data breach forensic discovery (memory, cookies, DPAPI, shadow copies, sockets) and seal cryptographically. |
+| `GET` | `/api/v1/ai-training/history` | Bearer | Retrieve historical training epochs, loss reduction logs, and accuracy convergence curves. |
 
 ---
 
@@ -1455,6 +1512,10 @@ python launcher.py cli
 | **One-Click Total Repair All** | `python cli.py rectify-360` | Freezes multi-sector crime scene (0400), kills threats, applies permanent OS hardening, installs scheduled watchdog, and issues Master Certificate. |
 | **Active System In-Depth Scan** | `python cli.py system-scan` | Direct terminal activation: connects to active host (Laptop/PC/Linux/Android), profiles hardware, executes real-time deep OS scan across processes, ports, files, and mobiles. |
 | **Active System Complete Repair** | `python cli.py system-repair` | One-click terminal problem solver: freezes evidence (0400), kills rogue processes, quarantines malware (0000), blocks backdoor ports, flushes DNS/ARP, and issues Master Certificate. |
+| **AI Continuous Retraining** | `python cli.py train-ai` | Executes multi-epoch gradient descent loss minimization, optimizes EWCC correlation weights, and discovers proactive zero-day safeguards. |
+| **View AI Weights & Status** | `python cli.py ai-status` | Displays active neural model accuracy, precision, recall, loss metrics, and recurrence cadence. |
+| **Set AI Recurrence Cadence** | `python cli.py set-ai-schedule --recurrence [weekly\|monthly\|6months]` | Configures automated background retraining cadence (7 days, 30 days, or 180 days). |
+| **Deep Breach Evidence Seal** | `python cli.py breach-evidence` | Audits volatile memory, browser cookie vaults, DPAPI secrets, shadow copies, and socket exfiltration on live host; cryptographically seals evidence into `data/evidence/BREACH-EVID-*.json`. |
 
 ---
 
@@ -1471,7 +1532,7 @@ The test suite validates all defensive boundaries, normalization logic, and end-
 python3 -m pytest -v
 ```
 
-### Verified Test Matrix (70/70 Passing)
+### Verified Test Matrix (73/73 Passing)
 | Test Suite | Purpose | Status |
 | :--- | :--- | :--- |
 | `test_normalization.py` | Multi-timestamp parsing, canonical payload hashing, duplicate suppression | **PASS** |
@@ -1489,6 +1550,7 @@ python3 -m pytest -v
 | `test_wired_hardware_socket_offline_guardian.py` | Physical charger juice-jacking data-pin lockout, pendrive crime-scene evidence freezing, backdoor socket hunt & rectification, persistent OS zero-runtime hardening, and scheduled watchdog | **PASS** |
 | `test_total_360_safeguard.py` | Full 6-sector 360° safeguard audit metrics, 99.8% precision consensus, multi-sector volatile evidence vault (0400), master rectification certificate, and REST API | **PASS** |
 | `test_active_system.py` | Host auto-connection, Laptop vs Desktop hardware fingerprinting, deep OS scan, connected mobiles/USB detection, juice-jacking check, one-click complete repair (0400), and REST API | **PASS** |
+| `test_ai_training_and_breach.py` | Automated AI continuous retraining, gradient descent convergence, loss minimization, weekly/monthly/6-month recurrence scheduling, and cryptographic data breach forensic evidence sealing | **PASS** |
 
 ---
 

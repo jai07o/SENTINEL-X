@@ -1270,6 +1270,108 @@ def cmd_list_all_hardware_ports():
 
 
 # ---------------------------------------------------------
+# Commands: Autonomous AI Training & Breach Forensics
+# ---------------------------------------------------------
+def cmd_train_ai():
+    print(f"\n{CYAN}{BOLD}[*] Launching Autonomous AI Retraining & Continuous Safeguard Evolution...{RESET}")
+    print(f"{YELLOW}[*] Ingesting genuine host telemetry, optimizing EWCC weights, and evolving zero-day heuristics...{RESET}")
+    from backend.app.services.ai_training_service import ai_training_service
+    res = ai_training_service.execute_retraining_and_safeguard_evolution(trigger_source="terminal_cli")
+
+    print(f"\n{GREEN}{BOLD}[+] AI Retraining Complete!{RESET}")
+    print(f"{BOLD}Upgraded Model Version:{RESET} {CYAN}{res.get('model_version')}{RESET}")
+    print(f"{BOLD}Epochs Executed:{RESET}        {res.get('epochs_run')}")
+    print(f"{BOLD}Samples Ingested:{RESET}       {res.get('samples_ingested'):,} genuine telemetry samples")
+    print(f"{BOLD}Convergence Duration:{RESET}   {res.get('duration_seconds')} seconds")
+
+    m = res.get("metrics", {})
+    print(f"\n{BOLD}Updated Model Performance Matrix:{RESET}")
+    print(f"  • {BOLD}Accuracy:{RESET}  {GREEN}{round(m.get('accuracy', 0)*100, 2)}%{RESET}")
+    print(f"  • {BOLD}Precision:{RESET} {CYAN}{round(m.get('precision', 0)*100, 2)}%{RESET}")
+    print(f"  • {BOLD}Recall:{RESET}    {BLUE}{round(m.get('recall', 0)*100, 2)}%{RESET}")
+    print(f"  • {BOLD}F1-Score:{RESET}  {MAGENTA}{round(m.get('f1_score', 0)*100, 2)}%{RESET}")
+    print(f"  • {BOLD}Loss:{RESET}      {YELLOW}{m.get('training_loss')}{RESET}")
+
+    new_sg = res.get("new_safeguards_evolved", [])
+    if new_sg:
+        print(f"\n{GREEN}{BOLD}[+] New Safeguards Evolved ({len(new_sg)}):{RESET}")
+        for s in new_sg:
+            print(f"  - {GREEN}[EVOLVED SAFEGUARD]{RESET} {s}")
+    print(f"\n{BOLD}Next Automated Run Scheduled At:{RESET} {res.get('next_scheduled_training_at')}\n")
+
+
+def cmd_ai_status():
+    from backend.app.services.ai_training_service import ai_training_service
+    status = ai_training_service.get_status()
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}SENTINEL-X AI SELF-LEARNING STATUS & RECURRING SCHEDULE{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}Model Version:{RESET}             {CYAN}{status.get('model_version')}{RESET}")
+    print(f"{BOLD}Recurrence Cadence:{RESET}        {YELLOW}{status.get('cadence', '').upper()}{RESET} (Auto-Update: {GREEN}{status.get('auto_update_enabled')}{RESET})")
+    print(f"{BOLD}Last Trained At:{RESET}           {status.get('last_trained_at')}")
+    print(f"{BOLD}Next Scheduled Update:{RESET}     {status.get('next_scheduled_training_at')} ({status.get('time_until_next_retraining')})")
+    print(f"{BOLD}Total Epochs Run:{RESET}          {status.get('total_epochs_trained')}")
+    print(f"{BOLD}Samples Ingested:{RESET}          {status.get('dataset_samples_processed'):,} records")
+    m = status.get("metrics", {})
+    print(f"{BOLD}Accuracy / F1:{RESET}             {GREEN}{round(m.get('accuracy', 0)*100, 2)}%{RESET} / {MAGENTA}{round(m.get('f1_score', 0)*100, 2)}%{RESET}")
+    print(f"{BOLD}Active Heuristics:{RESET}         {status.get('active_safeguard_heuristics_count')} safeguards active\n")
+
+
+def cmd_set_ai_schedule(cadence: str):
+    from backend.app.services.ai_training_service import ai_training_service
+    try:
+        res = ai_training_service.set_update_schedule(cadence=cadence, auto_update=True)
+        print(f"\n{GREEN}{BOLD}[+] {res.get('message')}{RESET}")
+        print(f"{BOLD}Next Automated Retraining Window:{RESET} {res.get('next_scheduled_training_at')}\n")
+    except Exception as e:
+        print(f"\n{RED}{BOLD}[-] Failed to update cadence:{RESET} {str(e)}\n")
+
+
+def cmd_breach_forensics():
+    print(f"\n{CYAN}{BOLD}[*] Initiating Deep Data Breach Forensic Evidence Discovery...{RESET}")
+    print(f"{YELLOW}[*] Carving volatile process memory, checking browser token stores, VSS snapshots & exfiltration channels...{RESET}")
+    from backend.app.services.breach_forensics_service import breach_forensics_service
+    res = breach_forensics_service.run_master_breach_investigation()
+
+    verdict = res.get("breach_verdict")
+    badge = f"{GREEN}{BOLD}[CLEAN / NO EXFILTRATION DETECTED]{RESET}" if verdict == "CLEAN_NO_ACTIVE_EXFILTRATION" else f"{RED}{BOLD}[{verdict}]{RESET}"
+    print(f"\n{BOLD}Breach Forensic Verdict:{RESET} {badge}")
+    print(f"{BOLD}Evidence ID:{RESET}             {res.get('evidence_id')}")
+    print(f"{BOLD}Indicators Flagged:{RESET}      {res.get('total_breach_indicators')}")
+
+    mem = res.get("memory_injection_forensics", {})
+    print(f"\n{BOLD}1. Volatile Process Memory & Injections:{RESET}")
+    print(f"   Processes Audited: {mem.get('processes_scanned')} | Injection Anomalies: {mem.get('anomalies_detected')}")
+    for f in mem.get("findings", [])[:3]:
+        print(f"   - {RED}[{f.get('category')}]{RESET} PID {f.get('pid')} ({f.get('name')}): {f.get('evidence_rationale')}")
+
+    cred = res.get("credential_token_vault_forensics", {})
+    print(f"\n{BOLD}2. Credential & Token Vault Protection:{RESET}")
+    print(f"   Vaults Monitored: {cred.get('monitored_credential_vaults')} | Active Stores: {cred.get('accessible_targets_identified')}")
+    for f in cred.get("findings", [])[:3]:
+        print(f"   - {GREEN}[PROTECTED VAULT]{RESET} {f.get('resource_type')} ({f.get('size_bytes')} bytes)")
+
+    vss = res.get("shadow_copy_wiper_forensics", {})
+    print(f"\n{BOLD}3. Volume Shadow Copy (VSS) Status:{RESET}")
+    print(f"   VSS Intact: {GREEN if vss.get('vss_intact') else RED}{vss.get('vss_intact')}{RESET} | Snapshots: {vss.get('shadow_copies_found')}")
+    print(f"   Details: {vss.get('details')}")
+
+    exfil = res.get("exfiltration_channel_forensics", {})
+    print(f"\n{BOLD}4. Exfiltration & C2 Channels:{RESET}")
+    print(f"   Sockets Audited: {exfil.get('total_sockets_audited')} | High-Risk RAT Ports: {exfil.get('anomalous_exfiltration_paths')}")
+    for c in exfil.get("suspicious_connections", []):
+        print(f"   - {RED}[C2 BEACON]{RESET} PID {c.get('pid')} ({c.get('process_name')}): {c.get('remote_address')}")
+
+    seal = res.get("cryptographic_evidence_seal", {})
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}CRYPTOGRAPHIC EVIDENCE CHAIN OF CUSTODY (SEALED){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}SHA-256 Digest:{RESET}   {seal.get('sha256_fingerprint')}")
+    print(f"{BOLD}HMAC Signature:{RESET}   {seal.get('hmac_signature')}")
+    print(f"{BOLD}Evidence File:{RESET}    {res.get('sealed_evidence_filepath')}\n")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
@@ -1311,10 +1413,14 @@ def run_interactive_menu():
         print("  [29] Apply Persistent OS Hardening (Zero-Runtime Shield: USB AutoRun 0xFF, Exec Deny)")
         print("  [30] Install Autonomous 24/7 OS Watchdog Task (Runs Silently on Boot without Terminal)")
         print("  [31] Query Offline Shield & Autonomous Watchdog Status")
+        print("  [AI1] RETRAIN AI & EVOLVE SAFEGUARDS (Autonomous Model Optimization)")
+        print("  [AI2] VIEW AI MODEL STATUS & RECURRING CADENCE (Accuracy, Loss, Checkpoints)")
+        print("  [AI3] SET RECURRING RETRAINING CADENCE (Weekly / Monthly / 6-Months)")
+        print("  [AI4] DISCOVER DATA BREACH FORENSIC EVIDENCE (Memory, Tokens, VSS & Exfil)")
         print("  [32] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [0-32]: ").strip()
+        choice = input("Select an option [0-32 or AI1-AI4]: ").strip()
 
         choice_clean = choice.strip().upper()
         if choice_clean in ("0A", "SCAN", "SYS-SCAN", "DEEP"):
@@ -1459,6 +1565,19 @@ def run_interactive_menu():
             input("\nPress Enter to return to menu...")
         elif choice == "31":
             cmd_offline_shield_status()
+            input("\nPress Enter to return to menu...")
+        elif choice.upper() in ("AI1", "TRAIN-AI"):
+            cmd_train_ai()
+            input("\nPress Enter to return to menu...")
+        elif choice.upper() in ("AI2", "AI-STATUS"):
+            cmd_ai_status()
+            input("\nPress Enter to return to menu...")
+        elif choice.upper() in ("AI3", "AI-SCHEDULE"):
+            cad = input("Enter cadence (weekly / monthly / 6months) [default: weekly]: ").strip().lower() or "weekly"
+            cmd_set_ai_schedule(cad)
+            input("\nPress Enter to return to menu...")
+        elif choice.upper() in ("AI4", "BREACH", "BREACH-EVIDENCE"):
+            cmd_breach_forensics()
             input("\nPress Enter to return to menu...")
         elif choice in ("32", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
@@ -1607,6 +1726,19 @@ def main():
     # rectify-360
     subparsers.add_parser("rectify-360", help="Execute one-click 360° master total rectification & evidence preservation")
 
+    # train-ai
+    subparsers.add_parser("train-ai", help="Trigger autonomous AI model retraining, weight optimization & safeguard evolution")
+
+    # ai-status
+    subparsers.add_parser("ai-status", help="Display AI model version, accuracy metrics, and recurring schedule cadence")
+
+    # set-ai-schedule
+    p_sched = subparsers.add_parser("set-ai-schedule", help="Set recurring AI update schedule (weekly, monthly, or 6months)")
+    p_sched.add_argument("--cadence", choices=["weekly", "monthly", "6months"], default="weekly", help="Recurrence cadence")
+
+    # breach-evidence
+    subparsers.add_parser("breach-evidence", help="Discover and seal deep data breach forensic evidence (memory, tokens, VSS, exfiltration)")
+
     # interactive
     subparsers.add_parser("interactive", help="Launch interactive menu console")
 
@@ -1618,7 +1750,15 @@ def main():
 
     print_banner()
 
-    if args.command == "list-ports":
+    if args.command == "train-ai":
+        cmd_train_ai()
+    elif args.command == "ai-status":
+        cmd_ai_status()
+    elif args.command == "set-ai-schedule":
+        cmd_set_ai_schedule(args.cadence)
+    elif args.command == "breach-evidence":
+        cmd_breach_forensics()
+    elif args.command == "list-ports":
         cmd_list_all_hardware_ports()
     elif args.command == "system-scan":
         cmd_active_system_scan()

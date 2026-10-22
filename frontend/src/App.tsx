@@ -33,6 +33,8 @@ import { OmniScanPage } from './pages/OmniScanPage';
 import { HardwarePortsPage } from './pages/HardwarePortsPage';
 import { Total360SafeguardPage } from './pages/Total360SafeguardPage';
 import { ActiveSystemPage } from './pages/ActiveSystemPage';
+import { AITrainingHubPage } from './pages/AITrainingHubPage';
+import { NativeAppTitleBar } from './components/layout/NativeAppTitleBar';
 
 const ProtectedLayout: React.FC<{ children?: React.ReactNode }> = () => {
   const { user, isLoading } = useAuth();
@@ -52,12 +54,14 @@ const ProtectedLayout: React.FC<{ children?: React.ReactNode }> = () => {
 
   return (
     <div className="min-h-screen bg-graphite-950 text-slate-100 flex flex-col selection:bg-cyan-500/20 selection:text-cyan-200">
+      <NativeAppTitleBar />
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
           <Routes>
             <Route path="/" element={<OverviewPage />} />
+            <Route path="/ai-training" element={<AITrainingHubPage />} />
             <Route path="/active-system" element={<ActiveSystemPage />} />
             <Route path="/total-360" element={<Total360SafeguardPage />} />
             <Route path="/omniscan" element={<OmniScanPage />} />

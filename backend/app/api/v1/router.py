@@ -25,6 +25,7 @@ from backend.app.api.v1.wifi_guard import router as wifi_guard_router
 from backend.app.api.v1.offline_shield import router as offline_shield_router
 from backend.app.api.v1.total_360_safeguard import router as total_360_router
 from backend.app.api.v1.active_system import router as active_system_router
+from backend.app.api.v1.ai_training import router as ai_training_router
 
 api_router = APIRouter()
 
@@ -56,6 +57,7 @@ api_router.include_router(wifi_guard_router)
 api_router.include_router(offline_shield_router)
 api_router.include_router(total_360_router, prefix="/total-360", tags=["360 Total Safeguard"])
 api_router.include_router(active_system_router)
+api_router.include_router(ai_training_router)
 
 
 

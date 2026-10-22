@@ -24,6 +24,7 @@ import {
   ShieldAlert,
   Usb,
   Laptop,
+  Brain,
 } from 'lucide-react';
 
 interface NavSection {
@@ -43,6 +44,7 @@ export const Sidebar: React.FC = () => {
       items: [
         { to: '/active-system', label: 'Active System & Devices', icon: <Laptop className="w-4 h-4 text-cyan-400" />, badge: 'LIVE' },
         { to: '/total-360', label: '360° Total Safeguard', icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, badge: '360°' },
+        { to: '/ai-training', label: 'AI Retraining & Updates', icon: <Brain className="w-4 h-4 text-cyan-300" />, badge: 'AI-LEARN' },
         { to: '/omniscan', label: 'Omni Threat Scanner', icon: <ShieldAlert className="w-4 h-4 text-purple-400" />, badge: 'NEW' },
         { to: '/hardware-ports', label: 'Cable & Port Sentinel', icon: <Usb className="w-4 h-4 text-rose-400" />, badge: 'PORT-LOCK' },
         { to: '/sockets', label: 'Connected Sockets & C2', icon: <Network className="w-4 h-4 text-cyan-400" /> },

@@ -257,6 +257,37 @@ def print_banner():
     print(banner)
 
 
+def manage_ai_engine():
+    cli_path = ROOT_DIR / "cli.py"
+    print("\n" + "=" * 60)
+    print("  SENTINEL-X AI SELF-LEARNING & RETRAINING HUB")
+    print("=" * 60)
+    print("  [1] Trigger Immediate AI Retraining (Optimize Loss & Safeguards)")
+    print("  [2] View AI Neural Model Status, Convergence & Weights")
+    print("  [3] Configure Automated Recurrence Schedule (Weekly, Monthly, 6 Months)")
+    print("  [4] Return to Main Menu")
+    c = input("Select an option [1-4] (default: 1): ").strip() or "1"
+    if c == "1":
+        subprocess.run([str(VENV_PYTHON), str(cli_path), "train-ai"], cwd=str(ROOT_DIR))
+    elif c == "2":
+        subprocess.run([str(VENV_PYTHON), str(cli_path), "ai-status"], cwd=str(ROOT_DIR))
+    elif c == "3":
+        print("\nSelect automated recurrence schedule:")
+        print("  [1] Weekly (every 7 days - recommended for rapid zero-day evolution)")
+        print("  [2] Monthly (every 30 days - enterprise baseline cadence)")
+        print("  [3] 6 Months (every 180 days - long-term audit retraining)")
+        sc = input("Select schedule [1-3] (default: 1): ").strip() or "1"
+        rec_map = {"1": "weekly", "2": "monthly", "3": "6months"}
+        rec = rec_map.get(sc, "weekly")
+        subprocess.run([str(VENV_PYTHON), str(cli_path), "set-ai-schedule", "--recurrence", rec], cwd=str(ROOT_DIR))
+
+
+def run_breach_forensics():
+    cli_path = ROOT_DIR / "cli.py"
+    print("\n[+] Initiating Real-World Deep Data Breach Forensic Discovery & Cryptographic Seal...")
+    subprocess.run([str(VENV_PYTHON), str(cli_path), "breach-evidence"], cwd=str(ROOT_DIR))
+
+
 def main():
     if len(sys.argv) > 1:
         cmd = sys.argv[1].lower()
@@ -267,6 +298,17 @@ def main():
             return
         elif cmd in ("desktop", "desk"):
             start_desktop_app()
+            return
+        elif cmd in ("train-ai", "retrain-ai", "train"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "train-ai"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("ai-status", "weights"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "ai-status"], cwd=str(ROOT_DIR))
+        elif cmd in ("set-ai-schedule", "schedule-ai"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py")] + sys.argv[1:], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("breach-evidence", "breach", "evidence"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "breach-evidence"], cwd=str(ROOT_DIR))
             return
         elif cmd in ("agent",):
             start_agent()
@@ -295,19 +337,21 @@ def main():
 
     while True:
         print_banner()
-        print("  [1] Start Web Platform (Backend + Frontend + Open Browser)")
-        print("  [2] Open Dedicated Desktop SOC Console")
-        print("  [3] Direct Terminal: Live Host Connect, Deep Virus Scan & Complete Repair")
-        print("  [4] Direct Terminal Threat Analyzer & Safeguard Suite (cli.py)")
-        print("  [5] Start Endpoint Monitoring Agent")
-        print("  [6] Run Threat Simulator & Scenarios")
-        print("  [7] Run EWCC Benchmark")
-        print("  [8] Run Automated Tests (pytest)")
-        print("  [9] How to load Chrome/Edge Extension")
-        print("  [10] Exit")
+        print("  [1]  Start Web Platform (Backend + Frontend + Open Browser)")
+        print("  [2]  Open Dedicated Desktop SOC Console (Isolated Native App Window)")
+        print("  [3]  Direct Terminal: Live Host Connect, Deep Virus Scan & Complete Repair")
+        print("  [4]  Continuous AI Retraining & Self-Evolving Safeguards (Weekly/Monthly/6-Months)")
+        print("  [5]  Deep Data Breach Forensic Discovery & Cryptographic Seal (Zero Mock Data)")
+        print("  [6]  Direct Terminal Threat Analyzer & Safeguard Suite (cli.py)")
+        print("  [7]  Start Endpoint Monitoring Agent")
+        print("  [8]  Run Threat Simulator & Scenarios (Windows, Linux, Mobile)")
+        print("  [9]  Run EWCC Detection Benchmark")
+        print("  [10] Run Automated Tests (pytest)")
+        print("  [11] How to load Chrome/Edge Extension")
+        print("  [12] Exit")
         print("=" * 65)
 
-        choice = input("Select an option [1-10]: ").strip()
+        choice = input("Select an option [1-12]: ").strip()
         if choice == "1":
             start_web_platform()
             break
@@ -325,25 +369,31 @@ def main():
                 subprocess.run([str(VENV_PYTHON), str(cli_path), "system-scan"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
         elif choice == "4":
+            manage_ai_engine()
+            input("\nPress Enter to continue...")
+        elif choice == "5":
+            run_breach_forensics()
+            input("\nPress Enter to continue...")
+        elif choice == "6":
             cli_path = ROOT_DIR / "cli.py"
             subprocess.run([str(VENV_PYTHON), str(cli_path)], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
-        elif choice == "5":
+        elif choice == "7":
             start_agent()
             break
-        elif choice == "6":
+        elif choice == "8":
             run_simulator()
             input("\nPress Enter to continue...")
-        elif choice == "7":
+        elif choice == "9":
             subprocess.run([str(VENV_PYTHON), "-m", "simulator.benchmark"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
-        elif choice == "8":
+        elif choice == "10":
             run_tests()
             input("\nPress Enter to continue...")
-        elif choice == "9":
+        elif choice == "11":
             show_extension_guide()
             input("\nPress Enter to continue...")
-        elif choice in ("10", "q", "exit"):
+        elif choice in ("12", "q", "exit"):
             print("Exiting.")
             break
 

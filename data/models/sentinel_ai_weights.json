@@ -1,0 +1,35 @@
+{
+  "version": "2.4.0",
+  "weights": {
+    "weight_source": 0.357,
+    "weight_identity": 0.255,
+    "weight_completeness": 0.197,
+    "weight_temporal": 0.191,
+    "entropy_malware_threshold": 7.17,
+    "c2_jitter_tolerance": 0.075,
+    "memory_injection_sensitivity": 0.958
+  },
+  "source_reliability_matrix": {
+    "auditd": 0.96,
+    "fim": 0.96,
+    "zeek": 0.92,
+    "systemd_journal": 0.91,
+    "auth_log": 0.88,
+    "proc_watcher": 0.79,
+    "hardware_port_sentinel": 0.98,
+    "wifi_guard": 0.95
+  },
+  "safeguards_active": [
+    "Heuristic: Reflective DLL Injection Hunter",
+    "Heuristic: Polyglot PNG/ZIP Executable Stager Detection",
+    "Heuristic: DNS-over-HTTPS Covert Exfiltration Catcher",
+    "Heuristic: DPAPI & Chromium Token Snooping Neutralizer",
+    "Heuristic: Volume Shadow Copy (VSS) Tampering Blocker",
+    "Zero-Day: Direct Kernel Object Manipulation (DKOM) Rootkit Probe",
+    "Zero-Day: Memory-Mapped Fileless PowerShell / C2 Beacon Interceptor",
+    "Zero-Day: Windows Secondary Logon (T1134) Privilege Escalation Interceptor",
+    "Zero-Day: Linux eBPF Stealth Rootkit Tracepoint Guardian",
+    "Zero-Day: Ransomware Canary Decoy Trapping & Immediate IO Freeze"
+  ],
+  "last_updated": "2026-10-22T23:36:47.559521+00:00"
+}

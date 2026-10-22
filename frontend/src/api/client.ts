@@ -540,6 +540,29 @@ export class ApiClient {
   public static async getTotal360Status() {
     return this.request<any>('/total-360/status');
   }
+
+  // AI Training & Breach Forensics
+  public static async getAITrainingStatus() {
+    return this.request<any>('/ai-training/status');
+  }
+
+  public static async updateAISchedule(cadence: string, autoUpdate: boolean = true) {
+    return this.request<any>('/ai-training/schedule', {
+      method: 'POST',
+      body: JSON.stringify({ cadence, auto_update_enabled: autoUpdate }),
+    });
+  }
+
+  public static async triggerAIRetraining(triggerSource: string = 'web_ui') {
+    return this.request<any>('/ai-training/retrain', {
+      method: 'POST',
+      body: JSON.stringify({ trigger_source: triggerSource }),
+    });
+  }
+
+  public static async getBreachEvidence() {
+    return this.request<any>('/ai-training/breach-evidence');
+  }
 }
 
 export const api = {
@@ -568,6 +591,9 @@ export const api = {
     return { data };
   },
 };
+
+export const apiClient = api;
+
 
 
 

@@ -106,12 +106,15 @@ async def test_360_total_safeguard_api_endpoints():
     - GET /api/v1/total-360/audit
     - POST /api/v1/total-360/rectify
     """
+    from backend.app.core.system_credentials import get_or_create_system_credentials
+    creds = get_or_create_system_credentials()
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # Authenticate
         login_res = await client.post(
             "/api/v1/auth/login",
-            data={"username": "admin", "password": "SentinelX@2026!"},
+            data={"username": "admin", "password": creds["system_password"]},
         )
         assert login_res.status_code == 200
         token = login_res.json()["access_token"]

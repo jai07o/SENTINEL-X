@@ -14,11 +14,14 @@ class Base(DeclarativeBase):
     pass
 
 
+from sqlalchemy import event
+
 # Create asynchronous engine
 # SQLite requires check_same_thread=False for multithreaded / async tasks
 connect_args = {}
 if "sqlite" in settings.DATABASE_URL:
     connect_args["check_same_thread"] = False
+    connect_args["timeout"] = 30.0
 
 engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,
@@ -26,6 +29,17 @@ engine: AsyncEngine = create_async_engine(
     connect_args=connect_args,
     future=True,
 )
+
+if "sqlite" in settings.DATABASE_URL:
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        try:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA busy_timeout=30000")
+            cursor.close()
+        except Exception:
+            pass
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

@@ -61,8 +61,24 @@ async def get_connected_devices(
     - Removable USB drives and external storage
     - Connected Bluetooth and USB peripherals (BadUSB check)
     - Local network / Wi-Fi peers (ARP table)
+    - All Physical Hardware Ports (USB, Ethernet Cable, HDMI, Audio Jacks)
     """
     return active_system_guardian.detect_connected_devices()
+
+
+@router.get("/hardware-ports-full")
+async def get_hardware_ports_full(
+    current_user=Depends(require_viewer),
+) -> Dict[str, Any]:
+    """
+    Returns complete physical & hardware port inventory of the active host:
+    - USB & Type-C Ports (controllers, root hubs, attached devices, safe charging status)
+    - Network Cable Ports (RJ-45 Ethernet LAN, Wi-Fi 6E, link speed, cable plugged status)
+    - Display & Video Ports (Internal eDP display, External HDMI 2.0/2.1, DisplayPort over Type-C)
+    - Audio & Sound Jack Ports (3.5mm Headphone Jack, HDMI audio, USB audio DAC)
+    - Expansion & Bus Ports (PCIe, Thunderbolt, COM)
+    """
+    return active_system_guardian.enumerate_all_hardware_ports()
 
 
 @router.post("/scan-connected-device")

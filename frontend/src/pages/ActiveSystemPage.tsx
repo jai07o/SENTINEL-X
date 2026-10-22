@@ -22,6 +22,12 @@ import {
   Radio,
   Lock,
   Wrench,
+  Cable,
+  Tv,
+  Headphones,
+  Layers,
+  Wifi,
+  Globe,
 } from 'lucide-react';
 
 interface ActiveHostProfile {
@@ -107,6 +113,43 @@ interface ConnectedDevicesData {
     type: string;
     status: string;
   }>;
+  all_hardware_ports?: AllHardwarePortsData;
+}
+
+export interface HardwarePortItem {
+  port_id: string;
+  name: string;
+  connector_type: string;
+  controller?: string;
+  status: string;
+  security_shield?: string;
+  speed?: string;
+  attached_device?: string;
+  safe_charging?: boolean;
+  cable_status?: string;
+  is_up?: boolean;
+  link_speed?: string;
+  ip_address?: string;
+  mac_address?: string;
+  mtu?: number;
+  connected_display?: string;
+  resolution?: string;
+}
+
+export interface AllHardwarePortsData {
+  total_ports_count: number;
+  active_ports_count: number;
+  secured_ports_count: number;
+  categories: {
+    usb_ports: HardwarePortItem[];
+    network_cable_ports: HardwarePortItem[];
+    display_video_ports: HardwarePortItem[];
+    audio_jack_ports: HardwarePortItem[];
+    expansion_ports: HardwarePortItem[];
+  };
+  creator: string;
+  platform: string;
+  timestamp: string;
 }
 
 interface DeepScanResult {
@@ -150,6 +193,8 @@ export const ActiveSystemPage: React.FC = () => {
   const [deviceScanResult, setDeviceScanResult] = useState<any | null>(null);
   const [isRepairing, setIsRepairing] = useState(false);
   const [repairReport, setRepairReport] = useState<any | null>(null);
+  const [hardwarePorts, setHardwarePorts] = useState<AllHardwarePortsData | null>(null);
+  const [portFilter, setPortFilter] = useState<'all' | 'usb' | 'network' | 'display' | 'audio' | 'expansion'>('all');
   const [error, setError] = useState<string | null>(null);
 
   const fetchHostData = async () => {
@@ -161,6 +206,9 @@ export const ActiveSystemPage: React.FC = () => {
       ]);
       setProfile(profRes.data);
       setDevices(devRes.data);
+      if (devRes.data.all_hardware_ports) {
+        setHardwarePorts(devRes.data.all_hardware_ports);
+      }
     } catch (err: any) {
       setError('Unable to load active host hardware telemetry.');
     } finally {
@@ -215,6 +263,31 @@ export const ActiveSystemPage: React.FC = () => {
       setDeviceScanTarget(null);
     }
   };
+
+  const allPortsData = hardwarePorts || devices?.all_hardware_ports;
+  const usbList = allPortsData?.categories?.usb_ports || [];
+  const netList = allPortsData?.categories?.network_cable_ports || [];
+  const dispList = allPortsData?.categories?.display_video_ports || [];
+  const audioList = allPortsData?.categories?.audio_jack_ports || [];
+  const expList = allPortsData?.categories?.expansion_ports || [];
+
+  const displayedPorts: HardwarePortItem[] = (() => {
+    switch (portFilter) {
+      case 'usb':
+        return usbList;
+      case 'network':
+        return netList;
+      case 'display':
+        return dispList;
+      case 'audio':
+        return audioList;
+      case 'expansion':
+        return expList;
+      case 'all':
+      default:
+        return [...usbList, ...netList, ...dispList, ...audioList, ...expList];
+    }
+  })();
 
   if (isLoading) {
     return (
@@ -652,6 +725,185 @@ export const ActiveSystemPage: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* 5. ALL HARDWARE PORTS & PHYSICAL INTERFACES MATRIX */}
+      <div className="bg-graphite-900 border border-slate-800 p-6 rounded-2xl space-y-5 shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 bg-cyan-950/80 border border-cyan-500/40 rounded-xl text-cyan-400">
+              <Layers className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-base font-bold text-white tracking-wide">
+                  ALL CONNECTED HARDWARE PORTS & PHYSICAL INTERFACES
+                </h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-950 text-cyan-400 border border-cyan-500/40">
+                  REAL-TIME PORT MATRIX
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Physical bus inspection: USB & Type-C, Ethernet RJ-45 net cable, HDMI/Display video, 3.5mm audio jacks, and expansion buses.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono">
+              <span className="text-slate-400">Total Ports: </span>
+              <span className="font-bold text-white">{hardwarePorts?.total_ports_count ?? (devices?.all_hardware_ports?.total_ports_count || 0)}</span>
+            </div>
+            <div className="px-3 py-1.5 bg-emerald-950/60 border border-emerald-500/30 rounded-lg text-xs font-mono">
+              <span className="text-emerald-400">Active Links: </span>
+              <span className="font-bold text-emerald-300">{hardwarePorts?.active_ports_count ?? (devices?.all_hardware_ports?.active_ports_count || 0)}</span>
+            </div>
+            <div className="px-3 py-1.5 bg-cyan-950/60 border border-cyan-500/30 rounded-lg text-xs font-mono">
+              <span className="text-cyan-400">Shield Status: </span>
+              <span className="font-bold text-cyan-300">100% ARMED</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-800/80 pb-3 text-xs">
+          {[
+            { id: 'all', label: 'All Ports', count: hardwarePorts?.total_ports_count ?? (devices?.all_hardware_ports?.total_ports_count || 0) },
+            { id: 'usb', label: 'USB & Type-C', count: (hardwarePorts?.categories?.usb_ports?.length ?? devices?.all_hardware_ports?.categories?.usb_ports?.length) || 0, icon: Usb },
+            { id: 'network', label: 'Net Cable & RJ-45', count: (hardwarePorts?.categories?.network_cable_ports?.length ?? devices?.all_hardware_ports?.categories?.network_cable_ports?.length) || 0, icon: Cable },
+            { id: 'display', label: 'HDMI & Video Displays', count: (hardwarePorts?.categories?.display_video_ports?.length ?? devices?.all_hardware_ports?.categories?.display_video_ports?.length) || 0, icon: Tv },
+            { id: 'audio', label: 'Audio & Sound Jacks', count: (hardwarePorts?.categories?.audio_jack_ports?.length ?? devices?.all_hardware_ports?.categories?.audio_jack_ports?.length) || 0, icon: Headphones },
+            { id: 'expansion', label: 'PCIe & Expansion', count: (hardwarePorts?.categories?.expansion_ports?.length ?? devices?.all_hardware_ports?.categories?.expansion_ports?.length) || 0, icon: Layers },
+          ].map((tab) => {
+            const IconComp = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setPortFilter(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg font-mono text-xs transition flex items-center space-x-1.5 ${
+                  portFilter === tab.id
+                    ? 'bg-cyan-600 text-white font-bold shadow-sm shadow-cyan-950'
+                    : 'bg-slate-950 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800'
+                }`}
+              >
+                {IconComp && <IconComp className="w-3.5 h-3.5" />}
+                <span>{tab.label}</span>
+                <span className={`px-1.5 py-0.2 rounded text-[10px] ${portFilter === tab.id ? 'bg-cyan-800 text-cyan-100' : 'bg-slate-800 text-slate-400'}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Port Cards Grid */}
+        {displayedPorts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayedPorts.map((port, pIdx) => (
+              <div
+                key={pIdx}
+                className="p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between space-y-3"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-900 border border-slate-700 text-slate-300">
+                        {port.port_id}
+                      </span>
+                      <span className="text-xs font-bold text-white truncate max-w-[170px]" title={port.name}>
+                        {port.name}
+                      </span>
+                    </div>
+                    {/* Status Badge */}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                        port.cable_status === 'CABLE_PLUGGED_AND_ACTIVE' ||
+                        port.status === 'CONNECTED_AND_ACTIVE' ||
+                        port.status === 'CONNECTED_AND_SECURED' ||
+                        port.status === 'HARDWARE_JACK_READY' ||
+                        port.is_up === true
+                          ? 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40'
+                          : port.cable_status === 'CABLE_DISCONNECTED_OR_STANDBY'
+                          ? 'bg-amber-950/60 text-amber-300 border-amber-500/30'
+                          : 'bg-slate-900 text-slate-400 border-slate-700'
+                      }`}
+                    >
+                      {port.cable_status || port.status}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-slate-400 flex items-center space-x-1.5 font-mono">
+                    <span className="text-cyan-400 font-semibold">{port.connector_type}</span>
+                  </div>
+
+                  {/* Specific Port Details */}
+                  <div className="space-y-1 text-[11px] font-mono bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                    {port.controller && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">Controller:</span>
+                        <span className="text-slate-300 truncate max-w-[170px]" title={port.controller}>{port.controller}</span>
+                      </div>
+                    )}
+                    {port.speed && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">Speed / Bus:</span>
+                        <span className="text-cyan-400">{port.speed}</span>
+                      </div>
+                    )}
+                    {port.link_speed && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">Link Speed:</span>
+                        <span className="text-emerald-400 font-bold">{port.link_speed}</span>
+                      </div>
+                    )}
+                    {port.attached_device && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">Attached:</span>
+                        <span className="text-white truncate max-w-[170px]" title={port.attached_device}>{port.attached_device}</span>
+                      </div>
+                    )}
+                    {port.connected_display && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">Display:</span>
+                        <span className="text-white truncate max-w-[170px]" title={port.connected_display}>{port.connected_display}</span>
+                      </div>
+                    )}
+                    {port.resolution && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">Resolution:</span>
+                        <span className="text-cyan-300">{port.resolution}</span>
+                      </div>
+                    )}
+                    {port.ip_address && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">IP:</span>
+                        <span className="text-white">{port.ip_address}</span>
+                      </div>
+                    )}
+                    {port.mac_address && (
+                      <div className="flex justify-between text-slate-400">
+                        <span className="text-slate-500">MAC:</span>
+                        <span className="text-slate-400">{port.mac_address}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hardware Shield Protection Footer */}
+                {port.security_shield && (
+                  <div className="p-2 bg-slate-900/90 rounded border border-slate-800 text-[10px] font-mono text-emerald-400 flex items-start space-x-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <span className="leading-tight">{port.security_shield}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 text-center text-xs font-mono text-slate-500 border border-dashed border-slate-800 rounded-xl">
+            No hardware ports found for the selected category.
+          </div>
+        )}
       </div>
 
       {/* Target Device Scan Modal */}

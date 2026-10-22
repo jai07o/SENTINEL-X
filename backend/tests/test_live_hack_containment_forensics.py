@@ -73,12 +73,15 @@ async def test_one_click_incident_contain_and_preserve_api():
     """
     Verify POST /api/v1/incidents/{incident_id}/contain-and-preserve endpoint.
     """
+    from backend.app.core.system_credentials import get_or_create_system_credentials
+    creds = get_or_create_system_credentials()
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # First login as admin to get auth token
         login_res = await client.post(
             "/api/v1/auth/login",
-            data={"username": "admin", "password": "SentinelX@2026!"},
+            data={"username": "admin", "password": creds["system_password"]},
         )
         assert login_res.status_code == 200
         token = login_res.json()["access_token"]

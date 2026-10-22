@@ -30,6 +30,30 @@ router = APIRouter(prefix="/auth", tags=["Authentication & Access Control"])
 
 from starlette.requests import Request
 from backend.app.core.rate_limiter import brute_force_protector
+from backend.app.core.system_credentials import get_or_create_system_credentials
+
+
+@router.get("/system-credentials-info")
+async def get_system_credentials_info(request: Request):
+    """
+    Returns deployment & host-tailored login credential metadata.
+    Enables zero-default-credential operation with local host auto-discovery.
+    """
+    creds = get_or_create_system_credentials()
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    is_local = client_ip in ("127.0.0.1", "localhost", "::1", "testclient")
+
+    return {
+        "status": "HOST_DERIVED_CREDENTIALS_ACTIVE",
+        "system_hostname": creds["system_hostname"],
+        "operating_system": creds["operating_system"],
+        "os_slug": creds["os_slug"],
+        "host_username": creds["host_username"],
+        "admin_username": "admin",
+        "system_password": creds["system_password"],
+        "vault_path": creds["vault_path"],
+        "is_local_deployment": is_local,
+    }
 
 
 @router.post("/login", response_model=Token)

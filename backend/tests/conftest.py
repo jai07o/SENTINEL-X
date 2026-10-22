@@ -59,6 +59,10 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         session.add_all([admin_user, analyst_user])
         await session.commit()
 
+        # Sync host-derived system credentials into test session
+        from backend.app.core.system_credentials import sync_system_credentials_to_db
+        await sync_system_credentials_to_db(session)
+
         yield session
 
     async with test_engine.begin() as conn:

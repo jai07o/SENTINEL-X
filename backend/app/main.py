@@ -1,8 +1,11 @@
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+
+logger = logging.getLogger("sentinel_x.main")
 
 from backend.app.config import settings
 from backend.app.database import engine, Base, AsyncSessionLocal, get_db
@@ -40,36 +43,32 @@ async def lifespan(app: FastAPI):
                 session.add(Role(name=r_name, description=r_desc))
         await session.commit()
 
-        # Check admin user
-        admin_res = await session.execute(select(User).where(User.username == "admin"))
-        if not admin_res.scalar_one_or_none():
-            admin_role_res = await session.execute(select(Role).where(Role.name == "admin"))
-            admin_role = admin_role_res.scalar_one()
-            
-            default_admin = User(
-                username="admin",
-                email="admin@sentinel-x.org",
-                full_name="SENTINEL-X Chief Security Officer",
-                hashed_password=hash_password("SentinelX@2026!"),
-                role_id=admin_role.id,
-                is_active=True,
-            )
-            session.add(default_admin)
-            await session.flush()
+        # 3. Synchronize Host-Derived Dynamic Credentials (No Default Passwords)
+        from backend.app.core.system_credentials import sync_system_credentials_to_db
+        sys_creds = await sync_system_credentials_to_db(session)
+        logger.info(
+            f"[*] Host-Derived System Credentials: User '{sys_creds['host_username']}' & 'admin' | "
+            f"OS: {sys_creds['os_slug']} | Vault: {sys_creds['vault_path']}"
+        )
 
-            # Seed default agent API Key: 'sx_dev_agent_key_default'
-            raw_key = "sx_dev_agent_key_default"
-            import hashlib
-            hashed_k = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
-            dev_key = ApiKey(
-                name="Default Agent / Testing API Key",
-                key_prefix=raw_key[:10],
-                hashed_key=hashed_k,
-                user_id=default_admin.id,
-                is_active=True,
-            )
-            session.add(dev_key)
-            await session.commit()
+        # Seed default agent API Key if missing
+        admin_res = await session.execute(select(User).where(User.username == "admin"))
+        admin_user = admin_res.scalar_one_or_none()
+        if admin_user:
+            dev_key_res = await session.execute(select(ApiKey).where(ApiKey.name == "Default Agent / Testing API Key"))
+            if not dev_key_res.scalar_one_or_none():
+                raw_key = "sx_dev_agent_key_default"
+                import hashlib
+                hashed_k = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+                dev_key = ApiKey(
+                    name="Default Agent / Testing API Key",
+                    key_prefix=raw_key[:10],
+                    hashed_key=hashed_k,
+                    user_id=admin_user.id,
+                    is_active=True,
+                )
+                session.add(dev_key)
+                await session.commit()
 
         # Seed detection rules
         for r in rules_engine.rules:

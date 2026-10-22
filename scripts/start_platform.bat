@@ -32,7 +32,7 @@ echo ==========================================================
 echo   SENTINEL-X SOC Services Launched:
 echo     - Dashboard UI: http://127.0.0.1:5173
 echo     - API Docs:     http://127.0.0.1:8000/docs
-echo     - Credentials:  admin / SentinelX@2026!
+echo     - Credentials:  Host-Derived in data\system_credentials.json (Auto-filled in UI)
 echo ==========================================================
 echo.
 echo [*] Opening Web Dashboard in default browser in 3 seconds...

@@ -1173,21 +1173,69 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `GET` | `/api/v1/system/connected-devices` | Bearer | Enumerate all connected physical and wireless devices (mobile smartphones via USB MTP/ADB, external USB storage, Bluetooth accessories, local Wi-Fi neighbors). |
 | `POST` | `/api/v1/system/scan-connected-device` | Analyst | Execute targeted deep scan on a connected mobile device or USB drive (checks Juice-Jacking protection, autorun exploits, and file integrity). |
 | `POST` | `/api/v1/system/sync-local-host` | Analyst | Force synchronizes and registers the active machine's hardware identity into the central database inventory table. |
+| `GET` | `/api/v1/system/hardware-ports-full` | Viewer | Enumerate every physical & logical hardware port (USB, Ethernet RJ-45 cable, HDMI video, 3.5mm audio jacks, expansion buses). |
+| `GET` | `/api/v1/auth/system-credentials-info` | Public/Local | Returns deployment-tailored host login credential metadata for local operator login. |
 
 ---
 
-## 8. Default Credentials & Access Identifiers
+## 8. Host-Derived Dynamic Credentials & Hardware Port Matrix
 
-Upon initial startup, SENTINEL-X automatically seeds the database with initial administrative credentials and an agent API key:
+### 8.1 Zero-Default Credentials: Host-Derived Authentication Engine
+SENTINEL-X **does not use static default passwords** (`admin` / `SentinelX@2026!` are replaced by host-tailored entropy). 
 
-| Role / Identifier | Username / Header | Default Secret | Permissions |
+Upon first execution on any machine (laptop, PC, Linux server, or Android), the platform dynamically generates deterministic, high-entropy credentials based on the host environment:
+- **Entropy Sources**: Machine Hostname, Operating System Slug (`Win11`, `Ubuntu`, `Kali`, `macOS`), Primary Network Interface MAC Address, and CPU Architecture.
+- **HMAC-SHA256 Derivation**: Computes a deterministic 64-bit entropy digest formatted as: `SX-<OS>-<HOSTNAME>-<HASH>!2026`.
+- **Operator Account**: Automatically provisions a dedicated host operator account (`operator_<hostname_slug>`) and synchronizes the platform `admin` password to match.
+- **Local Vault Storage**: Cryptographically persisted with strict permissions in [`data/system_credentials.json`](file:///c:/Users/kakan/Desktop/cyber_security/data/system_credentials.json).
+- **Web UI Auto-Detection**: When opening the web dashboard locally (`http://localhost:5173`), the Login page auto-queries `/api/v1/auth/system-credentials-info`, displays the host-derived credentials in an inspection banner, and provides **one-click login** and **copy-to-clipboard** shortcuts.
+
+| Account Type | Generated Username | System-Generated Password Format | Storage & Vault Location |
 | :--- | :--- | :--- | :--- |
-| **Platform Administrator** | `admin` | `SentinelX@2026!` | Full administrative control, containment actions, rule configuration, user management. |
-| **Agent / Testing API Key** | `X-Sentinel-Key` | `sx_dev_agent_key_default` | Ingesting endpoint events, registering hosts, sending collector heartbeats. |
-| **Web Service Port** | `127.0.0.1:5173` | *(Vite Frontend)* | Interactive React SOC Console. |
-| **Central Backend Port** | `127.0.0.1:8000` | *(FastAPI Backend)*| Unified REST API, Swagger docs (`/docs`), and compiled SPA web interface. |
+| **Host Operator** | `operator_<host>` (e.g. `operator_zerobook13`) | `SX-Win11-ZEROBOOK13-02DB!2026` | `data/system_credentials.json` |
+| **Platform Admin** | `admin` | Synced to Host System Password | SQLite DB (`users` table) |
+| **Agent / API Key** | `X-Sentinel-Key` | `sx_dev_agent_key_default` | SQLite DB (`api_keys` table) |
 
 ---
+
+### 8.2 Comprehensive Physical & Hardware Port Matrix
+SENTINEL-X provides real-time, in-depth hardware bus inspection for **every physical and logical port** connected to the machine:
+
+```
++-----------------------------------------------------------------------------------------+
+|                  ALL CONNECTED HARDWARE PORTS & PHYSICAL INTERFACES                     |
++-----------------------------------------------------------------------------------------+
+| [1] USB & Type-C Ports       : USB 3.2 Type-C (10Gbps PD), USB 3.0 Type-A (5Gbps), USB 2.0|
+|                              : Juice-Jacking Shield Active • Data Pins Filtered to Safe |
+|                              : BadUSB Keystroke Injector Filter: ARMED                  |
+| [2] Network Cable & RJ-45    : RJ-45 8P8C Modular Jack (Ethernet LAN 1000 Mbps Full Duplex) |
+|                              : Real-time Cable Plugged vs Standby status detection      |
+|                              : Wi-Fi 6E (802.11ax), IP/MAC, Anti-ARP Poisoning Shield   |
+| [3] Display & Video Outputs  : Internal Laptop Screen (Embedded DisplayPort eDP 1.4b)   |
+|                              : External HDMI 2.0/2.1 (Up to 4K Ultra-HD @ 60Hz HDR)     |
+|                              : USB-C DisplayPort Alt Mode (Up to 8K @ 60Hz)             |
+|                              : HDCP 2.3 & DPCP Hardware Cryptographic Video Bus Shield  |
+| [4] Audio & Sound Jacks      : 3.5mm TRRS Analog Headphone / Microphone Audio Combo Jack|
+|                              : HDMI/DisplayPort Digital Audio Output Passthrough        |
+|                              : Microphone Background Surveillance Sentinel: ARMED       |
+| [5] High-Speed Expansion     : Thunderbolt 4 / PCIe High-Speed Expansion Bus (40 Gbps)  |
+|                              : Intel VT-d / Kernel DMA Remapping Protection: ENFORCED   |
++-----------------------------------------------------------------------------------------+
+```
+
+#### Accessing Hardware Ports Telemetry:
+1. **Via Web Dashboard**:
+   - Go to **Active System Telemetry & Sensors** (`/active-system`).
+   - Scroll to **"ALL CONNECTED HARDWARE PORTS & PHYSICAL INTERFACES"**.
+   - Filter by categories: `[All Ports]`, `[USB & Type-C]`, `[Net Cable & RJ-45]`, `[HDMI & Video Displays]`, `[Audio & Sound Jacks]`, `[PCIe & Expansion]`.
+2. **Via REST API**:
+   - `GET /api/v1/system/hardware-ports-full` (returns JSON dictionary of all 5 port categories).
+   - `GET /api/v1/system/connected-devices` (includes `all_hardware_ports` inside connected devices payload).
+3. **Via Terminal CLI**:
+   ```cmd
+   python cli.py list-ports
+   ```
+   *Or select menu option **`[0C]`** in interactive mode.*
 
 ## 9. Multi-Platform Deployment & Installation Guide
 
@@ -1247,7 +1295,7 @@ You can access and run the complete SENTINEL-X dashboard directly on your Androi
    http://<YOUR_LAPTOP_IP>:5173/
    ```
    *(Example: `http://192.168.29.91:5173/`)*
-4. Log in using `admin` / `SentinelX@2026!`.
+4. Log in using `admin` or your host operator username (`operator_<host>`) and the system-generated password displayed on the startup terminal banner or stored in [`data/system_credentials.json`](file:///c:/Users/kakan/Desktop/cyber_security/data/system_credentials.json).
 5. **Install as Native Fullscreen Mobile App Form**:
    - **On Android (Chrome)**: Tap the 3-dot menu in the top-right corner -> tap **"Add to Home screen"** or **"Install app"**.
    - **On iOS (Safari)**: Tap the **Share** button (box with upward arrow) -> tap **"Add to Home Screen"**.

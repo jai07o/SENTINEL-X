@@ -88,12 +88,19 @@ def start_web_platform():
     target_url = "http://127.0.0.1:5173/"
     print(f"[+] Opening browser at: {target_url}")
     webbrowser.open(target_url)
-    print("\n" + "=" * 60)
+    try:
+        from backend.app.core.system_credentials import get_or_create_system_credentials
+        c = get_or_create_system_credentials()
+        creds_str = f"User: {c['host_username']} (or admin) | Pass: {c['system_password']}"
+    except Exception:
+        creds_str = "Generated dynamically in data/system_credentials.json"
+
+    print("\n" + "=" * 65)
     print("  SENTINEL-X SOC Platform Running:")
     print("    - Web Console: http://127.0.0.1:5173/")
     print("    - API Docs:    http://127.0.0.1:8000/docs")
-    print("    - Credentials: admin / SentinelX@2026!")
-    print("=" * 60 + "\n")
+    print(f"    - Credentials: {creds_str}")
+    print("=" * 65 + "\n")
 
 
 def start_desktop_app():

@@ -90,13 +90,21 @@ async def test_scan_connected_device_juice_jacking_check():
 
 @pytest.mark.asyncio
 async def test_api_active_system_endpoints():
-    """Verifies REST API endpoints with authentication."""
+    """Verifies REST API endpoints with host-derived dynamic authentication and hardware port matrix."""
+    from backend.app.core.system_credentials import get_or_create_system_credentials
+    creds = get_or_create_system_credentials()
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        # Authenticate
+        # 0. Check /auth/system-credentials-info without auth
+        creds_res = await client.get("/api/v1/auth/system-credentials-info")
+        assert creds_res.status_code == 200
+        assert creds_res.json()["status"] == "HOST_DERIVED_CREDENTIALS_ACTIVE"
+
+        # Authenticate with system credentials
         login_res = await client.post(
             "/api/v1/auth/login",
-            data={"username": "admin", "password": "SentinelX@2026!"},
+            data={"username": "admin", "password": creds["system_password"]},
         )
         assert login_res.status_code == 200
         token = login_res.json()["access_token"]
@@ -111,6 +119,18 @@ async def test_api_active_system_endpoints():
         dev_res = await client.get("/api/v1/system/connected-devices", headers=headers)
         assert dev_res.status_code == 200
         assert "connected_mobiles_count" in dev_res.json()
+        assert "all_hardware_ports" in dev_res.json()
+
+        # 2.1 GET /api/v1/system/hardware-ports-full
+        ports_res = await client.get("/api/v1/system/hardware-ports-full", headers=headers)
+        assert ports_res.status_code == 200
+        ports_data = ports_res.json()
+        assert "total_ports_count" in ports_data
+        assert "categories" in ports_data
+        assert "usb_ports" in ports_data["categories"]
+        assert "network_cable_ports" in ports_data["categories"]
+        assert "display_video_ports" in ports_data["categories"]
+        assert "audio_jack_ports" in ports_data["categories"]
 
         # 3. POST /api/v1/system/deep-scan
         deep_res = await client.post("/api/v1/system/deep-scan", headers=headers)

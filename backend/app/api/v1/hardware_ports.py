@@ -179,3 +179,46 @@ async def intercept_insertion_endpoint(
     })
     return res
 
+
+class SafeChargingToggleRequest(BaseModel):
+    enabled: bool = Field(..., description="Enable or disable Charger-Only Safe Charging Mode (Data-Pin Lockout)")
+
+
+class ChargerAuditRequest(BaseModel):
+    name: Optional[str] = Field("USB Cable / Charger", description="Name or label of cable/charger")
+    device_id: Optional[str] = Field("PORT_CABLE_CHARGER", description="Hardware interface ID")
+    device_type: Optional[str] = Field("USB Cable Charger", description="Reported device class / interface")
+
+
+@router.get("/safe-charging")
+async def get_safe_charging_status_endpoint(
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieves Safe Charging Shield status (Juice Jacking & Data-Pin Lockout)."""
+    return hardware_port_service.get_safe_charging_status()
+
+
+@router.post("/safe-charging")
+async def toggle_safe_charging_endpoint(
+    request: SafeChargingToggleRequest,
+    current_user: User = Depends(require_role(["admin", "analyst"])),
+):
+    """Enables or disables Charger-Only Safe Charging Mode (Data-Pin Lockout)."""
+    if request.enabled:
+        return hardware_port_service.enable_safe_charging_mode()
+    else:
+        return hardware_port_service.disable_safe_charging_mode()
+
+
+@router.post("/audit-charger")
+async def audit_charger_endpoint(
+    request: ChargerAuditRequest,
+    current_user: User = Depends(require_role(["admin", "analyst"])),
+):
+    """Audits a plugged-in charger or USB cable for unauthorized data handshakes / juice-jacking."""
+    return hardware_port_service.audit_charger_connection({
+        "name": request.name,
+        "device_id": request.device_id,
+        "device_type": request.device_type,
+    })
+

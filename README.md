@@ -1,13 +1,17 @@
 # SENTINEL-X
 ## An Evidence-Driven, Real-Time Endpoint Detection, Automated Threat Containment and Digital Forensics Platform
 
+> **Architected & Engineered by:** **K. Jaideep Raj**  
+> **Chief Security Architect & Creator**  
+> **Developed & Powered with:** **Google Antigravity**
+
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB.svg?style=flat&logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131.svg?style=flat&logo=tauri)](https://tauri.app)
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4.svg?style=flat&logo=googlechrome)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/Tests-55%2F55_Passed-success.svg)](#10-automated-test-suite--benchmarking)
+[![Tests](https://img.shields.io/badge/Tests-61%2F61_Passed-success.svg)](#10-automated-test-suite--benchmarking)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
@@ -41,6 +45,9 @@
    - [5.21 End-to-End Controlled Attack Simulation & Defense Verification Pipeline](#521-end-to-end-controlled-attack-simulation--defense-verification-pipeline)
    - [5.22 Supreme Real-Time Physical Host Safeguard, Forensics Freeze & Automated Incident Rectifier](#522-supreme-real-time-physical-host-safeguard-forensics-freeze--automated-incident-rectifier)
    - [5.23 Supreme Real-Time Wi-Fi, Rogue AP, Evil Twin & Network Intrusion Safeguard Engine](#523-supreme-real-time-wi-fi-rogue-ap-evil-twin--network-intrusion-safeguard-engine)
+   - [5.24 Wired Hardware, Charger / Juice-Jacking Shield & Physical Forensic Vault](#524-wired-hardware-charger--juice-jacking-shield--physical-forensic-vault)
+   - [5.25 Real-Time Socket Guardian, Rogue Backdoor Port Defense & Network Forensics](#525-real-time-socket-guardian-rogue-backdoor-port-defense--network-forensics)
+   - [5.26 24/7 Persistent Offline Protection & Autonomous OS Watchdog Shield](#526-247-persistent-offline-protection--autonomous-os-watchdog-shield)
 6. [The 25 SOC Operations Web Views](#6-the-25-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -678,6 +685,76 @@ Protects laptops, PCs, and mobile companions from wireless airborne hacking, clo
 
 ---
 
+### 5.24 Wired Hardware, Charger / Juice-Jacking Shield & Physical Forensic Vault
+Engineered to eradicate physical-cable, public charger, USB pendrive, and BadUSB hardware attack vectors (`hardware_port_service.py`):
+- **Chargers & Malicious Cables Defense (Juice-Jacking Mitigation)**:
+  - Defends against Juice Jacking and malicious charging kiosk exploits when plugging into public USB power ports, modified power bricks, or weaponized charging cables (O.MG cables).
+  - Automatically audits attached cables and power adapters for unauthorized MTP (Media Transfer Protocol), PTP (Picture Transfer Protocol), ADB (Android Debug Bridge), or RNDIS/Ethernet data channel handshakes.
+  - **Safe Charging Mode**: Locks Windows AutoPlay handlers for Portable Devices/WPD and disables USB data interfaces while maintaining continuous USB Power Delivery (5V, 9V, 12V, 20V VBUS) for clean battery charging without risk of data exfiltration or malware delivery.
+- **Pendrive & USB Storage Hardware Defense**:
+  - Intercepts BadUSB microcontroller chips (Teensy, Digispark, Rubber Ducky HID injectors), AutoRun worms, LNK shortcut loaders, hidden recycle bin droppers (`$Recycle.Bin`, `RECYCLER`), and high-entropy packed droppers.
+  - Detects double extension masquerade tricks (`.pdf.exe`, `.docx.vbs`).
+  - Automatic Plug-and-Play (PnP) hardware device interceptor halts newly plugged storage devices and verifies clean state before OS execution.
+- **Immediate Port Hardware Quarantine**:
+  - When threats are identified, immediately dismounts storage volumes (`mountvol <Drive> /p`), marks the disk offline via PowerShell (`Set-Disk -IsOffline $true`), and electrically disables the controller via PnP device driver disabling (`Disable-PnpDevice`).
+- **Physical Forensic Evidence Vault (`PhysicalPerimeterForensicVault`)**:
+  - **Golden Forensics Rule**: Seals all physical hardware crime-scene data into `data/evidence/PHYSICAL_SCENE_{evidence_number}.json` with immutable read-only permissions (`0400`).
+  - Extracts device serial number, VID, PID, volume letters, filesystem, payload SHA-256 and MD5 hashes, Shannon entropy, PE metadata, and matched indicators of compromise (IOCs).
+  - Enrolls the incident into the persistent SQLite database, initializes a linked `ForensicCase`, and logs an immutable `ChainOfCustodyRecord`.
+  - Issues a court-admissible **Hardware Perimeter Incident Rectification Certificate** (`data/reports/CERT-HARDWARE-RECTIFY-*.md`) cryptographically signed under the authority of **K. Jaideep Raj** using Google Antigravity.
+- **Unified Engine Access**:
+  - **Terminal CLI**: `python cli.py safe-charging [--enable/--disable]`, `python cli.py scan-cables`, `python cli.py watch-usb`, `python cli.py quarantine-port`, `python cli.py release-port`, `python cli.py immunize-host`, `python cli.py vaccinate-drive`.
+  - **REST API**: `GET /api/v1/hardware-ports/safe-charging`, `POST /api/v1/hardware-ports/safe-charging`, `GET /api/v1/hardware-ports/audit-charger`, `POST /api/v1/hardware-ports/scan`, `POST /api/v1/hardware-ports/intercept`, `POST /api/v1/hardware-ports/quarantine`, `POST /api/v1/hardware-ports/release`.
+
+---
+
+### 5.25 Real-Time Socket Guardian, Rogue Backdoor Port Defense & Network Forensics
+Provides real-time hunting, forensic freezing, and surgical remediation of rogue network sockets, listening backdoors, and reverse shells (`socket_service.py`):
+- **Rogue Backdoor Port & Socket Hunter**:
+  - Audits all active TCP/UDP sockets, remote endpoints, and listening ports across the host operating system.
+  - Flags known backdoor and C2 listener ports (Metasploit/Meterpreter 4444, Back Orifice 31337, Elite 1337, Netcat 9999, ADB 5555, Cobalt Strike 4443/8088, IRC botnets 6667, Tor 9050).
+  - Intercepts wildcard bindings (`0.0.0.0` or `*`) originating from untrusted temporary paths (`AppData\Local\Temp`, `/tmp`, `/dev/shm`).
+  - Flags active reverse shell beacons connecting outbound to WAN IP addresses.
+- **Pre-Severance Socket Forensic Vault (`SocketForensicVault`)**:
+  - **Golden Forensics Rule**: Freezes volatile socket state, remote C2 IP/port, protocol, process tree PID/PPID, binary disk path, SHA-256/MD5 hashes, and command line into `data/evidence/SOCKET_SCENE_{evidence_number}.json` with read-only lock (`0400`).
+  - Enrolls the incident, forensic case, and evidence item into the immutable chain of custody.
+  - Generates a signed **Socket & Backdoor Port Rectification Certificate** (`data/reports/CERT-SOCKET-RECTIFY-*.md`) issued by **K. Jaideep Raj** using Google Antigravity.
+- **Surgical Socket Rectification & Neutralization**:
+  - Neutralizes the rogue process and its child processes (`taskkill /F /T /PID` or `kill -9`).
+  - Installs emergency native OS firewall blocking rules (`netsh advfirewall firewall add rule name="SENTINEL_BLOCK_PORT_<PORT>"` and `SENTINEL_BLOCK_C2_<IP>`).
+  - Cleans rogue persistence from Windows Registry Run/RunOnce keys.
+  - Disarms droppers to `0000` and flushes host DNS caches (`ipconfig /flushdns`).
+- **Autonomous Background Socket Daemon (`SocketGuardDaemon`)**:
+  - Continuous background watcher auditing sockets every 5 seconds with automatic rectification upon threat detection.
+- **Unified Engine Access**:
+  - **Terminal CLI**: `python cli.py guard-sockets [--continuous]`, `python cli.py rectify-socket <PID_OR_PORT>`, `python cli.py scan-sockets`.
+  - **REST API**: `GET /api/v1/sockets/hunt`, `POST /api/v1/sockets/rectify`, `POST /api/v1/sockets/daemon/start`, `POST /api/v1/sockets/daemon/stop`, `GET /api/v1/sockets/daemon/status`.
+
+---
+
+### 5.26 24/7 Persistent Offline Protection & Autonomous OS Watchdog Shield
+Delivers full continuous defense ensuring the physical host remains completely immune and guarded **both while the application is running AND while it is NOT running** (`persistent_shield_service.py` & `persistent_guardian_watchdog.py`):
+- **The Dual-Layer "Running & NOT Running" Architecture**:
+  - Traditional security tools stop protecting the machine the moment their user interface or process is closed.
+  - SENTINEL-X guarantees 24/7 immunity through a dual-layer approach:
+    1. **Passive OS Deep Hardening (Zero-Runtime Shield)**:
+       - Configures permanent Windows Registry, Group Policy, and native Windows Defender Firewall rules that remain active at the kernel and OS driver level even if Python, Node, or SENTINEL-X are completely shut down.
+       - Disables AutoRun/AutoPlay globally across all drive types (`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoDriveTypeAutoRun = 0xFF` and `HKCU\...\NoDriveTypeAutoRun = 0xFF`).
+       - Null-routes `Autorun.inf` parsing in the Windows kernel (`HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\IniFileMapping\Autorun.inf = @SYS:DoesNotExist`).
+       - Blocks executable code execution from all removable USB/flash drives (`HKLM\SOFTWARE\Policies\Microsoft\Windows\RemovableStorageDevices\Deny_Execute = 1`).
+       - Disables LLMNR multicast credential broadcasting (`HKLM\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient\EnableMulticast = 0`).
+       - Blocks unauthorized MTP AutoPlay data handshakes for Safe Charging.
+       - Installs persistent firewall rules blocking known RAT/C2 backdoor ports (4444, 1337, 31337, 5555, 6667, 8088).
+    2. **Autonomous OS Scheduled Watchdog (`SENTINELX_AUTONOMOUS_PERIMETER_GUARD`)**:
+       - Registers a native OS Scheduled Task via `schtasks.exe` configured to run at system logon (`/sc onlogon`) with highest administrative privileges (`/rl highest`).
+       - Launches the standalone watchdog script (`scripts/persistent_guardian_watchdog.py`) in silent background mode.
+       - Continuously monitors USB insertions, BadUSB devices, rogue socket listeners, and public charger connections, logging all actions to `data/sentinel_watchdog.log`.
+- **Unified Engine Access**:
+  - **Terminal CLI**: `python cli.py offline-shield`, `python cli.py install-offline-shield`, `python cli.py uninstall-offline-shield`.
+  - **REST API**: `GET /api/v1/offline-shield/status`, `POST /api/v1/offline-shield/apply-hardening`, `POST /api/v1/offline-shield/install-watchdog`, `POST /api/v1/offline-shield/uninstall-watchdog`.
+
+---
+
 ## 6. The 25 SOC Operations Web Views
 
 The SENTINEL-X web interface provides 25 dedicated, fully wired operational views:
@@ -856,12 +933,12 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `POST` | `/api/v1/omniscan/file` | Bearer | Detects double extensions (`.pdf.exe`), unpacks Office VBA macros, audits PDF `/Launch` actions. |
 | `GET` | `/api/v1/omniscan/samples` | Bearer | Returns curated test vectors across all 4 scanners for fast automated testing. |
 
-### Hardware Ports, Pendrive Shield & Cable Quarantine (`/hardware-ports`)
+### Hardware Ports, Pendrive Shield, Safe Charging & Cable Quarantine (`/hardware-ports`)
 | Method | Path | Auth | Purpose |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/hardware-ports/devices` | Bearer | Enumerate all connected storage drives, USB volumes, and Windows PnP peripherals. |
 | `GET` | `/api/v1/hardware-ports/status` | Bearer | Retrieve quarantine status ledger, active lock count, and auto-quarantine switch state. |
-| `POST` | `/api/v1/hardware-ports/scan` | Bearer | Deep scan connected cable drive for autorun worms, double extensions, LNK shortcuts, and high-entropy binaries; automatically quarantines port if infected. |
+| `POST` | `/api/v1/hardware-ports/scan` | Bearer | Deep scan connected cable drive for autorun worms, double extensions, LNK shortcuts, and high-entropy binaries; freezes volatile scene evidence and automatically quarantines port if infected. |
 | `POST` | `/api/v1/hardware-ports/quarantine` | Bearer | Instantly force-dismounts storage volume (`mountvol /p`), sets disk offline, and disables PnP device driver to block port. |
 | `POST` | `/api/v1/hardware-ports/release` | Bearer | Re-enables hardware PnP driver, clears port lock, and restores authorized device access. |
 | `POST` | `/api/v1/hardware-ports/toggle-auto-quarantine`| Bearer | Toggles automatic immediate port quarantine upon malware detection. |
@@ -870,6 +947,26 @@ All REST endpoints reside under the `/api/v1` namespace and require either a Bea
 | `POST` | `/api/v1/hardware-ports/vaccinate-drive` | Bearer | Applies immutable `autorun.inf` directory shield with `attrib +r +s +h` to vaccinate pendrives against worms. |
 | `GET` | `/api/v1/hardware-ports/badusb` | Bearer | Audits USB PnP hardware devices for BadUSB microcontroller VIDs and keystroke injection signatures. |
 | `POST` | `/api/v1/hardware-ports/intercept` | Bearer | Intercepts newly mounted pendrive insertion, scans for viruses, and halts the device before execution. |
+| `GET` | `/api/v1/hardware-ports/safe-charging` | Bearer | Retrieve Safe Charging Mode status (MTP/ADB data pins locked, VBUS active). |
+| `POST` | `/api/v1/hardware-ports/safe-charging` | Admin | Enable or disable Safe Charging Mode (locks USB data pins against juice-jacking while keeping battery charging active). |
+| `GET` | `/api/v1/hardware-ports/audit-charger` | Bearer | Audit physical charger/cable connection for unauthorized data-transfer attempts or juice-jacking risks. |
+
+### Rogue Sockets & Backdoor Port Guardian (`/sockets`)
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/sockets/hunt` | Bearer | Real-time sweep across TCP/UDP sockets for backdoor ports (4444, 1337, 31337, 5555, 6667, 8088), rogue listeners on 0.0.0.0, and reverse shells. |
+| `POST` | `/api/v1/sockets/rectify` | Admin | Atomically freeze socket crime-scene evidence into vault (`0400`), kill process tree, install firewall block rule, wipe persistence, flush DNS, and issue signed certificate. |
+| `POST` | `/api/v1/sockets/daemon/start` | Admin | Start real-time continuous background socket defense daemon with automated threat rectification. |
+| `POST` | `/api/v1/sockets/daemon/stop` | Admin | Stop continuous background socket defense daemon cleanly. |
+| `GET` | `/api/v1/sockets/daemon/status` | Bearer | Retrieve background socket defense daemon execution status and telemetry metrics. |
+
+### 24/7 Persistent Offline Protection & OS Watchdog (`/offline-shield`)
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/offline-shield/status` | Bearer | Audit OS zero-runtime hardening posture (AutoRun 0xFF, Removable Deny_Execute, Safe Charging, LLMNR, Firewall baseline) and scheduled watchdog status. |
+| `POST` | `/api/v1/offline-shield/apply-hardening` | Admin | Apply persistent OS registry, group policy, and Windows firewall hardening that protects the laptop even when SENTINEL-X is completely closed. |
+| `POST` | `/api/v1/offline-shield/install-watchdog` | Admin | Register native OS Scheduled Task (`SENTINELX_AUTONOMOUS_PERIMETER_GUARD`) to run persistent watchdog at logon with highest privileges. |
+| `POST` | `/api/v1/offline-shield/uninstall-watchdog` | Admin | Remove native OS Scheduled Task watchdog. |
 
 ### Universal Data Management & Deletions (`/data-management` & Entity Routers)
 | Method | Path | Auth | Purpose |
@@ -1130,6 +1227,12 @@ python launcher.py cli
 | **Pin & Trust Wi-Fi Signature** | `python cli.py trust-wifi` | Pins active Wi-Fi SSID, BSSID, and cipher as trusted baseline to detect future Evil Twin and clone AP spoofing attacks. |
 | **Emergency Wi-Fi Severance** | `python cli.py disconnect-wifi` | Instantly severs connection from hostile or rogue Wi-Fi access point. |
 | **Wi-Fi Incident Rectification** | `python cli.py rectify-wifi` | Freezes network crime-scene evidence into vault (`0400`), severs connection from rogue AP, purges malicious profile, flushes caches, and produces signed certificate. |
+| **Safe Charging Mode** | `python cli.py safe-charging [--enable/--disable]` | Locks USB/MTP/ADB data handshakes against juice-jacking while preserving electrical battery charging. |
+| **Real-Time Socket Guardian** | `python cli.py guard-sockets [--continuous]` | Sweeps all TCP/UDP sockets for backdoor ports (4444, 1337, 31337, 5555, etc.), rogue listeners on 0.0.0.0, and reverse shells. |
+| **Surgical Socket Rectification** | `python cli.py rectify-socket <PID_OR_PORT>` | Freezes socket crime-scene evidence into vault (`0400`), terminates process tree, blocks port and C2 IP in firewall, wipes persistence, and issues signed certificate. |
+| **24/7 Offline Shield Status** | `python cli.py offline-shield` | Audits permanent OS registry/policy hardening (AutoRun 0xFF, Removable Deny_Execute, Safe Charging, LLMNR, Firewall baseline) and watchdog status. |
+| **Install 24/7 Offline Shield** | `python cli.py install-offline-shield` | Applies persistent OS-level zero-runtime hardening and registers native OS Scheduled Task watchdog to guard the machine even when SENTINEL-X is completely closed. |
+| **Uninstall 24/7 Offline Shield**| `python cli.py uninstall-offline-shield` | Unregisters the native OS Scheduled Task watchdog. |
 
 ---
 
@@ -1146,7 +1249,7 @@ The test suite validates all defensive boundaries, normalization logic, and end-
 python3 -m pytest -v
 ```
 
-### Verified Test Matrix (55/55 Passing)
+### Verified Test Matrix (61/61 Passing)
 | Test Suite | Purpose | Status |
 | :--- | :--- | :--- |
 | `test_normalization.py` | Multi-timestamp parsing, canonical payload hashing, duplicate suppression | **PASS** |
@@ -1161,6 +1264,7 @@ python3 -m pytest -v
 | `test_platform_armor_and_security.py` | Cryptographic code self-integrity audit, adaptive anti-brute-force lockout, path traversal guard, shell injection sanitizer, and military-grade HTTP security headers | **PASS** |
 | `test_live_hack_containment_forensics.py` | Cross-platform controlled attack simulations (Kali Linux RAT, Windows reverse shell, Mobile spyware), automated crime-scene volatile evidence vault preservation, SHA-256 verification, safe host containment, and one-click API | **PASS** |
 | `test_wifi_network_guardian.py` | Wi-Fi Evil Twin / Rogue AP detection, cipher downgrade stripping, open Wi-Fi honeypots, ARP poisoning / MitM gateway duplicate MAC hijack, network stack hardening, and pre-severance volatile evidence vaulting | **PASS** |
+| `test_wired_hardware_socket_offline_guardian.py` | Physical charger juice-jacking data-pin lockout, pendrive crime-scene evidence freezing, backdoor socket hunt & rectification, persistent OS zero-runtime hardening, and scheduled watchdog | **PASS** |
 
 ---
 

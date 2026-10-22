@@ -54,6 +54,7 @@ def print_banner():
   ███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
   ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝
             SENTINEL-X DIRECT TERMINAL THREAT ANALYZER               
+     Chief Security Architect: K. Jaideep Raj | Google Antigravity
 ======================================================================{RESET}"""
     print(banner)
 
@@ -865,6 +866,145 @@ def cmd_rectify_wifi():
 
 
 # ---------------------------------------------------------
+# Command: Safe Charging Mode (Juice Jacking Defense)
+# ---------------------------------------------------------
+def cmd_safe_charging(enabled: Optional[bool] = None):
+    from backend.app.services.hardware_port_service import hardware_port_service
+    if enabled is None:
+        status = hardware_port_service.get_safe_charging_status()
+        print(f"\n{CYAN}{BOLD}[*] Charger-Only Safe Charging Mode Status:{RESET}")
+        print(f"    Active:   {status.get('safe_charging_enabled')}")
+        print(f"    Status:   {status.get('status')}")
+        print(f"    Details:  {status.get('message')}")
+        return
+
+    if enabled:
+        res = hardware_port_service.enable_safe_charging_mode()
+        print(f"\n{GREEN}{BOLD}[+] Safe Charging Shield ENABLED!{RESET}")
+        print(f"    USB data pin communication locked down.")
+        print(f"    Juice Jacking & malicious cable exploits blocked; power charging active.")
+    else:
+        res = hardware_port_service.disable_safe_charging_mode()
+        print(f"\n{YELLOW}{BOLD}[!] Safe Charging Shield DISABLED.{RESET}")
+        print(f"    Normal USB data negotiation permitted.")
+
+
+# ---------------------------------------------------------
+# Command: Guard & Hunt Sockets
+# ---------------------------------------------------------
+def cmd_guard_sockets(continuous: bool = False):
+    from backend.app.services.socket_service import socket_monitor_service
+    if continuous:
+        print(f"\n{CYAN}[*] Launching Autonomous Socket Guardian Daemon...{RESET}")
+        res = socket_monitor_service.start_daemon(poll_interval_seconds=4.0)
+        print(f"{GREEN}{BOLD}[+] {res.get('message')}{RESET}")
+        print("    Running continuously in background. Intercepting rogue listeners & C2 sockets.")
+        return
+
+    print(f"\n{CYAN}[*] Hunting for Rogue Sockets & Backdoor Listeners...{RESET}")
+    all_sockets = socket_monitor_service.get_active_sockets()
+    threats = [s for s in all_sockets if s.get("threat_level") in ("CRITICAL", "HIGH")]
+
+    print(f"\n{BOLD}Active Sockets Inspected:{RESET} {len(all_sockets)}")
+    print(f"{BOLD}High-Risk Sockets / Backdoors:{RESET} {len(threats)}")
+
+    if not threats:
+        print(f"\n{GREEN}{BOLD}[+] No rogue backdoor listeners or unauthorized WAN sockets detected.{RESET}")
+        return
+
+    for t in threats:
+        print(f"\n{RED}{BOLD}[!] HIGH-RISK SOCKET DETECTED:{RESET} {t.get('process_name')} (PID: {t.get('pid')})")
+        print(f"    Local Endpoint:  {t.get('protocol')} {t.get('local_ip')}:{t.get('local_port')}")
+        print(f"    Remote Endpoint: {t.get('remote_ip') or '*'}:{t.get('remote_port') or '*'}")
+        print(f"    Status:          {t.get('status')}")
+        print(f"    Threat Level:    {t.get('threat_level')} (Risk: {t.get('risk_score')}/100)")
+        for r in t.get("threat_reasons", []):
+            print(f"    Indicator:       {r}")
+
+
+# ---------------------------------------------------------
+# Command: Rectify Socket Threat
+# ---------------------------------------------------------
+def cmd_rectify_socket(target: int):
+    from backend.app.services.socket_service import socket_monitor_service
+    print(f"\n{CYAN}[*] Rectifying Rogue Network Socket Target: {target}...{RESET}")
+    res = socket_monitor_service.rectify_socket_threat(target)
+
+    status_badge = format_verdict(False, res.get("status", ""))
+    print(f"\n{BOLD}Verdict:{RESET} {status_badge}")
+    print(f"  [1] Volatile Digital Forensics Vault:")
+    evd = res.get("forensic_vault", {}).get("evidence", {})
+    print(f"      - Evidence Number:        {evd.get('evidence_number')}")
+    print(f"      - Vault Crime Scene File: {evd.get('vault_path')}")
+    print(f"      - SHA-256 Digest:         {evd.get('sha256')}")
+    print(f"      - Chain of Custody:       {evd.get('security')}")
+
+    neut = res.get("neutralization", {})
+    print(f"  [2] Threat Neutralization & Remediation:")
+    print(f"      - Process Terminated:     {neut.get('process_killed', {}).get('message')}")
+    print(f"      - Port Firewall Block:    {neut.get('firewall', {}).get('port_firewall_rule')}")
+    print(f"      - C2 IP Firewall Block:   {neut.get('firewall', {}).get('c2_firewall_rule')}")
+    print(f"      - DNS Cache Flushed:      {neut.get('dns_flushed')}")
+    cert_path = res.get("forensic_vault", {}).get("remediation", {}).get("certificate_path")
+    print(f"      - Signed Certificate:     {cert_path}")
+    print(f"\n{GREEN}{BOLD}[+] Network socket neutralized and host security restored.{RESET}\n")
+
+
+# ---------------------------------------------------------
+# Command: Persistent Offline Shield & Hardening
+# ---------------------------------------------------------
+def cmd_offline_shield_status():
+    from backend.app.services.persistent_shield_service import persistent_shield_service
+    print(f"\n{CYAN}{BOLD}[*] Auditing 24/7 Offline Protection & OS Hardening...{RESET}")
+    res = persistent_shield_service.get_hardening_status()
+    wd = persistent_shield_service.get_watchdog_status()
+
+    badge = format_verdict(res.get("is_fully_hardened"), res.get("status"))
+    print(f"\n{BOLD}OS Hardening Verdict:{RESET} {badge}")
+    print(f"  - USB AutoRun Disabled (0xFF):        {res.get('policies', {}).get('autorun_disabled')}")
+    print(f"  - USB Storage Binary Execute Denied:   {res.get('policies', {}).get('removable_execute_denied')}")
+    print(f"  - Juice Jacking AutoPlay Locked:      {res.get('policies', {}).get('safe_charging_autoplay_locked')}")
+    print(f"  - LLMNR Hash Poisoning Disabled:      {res.get('policies', {}).get('llmnr_poisoning_disabled')}")
+    print(f"  - Native Firewall Baseline Active:    {res.get('policies', {}).get('firewall_baseline_active')}")
+    print(f"\n{BOLD}Autonomous OS Watchdog Task:{RESET}")
+    print(f"  - Task Name:       {wd.get('task_name')}")
+    print(f"  - Status:          {wd.get('status')}")
+    print(f"  - Watchdog Script: {wd.get('watchdog_script')}")
+    print(f"  - Architect:       K. Jaideep Raj | Google Antigravity\n")
+
+
+def cmd_apply_offline_hardening():
+    from backend.app.services.persistent_shield_service import persistent_shield_service
+    print(f"\n{CYAN}[*] Applying Deep Passive OS Hardening Policies...{RESET}")
+    res = persistent_shield_service.apply_all_os_hardening()
+    print(f"\n{GREEN}{BOLD}[+] {res.get('message')}{RESET}")
+    for act in res.get("actions", []):
+        print(f"    - {act}")
+    print(f"\n{GREEN}{BOLD}[+] System is now permanently immunized against AutoRun worms, Juice Jacking, and rogue listeners 24/7.{RESET}\n")
+
+
+def cmd_install_offline_watchdog():
+    from backend.app.services.persistent_shield_service import persistent_shield_service
+    print(f"\n{CYAN}[*] Registering Autonomous OS Background Watchdog Task...{RESET}")
+    res = persistent_shield_service.install_scheduled_watchdog()
+    if res.get("success"):
+        print(f"\n{GREEN}{BOLD}[+] {res.get('message')}{RESET}")
+        print(f"    Task Name: {res.get('task_name')}")
+        print(f"    Trigger:   {res.get('trigger')}")
+        print(f"    Command:   {res.get('command')}")
+        print(f"    Guaranteed 24/7 protection active on system boot.\n")
+    else:
+        print(f"\n{RED}{BOLD}[-] Failed to install watchdog task: {res.get('error') or res.get('message')}{RESET}\n")
+
+
+def cmd_uninstall_offline_watchdog():
+    from backend.app.services.persistent_shield_service import persistent_shield_service
+    print(f"\n{YELLOW}[*] Unregistering Autonomous OS Background Watchdog Task...{RESET}")
+    res = persistent_shield_service.uninstall_scheduled_watchdog()
+    print(f"\n{BOLD}{res.get('message')}{RESET}\n")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
@@ -895,10 +1035,16 @@ def run_interactive_menu():
         print("  [23] Harden Network Stack (Disable LLMNR, Disable ICMP Redirects, Flush Caches)")
         print("  [24] Pin & Trust Current Wi-Fi Network Signature (Prevent Clone Spoofing)")
         print("  [25] Emergency Disconnect / Sever Connection from Wi-Fi")
-        print("  [26] Exit")
+        print("  [26] Toggle Charger-Only Safe Charging Mode (Juice Jacking & Data-Pin Lockout)")
+        print("  [27] Hunt & Guard Rogue Network Sockets & Backdoor Ports (Metasploit, C2)")
+        print("  [28] Rectify Rogue Network Socket / Port (Freeze Evidence, Kill, Firewall Block)")
+        print("  [29] Apply Persistent OS Hardening (Zero-Runtime Shield: USB AutoRun 0xFF, Exec Deny)")
+        print("  [30] Install Autonomous 24/7 OS Watchdog Task (Runs Silently on Boot without Terminal)")
+        print("  [31] Query Offline Shield & Autonomous Watchdog Status")
+        print("  [32] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [1-26]: ").strip()
+        choice = input("Select an option [1-32]: ").strip()
 
         if choice == "1":
             cmd_live_safeguard(continuous=False)
@@ -997,7 +1143,34 @@ def run_interactive_menu():
         elif choice == "25":
             cmd_disconnect_wifi()
             input("\nPress Enter to return to menu...")
-        elif choice in ("26", "q", "exit"):
+        elif choice == "26":
+            mode_input = input("Enable Charger-Only Safe Charging Mode? (y/n, or leave blank to check status): ").strip().lower()
+            if mode_input == "y":
+                cmd_safe_charging(True)
+            elif mode_input == "n":
+                cmd_safe_charging(False)
+            else:
+                cmd_safe_charging(None)
+            input("\nPress Enter to return to menu...")
+        elif choice == "27":
+            c_input = input("Run continuous background daemon? (y/n) [default: n]: ").strip().lower()
+            cmd_guard_sockets(continuous=(c_input == "y"))
+            input("\nPress Enter to return to menu...")
+        elif choice == "28":
+            target = input("Enter process PID or port number to rectify: ").strip()
+            if target.isdigit():
+                cmd_rectify_socket(int(target))
+            input("\nPress Enter to return to menu...")
+        elif choice == "29":
+            cmd_apply_offline_hardening()
+            input("\nPress Enter to return to menu...")
+        elif choice == "30":
+            cmd_install_offline_watchdog()
+            input("\nPress Enter to return to menu...")
+        elif choice == "31":
+            cmd_offline_shield_status()
+            input("\nPress Enter to return to menu...")
+        elif choice in ("32", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
         else:
@@ -1106,6 +1279,29 @@ def main():
     # rectify-wifi
     subparsers.add_parser("rectify-wifi", help="Freeze network crime-scene evidence into vault (0400), disconnect, and issue certificate")
 
+    # safe-charging
+    p_sc = subparsers.add_parser("safe-charging", help="Charger-Only Safe Charging Mode (Juice Jacking & Data-Pin Lockout)")
+    p_sc.add_argument("--enable", action="store_true", help="Enable Safe Charging Mode")
+    p_sc.add_argument("--disable", action="store_true", help="Disable Safe Charging Mode")
+
+    # guard-sockets
+    p_gs = subparsers.add_parser("guard-sockets", help="Hunt and guard rogue network sockets & backdoor listeners")
+    p_gs.add_argument("--continuous", action="store_true", help="Run background socket watcher daemon")
+
+    # rectify-socket
+    p_rs = subparsers.add_parser("rectify-socket", help="Rectify rogue socket / backdoor port (freeze evidence, kill, firewall block)")
+    p_rs.add_argument("target", type=int, help="Target PID or port number to rectify")
+
+    # offline-shield
+    p_off = subparsers.add_parser("offline-shield", help="Audit and apply 24/7 persistent OS hardening (Zero-Runtime Shield)")
+    p_off.add_argument("--apply", action="store_true", help="Apply all deep OS hardening policies")
+
+    # install-offline-shield
+    subparsers.add_parser("install-offline-shield", help="Register autonomous 24/7 background watchdog scheduled task")
+
+    # uninstall-offline-shield
+    subparsers.add_parser("uninstall-offline-shield", help="Unregister autonomous 24/7 background watchdog task")
+
     # interactive
     subparsers.add_parser("interactive", help="Launch interactive menu console")
 
@@ -1129,6 +1325,26 @@ def main():
         cmd_disconnect_wifi()
     elif args.command == "rectify-wifi":
         cmd_rectify_wifi()
+    elif args.command == "safe-charging":
+        if args.enable:
+            cmd_safe_charging(True)
+        elif args.disable:
+            cmd_safe_charging(False)
+        else:
+            cmd_safe_charging(None)
+    elif args.command == "guard-sockets":
+        cmd_guard_sockets(continuous=args.continuous)
+    elif args.command == "rectify-socket":
+        cmd_rectify_socket(args.target)
+    elif args.command == "offline-shield":
+        if args.apply:
+            cmd_apply_offline_hardening()
+        else:
+            cmd_offline_shield_status()
+    elif args.command == "install-offline-shield":
+        cmd_install_offline_watchdog()
+    elif args.command == "uninstall-offline-shield":
+        cmd_uninstall_offline_watchdog()
     elif args.command == "scan-link":
         cmd_scan_link(args.url)
     elif args.command == "deep-scan":

@@ -183,15 +183,21 @@ def show_extension_guide():
     print("  6. Click the extension icon to view security posture, headers, and API health.\n")
 
 
+try:
+    if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
+
 def print_banner():
     print("=" * 65)
-    print("    ███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗     ")
-    print("    ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║     ")
-    print("    ███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║     ")
-    print("    ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║     ")
-    print("    ███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗")
-    print("    ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝")
-    print("                     SENTINEL-X CONTROL CENTER                       ")
+    print("   ____  _____ _   _ _____ ___ _   _ _____ _     __  __ ")
+    print("  / ___|| ____| \\ | |_   _|_ _| \\ | | ____| |    \\ \\/ / ")
+    print("  \\___ \\|  _| |  \\| | | |  | ||  \\| |  _| | |     \\  /  ")
+    print("   ___) | |___| |\\  | | |  | || |\\  | |___| |___  /  \\  ")
+    print("  |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ ")
+    print("                 SENTINEL-X CONTROL CENTER              ")
     print("=" * 65)
 
 
@@ -210,9 +216,17 @@ def main():
         elif cmd in ("simulator", "sim"):
             run_simulator()
             return
-        elif cmd in ("cli", "terminal", "scan"):
+        elif cmd in ("cli", "terminal"):
             cli_path = ROOT_DIR / "cli.py"
             subprocess.run([str(VENV_PYTHON), str(cli_path)] + sys.argv[2:], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("scan", "deep-scan", "system-scan"):
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "system-scan"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("repair", "fix", "system-repair"):
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "system-repair"], cwd=str(ROOT_DIR))
             return
         elif cmd in ("test", "tests"):
             run_tests()
@@ -225,16 +239,17 @@ def main():
         print_banner()
         print("  [1] Start Web Platform (Backend + Frontend + Open Browser)")
         print("  [2] Open Dedicated Desktop SOC Console")
-        print("  [3] Launch Direct Terminal Threat Analyzer (cli.py - Links, USB Ports, Files)")
-        print("  [4] Start Endpoint Monitoring Agent")
-        print("  [5] Run Threat Simulator & Scenarios")
-        print("  [6] Run EWCC Benchmark")
-        print("  [7] Run Automated Tests (pytest)")
-        print("  [8] How to load Chrome/Edge Extension")
-        print("  [9] Exit")
+        print("  [3] Direct Terminal: Live Host Connect, Deep Virus Scan & Complete Repair")
+        print("  [4] Direct Terminal Threat Analyzer & Safeguard Suite (cli.py)")
+        print("  [5] Start Endpoint Monitoring Agent")
+        print("  [6] Run Threat Simulator & Scenarios")
+        print("  [7] Run EWCC Benchmark")
+        print("  [8] Run Automated Tests (pytest)")
+        print("  [9] How to load Chrome/Edge Extension")
+        print("  [10] Exit")
         print("=" * 65)
 
-        choice = input("Select an option [1-9]: ").strip()
+        choice = input("Select an option [1-10]: ").strip()
         if choice == "1":
             start_web_platform()
             break
@@ -243,24 +258,34 @@ def main():
             break
         elif choice == "3":
             cli_path = ROOT_DIR / "cli.py"
-            subprocess.run([str(VENV_PYTHON), str(cli_path)], cwd=str(ROOT_DIR))
+            print("\n  [A] Real-Time Deep OS Virus Scan (Inspect Active Host & Devices)")
+            print("  [B] Real-Time Scan & Complete System Repair (Auto-Solve All Issues)")
+            sub_c = input("  Select action [A/B, default A]: ").strip().upper()
+            if sub_c == "B":
+                subprocess.run([str(VENV_PYTHON), str(cli_path), "system-repair"], cwd=str(ROOT_DIR))
+            else:
+                subprocess.run([str(VENV_PYTHON), str(cli_path), "system-scan"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
         elif choice == "4":
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path)], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "5":
             start_agent()
             break
-        elif choice == "5":
+        elif choice == "6":
             run_simulator()
             input("\nPress Enter to continue...")
-        elif choice == "6":
+        elif choice == "7":
             subprocess.run([str(VENV_PYTHON), "-m", "simulator.benchmark"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
-        elif choice == "7":
+        elif choice == "8":
             run_tests()
             input("\nPress Enter to continue...")
-        elif choice == "8":
+        elif choice == "9":
             show_extension_guide()
             input("\nPress Enter to continue...")
-        elif choice in ("9", "q", "exit"):
+        elif choice in ("10", "q", "exit"):
             print("Exiting.")
             break
 

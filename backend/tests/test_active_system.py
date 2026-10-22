@@ -130,3 +130,27 @@ async def test_api_active_system_endpoints():
         sync_res = await client.post("/api/v1/system/sync-local-host", headers=headers)
         assert sync_res.status_code == 200
         assert sync_res.json()["status"] in ("SUCCESS", "LOCAL_ONLY")
+
+        # 6. POST /api/v1/system/repair
+        repair_res = await client.post("/api/v1/system/repair", headers=headers)
+        assert repair_res.status_code == 200
+        repair_data = repair_res.json()
+        assert repair_data["status"] == "SYSTEM_COMPLETELY_REPAIRED_AND_IMMUNIZED"
+        assert repair_data["court_admissible_verified"] is True
+        assert "certificate_path" in repair_data
+        assert "golden_forensics_snapshot" in repair_data
+
+
+@pytest.mark.asyncio
+async def test_complete_system_repair_service_direct():
+    """Verifies that the repair service enforces Golden Forensics freeze, executes remediations, and issues signed certificate."""
+    rep = active_system_guardian.repair_system_completely(analyst_id="test_admin")
+
+    assert rep["status"] == "SYSTEM_COMPLETELY_REPAIRED_AND_IMMUNIZED"
+    assert "golden_forensics_snapshot" in rep
+    assert "sha256_evidence_seal" in rep
+    assert len(rep["sha256_evidence_seal"]) == 64
+    assert rep["remediation_actions_count"] >= 1
+    assert "certificate_path" in rep
+    assert rep["court_admissible_verified"] is True
+    assert "K. Jaideep Raj" in rep["creator"]

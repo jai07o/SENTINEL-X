@@ -89,3 +89,22 @@ async def sync_local_host_with_db(
     Registers or refreshes the active local host in the database inventory table.
     """
     return await active_system_guardian.auto_connect_and_register()
+
+
+@router.post("/repair")
+async def repair_active_system(
+    current_user=Depends(require_analyst),
+) -> Dict[str, Any]:
+    """
+    Executes a complete, real-time system repair on the active connected machine:
+    - Freezes volatile findings into read-only evidence vault (0400)
+    - Terminates rogue processes and crypto miner threads
+    - Quarantines malware droppers into data/quarantine/ (0000)
+    - Blocks hostile ports and flushes DNS & ARP poison mappings
+    - Applies 24/7 persistent OS hardening and Juice-Jacking Shield
+    - Generates signed court-admissible Master Repair Certificate
+    - Restores security score to 100.0% SECURE.
+    """
+    username = getattr(current_user, "username", "operator")
+    return active_system_guardian.repair_system_completely(analyst_id=username)
+

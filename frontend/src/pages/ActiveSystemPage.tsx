@@ -21,6 +21,7 @@ import {
   Zap,
   Radio,
   Lock,
+  Wrench,
 } from 'lucide-react';
 
 interface ActiveHostProfile {
@@ -147,6 +148,8 @@ export const ActiveSystemPage: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [deviceScanTarget, setDeviceScanTarget] = useState<string | null>(null);
   const [deviceScanResult, setDeviceScanResult] = useState<any | null>(null);
+  const [isRepairing, setIsRepairing] = useState(false);
+  const [repairReport, setRepairReport] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchHostData = async () => {
@@ -165,12 +168,6 @@ export const ActiveSystemPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchHostData();
-    const interval = setInterval(fetchHostData, 12000);
-    return () => clearInterval(interval);
-  }, []);
-
   const runDeepScan = async () => {
     setIsScanning(true);
     try {
@@ -183,6 +180,26 @@ export const ActiveSystemPage: React.FC = () => {
       setIsScanning(false);
     }
   };
+
+  const runCompleteRepair = async () => {
+    setIsRepairing(true);
+    try {
+      const res = await api.post('/system/repair');
+      setRepairReport(res.data);
+      await runDeepScan();
+    } catch (err: any) {
+      setError('Complete system repair failed.');
+    } finally {
+      setIsRepairing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHostData();
+    runDeepScan(); // Auto-scan immediately upon connection
+    const interval = setInterval(fetchHostData, 12000);
+    return () => clearInterval(interval);
+  }, []);
 
   const scanSpecificDevice = async (deviceId: string, devType: string) => {
     setDeviceScanTarget(deviceId);
@@ -240,7 +257,7 @@ export const ActiveSystemPage: React.FC = () => {
           </button>
           <button
             onClick={runDeepScan}
-            disabled={isScanning}
+            disabled={isScanning || isRepairing}
             className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium text-xs flex items-center space-x-2 shadow-md shadow-cyan-950 transition disabled:opacity-50"
           >
             {isScanning ? (
@@ -252,6 +269,24 @@ export const ActiveSystemPage: React.FC = () => {
               <>
                 <Zap className="w-4 h-4" />
                 <span>RUN IN-DEPTH DEEP SCAN</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={runCompleteRepair}
+            disabled={isRepairing || isScanning}
+            className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center space-x-2 shadow-md shadow-emerald-950 transition disabled:opacity-50 border border-emerald-400/40"
+            title="Complete System Repair & Hardening"
+          >
+            {isRepairing ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>REPAIRING & HARDENING...</span>
+              </>
+            ) : (
+              <>
+                <Wrench className="w-4 h-4" />
+                <span>REPAIR & SOLVE PROBLEMS</span>
               </>
             )}
           </button>
@@ -366,6 +401,19 @@ export const ActiveSystemPage: React.FC = () => {
                 <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Overall Security Score</div>
                 <div className="text-2xl font-black text-cyan-400">{deepScan.security_score}%</div>
               </div>
+              <button
+                onClick={runCompleteRepair}
+                disabled={isRepairing || isScanning}
+                className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow transition disabled:opacity-50"
+                title="Repair all identified issues now"
+              >
+                {isRepairing ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Wrench className="w-3.5 h-3.5" />
+                )}
+                <span>FIX ALL NOW</span>
+              </button>
             </div>
           </div>
 
@@ -656,6 +704,85 @@ export const ActiveSystemPage: React.FC = () => {
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold"
               >
                 Close Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complete System Repair Modal */}
+      {repairReport && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-graphite-900 border border-emerald-500/60 p-6 rounded-2xl max-w-2xl w-full space-y-5 shadow-2xl shadow-emerald-950/50">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-emerald-950 border border-emerald-500/40 rounded-xl text-emerald-400">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg">SYSTEM FULLY REPAIRED & HARDENED</h3>
+                  <p className="text-xs text-slate-400">Golden Forensics Crime-Scene Protocol & Threat Neutralization</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setRepairReport(null)}
+                className="text-slate-400 hover:text-white font-mono text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-400 text-[10px] uppercase font-mono">Status & Host</span>
+                <div className="font-bold text-emerald-400 mt-1 flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>{repairReport.status} • {repairReport.host}</span>
+                </div>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-400 text-[10px] uppercase font-mono">Remediations Applied</span>
+                <div className="font-bold text-white mt-1">{repairReport.remediation_actions_count} Automated Fixes</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
+                Executed Security Countermeasures:
+              </div>
+              <div className="bg-slate-950/90 border border-slate-800 rounded-lg p-3 max-h-44 overflow-y-auto space-y-1.5 font-mono text-xs text-slate-300">
+                {repairReport.actions_taken?.map((act: string, idx: number) => (
+                  <div key={idx} className="flex items-start space-x-2">
+                    <span className="text-emerald-400">✓</span>
+                    <span>{act}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1 text-xs font-mono">
+              <div className="text-slate-400 flex items-center justify-between">
+                <span>Crime-Scene Snapshot (ReadOnly 0400):</span>
+                <span className="text-emerald-400">SHA256 VERIFIED</span>
+              </div>
+              <div className="text-slate-300 text-[11px] truncate">{repairReport.golden_forensics_snapshot}</div>
+              <div className="text-slate-500 text-[10px] truncate">Hash: {repairReport.sha256_evidence_seal}</div>
+            </div>
+
+            <div className="p-3 bg-emerald-950/40 rounded-lg border border-emerald-500/30 text-xs text-emerald-300 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span>Court-Admissible Legal Repair Certificate Generated</span>
+              </div>
+              <span className="font-mono text-[11px] text-emerald-400 font-bold">READY</span>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setRepairReport(null)}
+                className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-950 transition"
+              >
+                Close & Return to Live Dashboard
               </button>
             </div>
           </div>

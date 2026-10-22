@@ -81,8 +81,8 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-graphite-950 px-4 py-8">
       <div className="max-w-md w-full bg-graphite-900 border border-slate-800 rounded-2xl p-8 shadow-2xl shadow-cyan-950/20 space-y-6">
         <div className="flex flex-col items-center text-center">
-          <div className="p-3 bg-cyan-950/80 border border-cyan-500/40 rounded-2xl text-cyan-400 mb-3 shadow-lg shadow-cyan-950/50">
-            <Shield className="w-8 h-8" />
+          <div className="p-2 bg-cyan-950/80 border border-cyan-500/40 rounded-2xl mb-3 shadow-lg shadow-cyan-950/50 flex items-center justify-center">
+            <img src="/logo.png" alt="SENTINEL-X" className="w-14 h-14 rounded-xl object-contain shadow" />
           </div>
           <h1 className="text-xl font-bold tracking-wider text-white">
             SENTINEL<span className="text-cyan-400">-X</span>

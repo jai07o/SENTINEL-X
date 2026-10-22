@@ -13,8 +13,8 @@ export const Navbar: React.FC = () => {
       {/* Brand & Health Status */}
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 bg-cyan-950/80 border border-cyan-500/40 rounded-lg text-cyan-400 shadow-sm shadow-cyan-950">
-            <Shield className="w-5 h-5" />
+          <div className="p-1 bg-cyan-950/80 border border-cyan-500/40 rounded-lg shadow-sm shadow-cyan-950 flex items-center justify-center">
+            <img src="/logo.png" alt="SENTINEL-X Logo" className="w-6 h-6 rounded object-contain" />
           </div>
           <span className="font-bold tracking-wider text-white text-base">
             SENTINEL<span className="text-cyan-400">-X</span>

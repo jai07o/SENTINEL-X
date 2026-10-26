@@ -124,3 +124,22 @@ async def repair_active_system(
     username = getattr(current_user, "username", "operator")
     return active_system_guardian.repair_system_completely(analyst_id=username)
 
+
+@router.post("/connect-and-safeguard-all")
+async def connect_and_safeguard_all(
+    current_user=Depends(require_analyst),
+) -> Dict[str, Any]:
+    """
+    Master Connect & Safeguard Sweep:
+    Executes an automated defensive job on the active machine and all connected items:
+    - Wired: Juice-Jacking Safe Charging mode, Pendrive autorun vaccination & scan,
+      mobile device isolation, hardware port auditing (Ethernet, HDMI, audio, BadUSB).
+    - Wireless: Wi-Fi Evil Twin & ARP poisoning verification, Bluetooth devices, subnet peers.
+    - Privacy: Camera and microphone hardware handles.
+    - Host OS: In-depth processes and files sanitization.
+    - Database: Persists live host state to database.
+    - Certificate: Issues cryptographically sealed safeguard report.
+    """
+    return await active_system_guardian.connect_and_safeguard_all()
+
+

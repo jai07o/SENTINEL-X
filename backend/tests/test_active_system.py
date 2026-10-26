@@ -160,6 +160,19 @@ async def test_api_active_system_endpoints():
         assert "certificate_path" in repair_data
         assert "golden_forensics_snapshot" in repair_data
 
+        # 7. POST /api/v1/system/connect-and-safeguard-all
+        safeguard_res = await client.post("/api/v1/system/connect-and-safeguard-all", headers=headers)
+        assert safeguard_res.status_code == 200
+        safeguard_data = safeguard_res.json()
+        assert safeguard_data["status"] == "ALL_DEVICES_CONNECTED_AND_SECURED"
+        assert "wired_protection" in safeguard_data
+        assert safeguard_data["wired_protection"]["safe_charging"]["juice_jacking_protected"] is True
+        assert "wireless_protection" in safeguard_data
+        assert "wifi_network" in safeguard_data["wireless_protection"]
+        assert "privacy_and_sensors" in safeguard_data
+        assert "actions_executed" in safeguard_data
+        assert "certificate_path" in safeguard_data
+
 
 @pytest.mark.asyncio
 async def test_complete_system_repair_service_direct():
@@ -174,3 +187,33 @@ async def test_complete_system_repair_service_direct():
     assert "certificate_path" in rep
     assert rep["court_admissible_verified"] is True
     assert "K. Jaideep Raj" in rep["creator"]
+
+
+@pytest.mark.asyncio
+async def test_connect_and_safeguard_all_service_direct():
+    """
+    Verifies that connect_and_safeguard_all executes the complete defensive sweep:
+    - Wired items: charger data lockout, pendrives autorun vaccination, hardware ports, badusb
+    - Wireless items: Wi-Fi Evil Twin & ARP check, Bluetooth, subnet peers
+    - Privacy: mic/cam audit
+    - Host OS: deep scan
+    - Signed markdown certificate with SHA-256 seal.
+    """
+    res = await active_system_guardian.connect_and_safeguard_all()
+
+    assert res["status"] == "ALL_DEVICES_CONNECTED_AND_SECURED"
+    assert "sweep_id" in res
+    assert "host_profile" in res
+    assert "wired_protection" in res
+    assert res["wired_protection"]["safe_charging"]["juice_jacking_protected"] is True
+    assert res["wired_protection"]["pendrives"]["host_immunized"] is True
+    assert "hardware_ports" in res["wired_protection"]
+    assert "wireless_protection" in res
+    assert "wifi_network" in res["wireless_protection"]
+    assert "privacy_and_sensors" in res
+    assert "deep_os_scan" in res
+    assert "actions_executed" in res
+    assert len(res["actions_executed"]) >= 5
+    assert "certificate_path" in res
+    assert "sha256_seal" in res
+

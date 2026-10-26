@@ -970,6 +970,10 @@ class HardwarePortQuarantineService:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
+    def immunize_host(self) -> Dict[str, Any]:
+        """Convenience alias for apply_host_usb_immunization."""
+        return self.apply_host_usb_immunization()
+
     def vaccinate_drive(self, drive_path_or_letter: str) -> Dict[str, Any]:
         """
         Vaccinates a pendrive or removable drive to permanently prevent viruses

@@ -20,36 +20,7 @@ class PrivacySentinelService:
 
     def __init__(self):
         # In-memory ledger for historical access events and mobile companion reports
-        self.mobile_telemetry_events: List[Dict[str, Any]] = [
-            {
-                "id": "mob-cam-001",
-                "device_type": "Mobile (Android 14)",
-                "device_name": "Pixel 8 Pro (Work Profile)",
-                "app_name": "com.flashlight.bright.torch",
-                "package_id": "com.flashlight.bright.torch",
-                "sensor_type": "CAMERA",
-                "is_background": True,
-                "threat_level": "CRITICAL",
-                "threat_reason": "Background Service opened CAMERA while user screen was locked and app was not in foreground",
-                "timestamp": datetime.utcnow().isoformat(),
-                "duration_seconds": 14,
-                "status": "BLOCKED_BY_POLICY",
-            },
-            {
-                "id": "mob-cam-002",
-                "device_type": "Mobile (Samsung OneUI)",
-                "device_name": "Galaxy S23 Ultra",
-                "app_name": "com.cleaner.speedbooster",
-                "package_id": "com.cleaner.speedbooster",
-                "sensor_type": "MICROPHONE",
-                "is_background": True,
-                "threat_level": "HIGH",
-                "threat_reason": "Background audio record stream initialized without active call or audio recording UI",
-                "timestamp": datetime.utcnow().isoformat(),
-                "duration_seconds": 45,
-                "status": "DETECTED",
-            }
-        ]
+        self.mobile_telemetry_events: List[Dict[str, Any]] = []
 
     @staticmethod
     def _filetime_to_datetime(ft: int) -> Optional[datetime]:

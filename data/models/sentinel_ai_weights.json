@@ -1,13 +1,13 @@
 {
   "version": "2.4.0",
   "weights": {
-    "weight_source": 0.345,
-    "weight_identity": 0.245,
-    "weight_completeness": 0.206,
-    "weight_temporal": 0.204,
-    "entropy_malware_threshold": 7.19,
-    "c2_jitter_tolerance": 0.079,
-    "memory_injection_sensitivity": 0.964
+    "weight_source": 0.341,
+    "weight_identity": 0.248,
+    "weight_completeness": 0.197,
+    "weight_temporal": 0.214,
+    "entropy_malware_threshold": 7.2,
+    "c2_jitter_tolerance": 0.077,
+    "memory_injection_sensitivity": 0.963
   },
   "source_reliability_matrix": {
     "auditd": 0.96,
@@ -31,5 +31,5 @@
     "Zero-Day: Linux eBPF Stealth Rootkit Tracepoint Guardian",
     "Zero-Day: Ransomware Canary Decoy Trapping & Immediate IO Freeze"
   ],
-  "last_updated": "2026-10-26T17:19:16.884229+00:00"
+  "last_updated": "2026-10-26T17:58:19.506768+00:00"
 }

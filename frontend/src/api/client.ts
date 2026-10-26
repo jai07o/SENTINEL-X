@@ -563,6 +563,12 @@ export class ApiClient {
   public static async getBreachEvidence() {
     return this.request<any>('/ai-training/breach-evidence');
   }
+
+  public static async connectAndSafeguardAll() {
+    return this.request<any>('/system/connect-and-safeguard-all', {
+      method: 'POST',
+    });
+  }
 }
 
 export const api = {

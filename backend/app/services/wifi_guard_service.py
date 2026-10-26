@@ -1153,3 +1153,27 @@ class WiFiGuardDaemon:
 
 
 wifi_guard_daemon = WiFiGuardDaemon()
+
+
+class WiFiGuardServiceFacade:
+    """Convenience facade for Wi-Fi auditing and threat detection."""
+
+    @staticmethod
+    def audit_wifi_security() -> Dict[str, Any]:
+        report = WiFiThreatDetector.audit_wifi_and_network_security()
+        evil_twin = any(t.get("category") == "EVIL_TWIN_ROGUE_ACCESS_POINT" for t in report.get("threats", []))
+        arp_poisoning = any(t.get("category") == "ARP_SPOOFING_MITM_ATTACK" for t in report.get("threats", []))
+        return {
+            "status": report.get("status"),
+            "evil_twin_detected": evil_twin,
+            "arp_poisoning_detected": arp_poisoning,
+            "threats_count": report.get("threats_count", 0),
+            "threats": report.get("threats", []),
+            "active_connection": report.get("current_wifi", {}),
+            "default_gateway": report.get("default_gateway", {}),
+            "arp_summary": report.get("arp_summary", {}),
+        }
+
+
+wifi_guard_service = WiFiGuardServiceFacade()
+

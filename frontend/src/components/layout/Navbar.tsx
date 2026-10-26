@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useWebSocket } from '../../context/WebSocketContext';
 import { Link } from 'react-router-dom';
-import { Shield, Bell, LogOut, Radio, User, Laptop } from 'lucide-react';
+import { Shield, Bell, LogOut, Radio, User, Laptop, Zap } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -32,10 +32,21 @@ export const Navbar: React.FC = () => {
           </span>
         </div>
 
+        {/* Master Connection & Safeguard Sweep Trigger */}
+        <Link
+          to="/active-system?triggerSweep=true"
+          id="btn-navbar-connect-safeguard"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-cyan-950/60 transition border border-cyan-400/50 group"
+          title="Press Connection Button to run all security jobs for this device and connected wired (chargers, pendrives) & wireless items"
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 group-hover:scale-125 transition-transform animate-pulse" />
+          <span className="tracking-wide">CONNECT & SAFEGUARD ALL</span>
+        </Link>
+
         {/* Active Local System Guard Pill */}
         <Link
           to="/active-system"
-          className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-xs font-mono text-cyan-300 transition"
+          className="hidden xl:flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-xs font-mono text-cyan-300 transition"
           title="Active System & Connected Devices Real-Time Guard"
         >
           <Laptop className="w-3.5 h-3.5 text-cyan-400" />

@@ -55,6 +55,10 @@ class ActiveSystemGuardianService:
         self._last_telemetry: Dict[str, Any] = {}
         self._last_deep_scan: Dict[str, Any] = {}
         self._last_scan_time: Optional[datetime] = None
+        self._devices_cache: Optional[Dict[str, Any]] = None
+        self._devices_cache_time: float = 0.0
+        self._ports_cache: Optional[Dict[str, Any]] = None
+        self._ports_cache_time: float = 0.0
 
     def get_system_profile(self) -> Dict[str, Any]:
         """
@@ -276,7 +280,7 @@ class ActiveSystemGuardianService:
             logger.warning(f"Could not auto-register active host into DB: {e}")
             return {"status": "LOCAL_ONLY", "profile": profile, "error": str(e)}
 
-    def detect_connected_devices(self) -> Dict[str, Any]:
+    def detect_connected_devices(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
         Discovers all devices physically or wirelessly connected to the system:
         1. Connected Mobile Phones & Tablets (Android / iOS via USB, MTP, ADB, Tethering)
@@ -284,6 +288,10 @@ class ActiveSystemGuardianService:
         3. Connected Peripherals (Bluetooth audio/controllers, USB HID input devices)
         4. Connected Local Network Devices (ARP table neighbors sharing Wi-Fi)
         """
+        now = time.time()
+        if not force_refresh and self._devices_cache and (now - self._devices_cache_time < 12.0):
+            return self._devices_cache
+
         connected_mobiles: List[Dict[str, Any]] = []
         external_storage: List[Dict[str, Any]] = []
         connected_peripherals: List[Dict[str, Any]] = []
@@ -410,7 +418,7 @@ class ActiveSystemGuardianService:
         # Enumerate complete physical & hardware port matrix
         all_hardware_ports = self.enumerate_all_hardware_ports()
 
-        return {
+        res_payload = {
             "connected_mobiles_count": len(connected_mobiles),
             "connected_mobiles": connected_mobiles,
             "external_storage_count": len(external_storage),
@@ -423,7 +431,11 @@ class ActiveSystemGuardianService:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    def enumerate_all_hardware_ports(self) -> Dict[str, Any]:
+        self._devices_cache = res_payload
+        self._devices_cache_time = time.time()
+        return res_payload
+
+    def enumerate_all_hardware_ports(self, force_refresh: bool = False) -> Dict[str, Any]:
         """
         Comprehensive Physical & Logical Hardware Port Matrix.
         Enumerates every hardware port across the system:
@@ -433,6 +445,10 @@ class ActiveSystemGuardianService:
         4. Audio & Sound Jack Ports (3.5mm Headphone Jack, HDMI Audio, USB Audio DAC)
         5. Expansion & COM Ports (PCIe, Thunderbolt, Serial RS-232)
         """
+        now = time.time()
+        if not force_refresh and self._ports_cache and (now - self._ports_cache_time < 15.0):
+            return self._ports_cache
+
         usb_ports: List[Dict[str, Any]] = []
         network_cable_ports: List[Dict[str, Any]] = []
         display_video_ports: List[Dict[str, Any]] = []
@@ -691,15 +707,17 @@ class ActiveSystemGuardianService:
             if "ACTIVE" in p.get("status", "") or "CONNECTED" in p.get("status", "") or p.get("is_up") is True
         )
 
-        return {
+        res_ports = {
             "total_ports_count": total_count,
             "active_ports_count": active_count,
             "secured_ports_count": total_count,
             "categories": all_categories,
-            "creator": "K. Jaideep Raj (Student & Security Enthusiast)",
-            "platform": "Google Antigravity",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+
+        self._ports_cache = res_ports
+        self._ports_cache_time = time.time()
+        return res_ports
 
     def execute_deep_os_scan(self) -> Dict[str, Any]:
         """

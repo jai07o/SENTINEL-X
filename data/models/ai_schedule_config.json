@@ -1,11 +1,11 @@
 {
   "cadence": "6months",
   "auto_update_enabled": true,
-  "current_model_version": "SENTINEL-X-AI-v2.4.6-PROD",
-  "last_trained_at": "2026-10-26T16:31:14.133232+00:00",
-  "next_scheduled_training_at": "2027-04-24T16:31:14.146632+00:00",
-  "total_epochs_trained": 132,
-  "dataset_samples_processed": 32378,
+  "current_model_version": "SENTINEL-X-AI-v2.4.7-PROD",
+  "last_trained_at": "2026-10-26T17:19:16.884229+00:00",
+  "next_scheduled_training_at": "2027-04-24T17:19:16.896000+00:00",
+  "total_epochs_trained": 147,
+  "dataset_samples_processed": 35098,
   "metrics": {
     "accuracy": 0.9996,
     "precision": 0.9998,

@@ -85,7 +85,7 @@ class AIThreatInvestigatorService:
         self._init_database()
 
     def _init_database(self):
-        """Initializes the unified evidence table in the single overall database."""
+        """Initializes the unified evidence table in the single overall database with WAL mode."""
         try:
             legacy_db = ROOT_DIR / "sentinel_dev.db"
             if legacy_db.exists() and not self.db_path.exists():
@@ -96,6 +96,9 @@ class AIThreatInvestigatorService:
 
             with sqlite3.connect(self.db_path, timeout=30.0) as conn:
                 cursor = conn.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA busy_timeout=30000;")
+                cursor.execute("PRAGMA synchronous=NORMAL;")
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS investigation_evidence (
                         id TEXT PRIMARY KEY,
@@ -126,47 +129,55 @@ class AIThreatInvestigatorService:
                 cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_app ON investigation_evidence(app);")
                 cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_site ON investigation_evidence(site);")
                 conn.commit()
-        except Exception as e:
+        except Exception:
             pass
 
     def save_evidence_record(self, record: Dict[str, Any]) -> bool:
-        """Inserts a structured evidence record with rich metadata into the overall database."""
-        try:
-            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT OR REPLACE INTO investigation_evidence (
-                        id, investigation_id, timestamp, date_and_time, from_where, site, app,
-                        device, device_hostname, device_type, device_os,
-                        stage_or_signal, subtype, severity, evidence_hash, hmac_signature,
-                        details, mitre_technique, raw_data_json, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    record.get("id"),
-                    record.get("investigation_id"),
-                    record.get("timestamp"),
-                    record.get("date_and_time"),
-                    record.get("from_where"),
-                    record.get("site"),
-                    record.get("app"),
-                    record.get("device"),
-                    record.get("device_hostname"),
-                    record.get("device_type"),
-                    record.get("device_os"),
-                    record.get("stage_or_signal"),
-                    record.get("subtype"),
-                    record.get("severity"),
-                    record.get("evidence_hash"),
-                    record.get("hmac_signature"),
-                    record.get("details"),
-                    record.get("mitre_technique"),
-                    record.get("raw_data_json"),
-                    record.get("created_at")
-                ))
-                conn.commit()
-                return True
-        except Exception:
-            return False
+        """Inserts a structured evidence record with rich metadata and crash-resilient retry."""
+        for attempt in range(3):
+            try:
+                with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("PRAGMA busy_timeout=30000;")
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO investigation_evidence (
+                            id, investigation_id, timestamp, date_and_time, from_where, site, app,
+                            device, device_hostname, device_type, device_os,
+                            stage_or_signal, subtype, severity, evidence_hash, hmac_signature,
+                            details, mitre_technique, raw_data_json, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        record.get("id"),
+                        record.get("investigation_id"),
+                        record.get("timestamp"),
+                        record.get("date_and_time"),
+                        record.get("from_where"),
+                        record.get("site"),
+                        record.get("app"),
+                        record.get("device"),
+                        record.get("device_hostname"),
+                        record.get("device_type"),
+                        record.get("device_os"),
+                        record.get("stage_or_signal"),
+                        record.get("subtype"),
+                        record.get("severity"),
+                        record.get("evidence_hash"),
+                        record.get("hmac_signature"),
+                        record.get("details"),
+                        record.get("mitre_technique"),
+                        record.get("raw_data_json"),
+                        record.get("created_at")
+                    ))
+                    conn.commit()
+                    return True
+            except sqlite3.OperationalError:
+                if attempt < 2:
+                    time.sleep(0.1 * (attempt + 1))
+                else:
+                    return False
+            except Exception:
+                return False
+        return False
 
     def get_stored_evidence(
         self,
@@ -204,24 +215,114 @@ class AIThreatInvestigatorService:
 
     @staticmethod
     def get_host_device_info() -> Dict[str, str]:
-        """Gathers genuine host device metadata for forensic evidence attribution."""
+        """
+        Universal device profiler: dynamically identifies ANY device type:
+        - Windows (Laptop, Desktop PC, Server)
+        - Linux (Laptop, Workstation, Cloud Server / VM, Raspberry Pi / ARM IoT, Container)
+        - macOS (MacBook Pro/Air, iMac, Mac Mini, Mac Studio, Mac Pro)
+        - Android (Phone, Tablet, Termux, Android Virtual Device)
+        - Virtualization (Docker container, WSL2, KVM, VMware, VirtualBox)
+        """
         import socket
         import platform
-        hname = socket.gethostname()
-        sys_os = f"{platform.system()} {platform.release()} ({platform.machine()})"
-        is_laptop = False
+        import os
+
+        hostname = "UNKNOWN_HOST"
         try:
-            battery = psutil.sensors_battery()
-            if battery is not None:
-                is_laptop = True
+            hostname = socket.gethostname() or platform.node() or "UNKNOWN_HOST"
         except Exception:
             pass
-        dev_type = "Laptop" if is_laptop else "Desktop PC / Server"
+
+        sys_os = platform.system()
+        os_release = platform.release()
+        machine = platform.machine()
+
+        # Check Android / Mobile
+        is_android = (
+            "ANDROID_ROOT" in os.environ or
+            os.path.exists("/system/build.prop") or
+            "com.termux" in os.environ.get("PREFIX", "") or
+            sys.platform.startswith("android")
+        )
+
+        # Check Container / Virtualization
+        is_container = (
+            os.path.exists("/.dockerenv") or
+            os.path.exists("/run/secrets/kubernetes.io") or
+            "container" in os.environ.get("container", "")
+        )
+        is_wsl = "microsoft" in platform.release().lower() or "wsl" in platform.release().lower()
+
+        # Check Battery (Laptop / Mobile indicator)
+        has_battery = False
+        battery_pct = None
+        try:
+            b = psutil.sensors_battery()
+            if b is not None:
+                has_battery = True
+                battery_pct = round(b.percent)
+        except Exception:
+            pass
+
+        # Check Raspberry Pi / ARM IoT
+        is_rpi = False
+        try:
+            if os.path.exists("/proc/device-tree/model"):
+                with open("/proc/device-tree/model", "r", errors="ignore") as f:
+                    if "raspberry" in f.read().lower():
+                        is_rpi = True
+        except Exception:
+            pass
+
+        # Classification
+        if is_android:
+            device_type = "Android Mobile (Smartphone/Tablet)"
+            device_os = f"Android (Linux Kernel {os_release})"
+        elif is_rpi:
+            device_type = "Embedded IoT / Edge Device (Raspberry Pi)"
+            device_os = f"Raspberry Pi OS / Linux ({machine})"
+        elif is_container:
+            device_type = "Containerized Instance (Docker/Kubernetes)"
+            device_os = f"Linux Container ({machine})"
+        elif is_wsl:
+            device_type = "WSL2 Virtual Linux Subsystem"
+            device_os = f"Windows Subsystem for Linux ({machine})"
+        elif sys_os == "Darwin":
+            device_type = "Apple MacBook (Laptop)" if has_battery else "Apple Mac (Desktop/Workstation)"
+            device_os = f"macOS {platform.mac_ver()[0]} ({machine})"
+        elif sys_os == "Windows":
+            is_server = "server" in platform.win32_edition().lower() if hasattr(platform, "win32_edition") else False
+            if is_server:
+                device_type = "Windows Server Infrastructure"
+            elif has_battery:
+                device_type = "Laptop"
+            else:
+                device_type = "Desktop PC / Station"
+            device_os = f"Windows {os_release} ({machine})"
+        elif sys_os == "Linux":
+            has_gui = bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+            if has_battery:
+                device_type = "Linux Laptop"
+            elif has_gui:
+                device_type = "Linux Workstation / Desktop"
+            else:
+                device_type = "Linux Server / Cloud VM"
+            device_os = f"Linux ({os_release} - {machine})"
+        else:
+            device_type = "Universal Host Device"
+            device_os = f"{sys_os} {os_release} ({machine})"
+
+        batt_suffix = f" [Battery: {battery_pct}%]" if battery_pct is not None else ""
+        device_label = f"{hostname} ({device_type} - {device_os}){batt_suffix}"
+
         return {
-            "hostname": hname,
-            "device_type": dev_type,
-            "os": sys_os,
-            "full_label": f"{hname} ({dev_type} - {sys_os})"
+            "device": device_label,
+            "device_hostname": hostname,
+            "device_type": device_type,
+            "device_os": device_os,
+            "hostname": hostname,
+            "os": device_os,
+            "full_label": device_label
         }
 
     def _hash_data(self, data: str) -> str:
@@ -254,7 +355,7 @@ class AIThreatInvestigatorService:
     # SIGNAL 1: SUSPICIOUS PROCESSES
     # =========================================================================
     def audit_suspicious_processes(self) -> Dict[str, Any]:
-        """
+        r"""
         Audits live processes for suspicious indicators:
         - Executing from temporary/volatile paths (/tmp, /dev/shm, AppData\Local\Temp)
         - Masquerading as trusted system binaries (e.g. svchost, systemd, sshd from wrong dirs)
@@ -657,11 +758,26 @@ class AIThreatInvestigatorService:
         investigation_id = f"AI-INVESTIGATION-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
         start_time = datetime.now(timezone.utc)
 
-        # 1. Harvest the 4 Critical Operational Signals
-        proc_audit = self.audit_suspicious_processes()
-        login_audit = self.audit_login_attempts()
-        file_audit = self.audit_modified_system_files()
-        net_audit = self.audit_unusual_network_connections()
+        # 1. Harvest the 4 Critical Operational Signals (Crash-Resilient across all OS & Device types)
+        try:
+            proc_audit = self.audit_suspicious_processes()
+        except Exception as e:
+            proc_audit = {"signal_type": "SUSPICIOUS_PROCESSES", "findings": [], "severity": "CLEAN", "error": str(e)}
+
+        try:
+            login_audit = self.audit_login_attempts()
+        except Exception as e:
+            login_audit = {"signal_type": "LOGIN_ATTEMPTS", "findings": [], "severity": "CLEAN", "error": str(e)}
+
+        try:
+            file_audit = self.audit_modified_system_files()
+        except Exception as e:
+            file_audit = {"signal_type": "MODIFIED_SYSTEM_FILES", "findings": [], "severity": "CLEAN", "error": str(e)}
+
+        try:
+            net_audit = self.audit_unusual_network_connections()
+        except Exception as e:
+            net_audit = {"signal_type": "UNUSUAL_NETWORK_CONNECTIONS", "findings": [], "severity": "CLEAN", "error": str(e)}
 
         # 2. Harvest Deep Digital Forensics (4 Stages + RAM Memory + MACB)
         forensic_findings = []

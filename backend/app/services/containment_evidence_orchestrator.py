@@ -214,9 +214,17 @@ class ContainmentEvidenceOrchestrator:
 
         # Action C: Check if USB / Hardware quarantine is relevant
         drive_letter = threat_context.get("drive_letter")
-        if drive_letter and drive_letter.upper() != "C:":
-            quar_res = hardware_port_service.quarantine_port(drive_letter)
-            containment_results.append(f"PORT QUARANTINE: Drive {drive_letter} halted ({quar_res.get('status')}).")
+        if drive_letter:
+            if os.name == "nt" and drive_letter.upper() == "C:":
+                pass
+            elif drive_letter in ("/", "/root", "/system", "/boot", "/usr"):
+                pass
+            else:
+                try:
+                    quar_res = hardware_port_service.quarantine_port(drive_letter)
+                    containment_results.append(f"PORT QUARANTINE: Drive {drive_letter} halted ({quar_res.get('status')}).")
+                except Exception as qe:
+                    containment_results.append(f"PORT QUARANTINE: Non-applicable on current device ({qe}).")
 
         # 5. Record ResponseAction on the Incident
         outcome_summary = " | ".join(containment_results) if containment_results else "Threat neutralized."

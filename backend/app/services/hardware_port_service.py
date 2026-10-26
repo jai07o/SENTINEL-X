@@ -437,7 +437,7 @@ class HardwarePortQuarantineService:
             partitions = psutil.disk_partitions(all=True)
             for part in partitions:
                 drive_letter = part.mountpoint.rstrip("\\")
-                is_system_drive = drive_letter.upper() == "C:"
+                is_system_drive = (drive_letter.upper() == "C:") if sys.platform == "win32" else (drive_letter in ("/", "/root", "/system", "/boot"))
                 is_removable = "removable" in part.opts.lower() or part.fstype.lower() in ("fat", "fat32", "exfat")
 
                 # Track non-system drives or removable partitions as cable-connected storage
@@ -739,15 +739,15 @@ class HardwarePortQuarantineService:
         else:
             instance_id = target
 
-        if drive_letter == "C:":
-            logger.warning("Attempted to quarantine system volume C:. Blocked to maintain OS integrity.")
+        if drive_letter == "C:" or target in ("/", "/root", "/boot", "/system", "/usr"):
+            logger.warning(f"Attempted to quarantine system volume {target or drive_letter}. Blocked to maintain OS integrity.")
             return {
                 "success": False,
-                "message": "System Volume C: is protected and cannot be dismounted or quarantined.",
+                "message": f"System Volume {target or drive_letter} is protected and cannot be dismounted or quarantined.",
                 "record": {
-                    "port_key": "C:",
+                    "port_key": target or drive_letter,
                     "status": "PROTECTED_SYSTEM_VOLUME",
-                    "actions_log": ["Protected OS system drive C: from quarantine dismount."],
+                    "actions_log": ["Protected OS system drive from quarantine dismount."],
                 },
             }
 
@@ -755,8 +755,7 @@ class HardwarePortQuarantineService:
         device_disabled = False
         actions_log = []
 
-
-        # 1. Dismount drive if drive letter identified
+        # 1. Dismount drive if drive letter identified (Windows or Linux/Unix mount)
         if drive_letter and sys.platform == "win32":
             try:
                 # Execute mountvol /p to force dismount and remove drive letter assignment
@@ -773,6 +772,19 @@ class HardwarePortQuarantineService:
                     actions_log.append(f"Offline disk command executed for {drive_letter}")
             except Exception as e:
                 actions_log.append(f"Dismount attempt error: {e}")
+
+        # Dismount Unix / Linux mount if target is a path
+        if sys.platform != "win32" and target.startswith("/"):
+            try:
+                cmd = f"umount '{target}'"
+                p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
+                if p.returncode == 0:
+                    dismount_executed = True
+                    actions_log.append(f"Successfully unmounted volume {target} (umount)")
+                else:
+                    actions_log.append(f"Unix unmount status: {p.stderr.strip() or 'requires elevated privileges'}")
+            except Exception as e:
+                actions_log.append(f"Unix unmount error: {e}")
 
         # 2. Disable PnP Device Instance if available
         if instance_id and sys.platform == "win32":

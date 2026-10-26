@@ -73,23 +73,33 @@ class Total360SafeguardEngine:
 
         # Sector 1: Physical Hardware & Wired Perimeter (0° - 60°)
         sector_1_threats = []
-        safe_charging_status = hardware_port_service.get_safe_charging_status()
-        badusb_devices = hardware_port_service.check_badusb_devices()
-        if badusb_devices:
-            sector_1_threats.extend(badusb_devices)
+        safe_charging_status = {"safe_charging_active": False, "status": "UNKNOWN"}
+        try:
+            safe_charging_status = hardware_port_service.get_safe_charging_status()
+            badusb_devices = hardware_port_service.check_badusb_devices()
+            if badusb_devices:
+                sector_1_threats.extend(badusb_devices)
+        except Exception as e:
+            logger.debug(f"Hardware sector audit note: {e}")
 
         # Sector 2: Wireless & Local Network Perimeter (60° - 120°)
         sector_2_threats = []
-        wifi_audit = WiFiThreatDetector.audit_wifi_and_network_security()
-        if wifi_audit.get("rogue_threats_found"):
-            sector_2_threats.extend(wifi_audit.get("rogue_threats", []))
+        try:
+            wifi_audit = WiFiThreatDetector.audit_wifi_and_network_security()
+            if wifi_audit.get("rogue_threats_found"):
+                sector_2_threats.extend(wifi_audit.get("rogue_threats", []))
+        except Exception as e:
+            logger.debug(f"Wireless sector audit note: {e}")
 
         # Sector 3: Network Sockets & Backdoors (120° - 180°)
         sector_3_threats = []
-        all_socks = socket_monitor_service.get_active_sockets()
-        socket_threats = [s for s in all_socks if s.get("threat_level") in ("CRITICAL", "HIGH")]
-        if socket_threats:
-            sector_3_threats.extend(socket_threats)
+        try:
+            all_socks = socket_monitor_service.get_active_sockets()
+            socket_threats = [s for s in all_socks if s.get("threat_level") in ("CRITICAL", "HIGH")]
+            if socket_threats:
+                sector_3_threats.extend(socket_threats)
+        except Exception as e:
+            logger.debug(f"Socket sector audit note: {e}")
 
         # Sector 4: Host Process & Memory Integrity (180° - 240°)
         sector_4_threats = []
@@ -114,20 +124,23 @@ class Total360SafeguardEngine:
 
         # Sector 6: Files, Web Vectors & Zero-Runtime OS Shield (300° - 360°)
         sector_6_threats = []
-        hardening = persistent_shield_service.get_hardening_status()
-        watchdog = persistent_shield_service.get_watchdog_status()
-        if not hardening.get("overall_hardened"):
-            sector_6_threats.append({
-                "type": "OS_HARDENING_GAPS_DETECTED",
-                "details": hardening.get("policies", {}),
-                "severity": "MEDIUM",
-            })
-        if not watchdog.get("installed"):
-            sector_6_threats.append({
-                "type": "WATCHDOG_TASK_NOT_INSTALLED",
-                "details": "OS native scheduled watchdog is not active for 24/7 offline defense.",
-                "severity": "MEDIUM",
-            })
+        try:
+            hardening = persistent_shield_service.get_hardening_status()
+            watchdog = persistent_shield_service.get_watchdog_status()
+            if not hardening.get("overall_hardened"):
+                sector_6_threats.append({
+                    "type": "OS_HARDENING_GAPS_DETECTED",
+                    "details": hardening.get("policies", {}),
+                    "severity": "MEDIUM",
+                })
+            if not watchdog.get("installed"):
+                sector_6_threats.append({
+                    "type": "WATCHDOG_TASK_NOT_INSTALLED",
+                    "details": "OS native scheduled watchdog is not active for 24/7 offline defense.",
+                    "severity": "MEDIUM",
+                })
+        except Exception as e:
+            logger.debug(f"Shield sector audit note: {e}")
 
         # Calculate 360-Degree Scores and Accuracy Metrics
         all_threats = (

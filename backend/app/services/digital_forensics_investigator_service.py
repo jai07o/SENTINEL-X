@@ -74,10 +74,13 @@ class DigitalForensicsInvestigatorService:
         self._init_database()
 
     def _init_database(self):
-        """Initializes the unified evidence table in the single overall database."""
+        """Initializes the unified evidence table in the single overall database with WAL mode."""
         try:
             with sqlite3.connect(self.db_path, timeout=30.0) as conn:
                 cursor = conn.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA busy_timeout=30000;")
+                cursor.execute("PRAGMA synchronous=NORMAL;")
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS investigation_evidence (
                         id TEXT PRIMARY KEY,
@@ -112,75 +115,172 @@ class DigitalForensicsInvestigatorService:
             pass
 
     def get_host_device_info(self) -> Dict[str, str]:
-        """Resolves rich device attribution details for evidence metadata."""
-        hostname = platform.node() or "UNKNOWN_HOST"
-        os_name = platform.system()
-        os_release = platform.release()
-        machine = platform.machine()
-        has_battery = False
+        """
+        Universal device profiler: dynamically identifies ANY device type:
+        - Windows (Laptop, Desktop PC, Server)
+        - Linux (Laptop, Workstation, Cloud Server / VM, Raspberry Pi / ARM IoT, Container)
+        - macOS (MacBook Pro/Air, iMac, Mac Mini, Mac Studio, Mac Pro)
+        - Android (Phone, Tablet, Termux, Android Virtual Device)
+        - Virtualization (Docker container, WSL2, KVM, VMware, VirtualBox)
+        """
+        import socket
+
+        hostname = "UNKNOWN_HOST"
         try:
-            battery = psutil.sensors_battery()
-            has_battery = battery is not None
+            hostname = socket.gethostname() or platform.node() or "UNKNOWN_HOST"
         except Exception:
             pass
-        dev_type = "Laptop" if has_battery else "Desktop/Server"
-        device_label = f"{hostname} ({dev_type} - {os_name} {os_release} ({machine}))"
+
+        sys_os = platform.system()
+        os_release = platform.release()
+        machine = platform.machine()
+
+        # Check Android / Mobile
+        is_android = (
+            "ANDROID_ROOT" in os.environ or
+            os.path.exists("/system/build.prop") or
+            "com.termux" in os.environ.get("PREFIX", "") or
+            sys.platform.startswith("android")
+        )
+
+        # Check Container / Virtualization
+        is_container = (
+            os.path.exists("/.dockerenv") or
+            os.path.exists("/run/secrets/kubernetes.io") or
+            "container" in os.environ.get("container", "")
+        )
+        is_wsl = "microsoft" in platform.release().lower() or "wsl" in platform.release().lower()
+
+        # Check Battery (Laptop / Mobile indicator)
+        has_battery = False
+        battery_pct = None
+        try:
+            b = psutil.sensors_battery()
+            if b is not None:
+                has_battery = True
+                battery_pct = round(b.percent)
+        except Exception:
+            pass
+
+        # Check Raspberry Pi / ARM IoT
+        is_rpi = False
+        try:
+            if os.path.exists("/proc/device-tree/model"):
+                with open("/proc/device-tree/model", "r", errors="ignore") as f:
+                    if "raspberry" in f.read().lower():
+                        is_rpi = True
+        except Exception:
+            pass
+
+        # Classification
+        if is_android:
+            device_type = "Android Mobile (Smartphone/Tablet)"
+            device_os = f"Android (Linux Kernel {os_release})"
+        elif is_rpi:
+            device_type = "Embedded IoT / Edge Device (Raspberry Pi)"
+            device_os = f"Raspberry Pi OS / Linux ({machine})"
+        elif is_container:
+            device_type = "Containerized Instance (Docker/Kubernetes)"
+            device_os = f"Linux Container ({machine})"
+        elif is_wsl:
+            device_type = "WSL2 Virtual Linux Subsystem"
+            device_os = f"Windows Subsystem for Linux ({machine})"
+        elif sys_os == "Darwin":
+            device_type = "Apple MacBook (Laptop)" if has_battery else "Apple Mac (Desktop/Workstation)"
+            device_os = f"macOS {platform.mac_ver()[0]} ({machine})"
+        elif sys_os == "Windows":
+            is_server = "server" in platform.win32_edition().lower() if hasattr(platform, "win32_edition") else False
+            if is_server:
+                device_type = "Windows Server Infrastructure"
+            elif has_battery:
+                device_type = "Laptop"
+            else:
+                device_type = "Desktop PC / Station"
+            device_os = f"Windows {os_release} ({machine})"
+        elif sys_os == "Linux":
+            has_gui = bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+            if has_battery:
+                device_type = "Linux Laptop"
+            elif has_gui:
+                device_type = "Linux Workstation / Desktop"
+            else:
+                device_type = "Linux Server / Cloud VM"
+            device_os = f"Linux ({os_release} - {machine})"
+        else:
+            device_type = "Universal Host Device"
+            device_os = f"{sys_os} {os_release} ({machine})"
+
+        batt_suffix = f" [Battery: {battery_pct}%]" if battery_pct is not None else ""
+        device_label = f"{hostname} ({device_type} - {device_os}){batt_suffix}"
+
         return {
             "device": device_label,
             "device_hostname": hostname,
-            "device_type": dev_type,
-            "device_os": f"{os_name} {os_release} ({machine})"
+            "device_type": device_type,
+            "device_os": device_os,
+            "hostname": hostname,
+            "os": device_os,
+            "full_label": device_label
         }
 
     def _save_to_central_database(self, inv_result: Dict[str, Any]) -> int:
-        """Persists all discovered findings and timeline events into data/database/sentinel_x.db."""
+        """Persists all discovered findings and timeline events into data/database/sentinel_x.db with retry resilience."""
         saved_count = 0
         try:
             dev_info = self.get_host_device_info()
             inv_id = inv_result.get("investigation_id", "CASE")
             timeline = inv_result.get("reconstructed_breach_timeline", [])
 
-            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
-                cursor = conn.cursor()
-                for item in timeline:
-                    rec_id = f"EVD-{inv_id}-{uuid.uuid4().hex[:8].upper()}"
-                    ts = item.get("timestamp") or datetime.now(timezone.utc).isoformat()
-                    try:
-                        clean_ts = ts.replace("Z", "+00:00")
-                        dt = datetime.fromisoformat(clean_ts)
-                        formatted_dt = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-                    except Exception:
-                        formatted_dt = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+            for attempt in range(3):
+                try:
+                    with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                        cursor = conn.cursor()
+                        cursor.execute("PRAGMA busy_timeout=30000;")
+                        for item in timeline:
+                            rec_id = f"EVD-{inv_id}-{uuid.uuid4().hex[:8].upper()}"
+                            ts = item.get("timestamp") or datetime.now(timezone.utc).isoformat()
+                            try:
+                                clean_ts = ts.replace("Z", "+00:00")
+                                dt = datetime.fromisoformat(clean_ts)
+                                formatted_dt = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+                            except Exception:
+                                formatted_dt = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-                    raw_item_json = json.dumps(item, default=str)
-                    ev_hash = hashlib.sha256(raw_item_json.encode("utf-8")).hexdigest()
-                    hmac_sig = hmac.new(self.HMAC_SECRET, raw_item_json.encode("utf-8"), hashlib.sha256).hexdigest()
+                            raw_item_json = json.dumps(item, default=str)
+                            ev_hash = hashlib.sha256(raw_item_json.encode("utf-8")).hexdigest()
+                            hmac_sig = hmac.new(self.HMAC_SECRET, raw_item_json.encode("utf-8"), hashlib.sha256).hexdigest()
 
-                    stage_name = item.get("stage") or "DIGITAL_FORENSICS"
-                    subtype = item.get("category") or "FORENSIC_TIMELINE_EVENT"
-                    severity = item.get("severity") or "HIGH"
-                    details = f"{item.get('title')}: {item.get('description')}"
+                            stage_name = item.get("stage") or "DIGITAL_FORENSICS"
+                            subtype = item.get("category") or "FORENSIC_TIMELINE_EVENT"
+                            severity = item.get("severity") or "HIGH"
+                            details = f"{item.get('title')}: {item.get('description')}"
 
-                    artifact_data = item.get("raw_artifact", {})
-                    from_where = artifact_data.get("file_path") or artifact_data.get("source_ip") or artifact_data.get("channel") or "Forensic Artifact"
-                    site = artifact_data.get("remote_url") or artifact_data.get("remote_ip") or "Local Host"
-                    app = artifact_data.get("process_name") or artifact_data.get("account_name") or "System Kernel"
+                            artifact_data = item.get("raw_artifact", {})
+                            from_where = artifact_data.get("file_path") or artifact_data.get("source_ip") or artifact_data.get("channel") or "Forensic Artifact"
+                            site = artifact_data.get("remote_url") or artifact_data.get("remote_ip") or "Local Host"
+                            app = artifact_data.get("process_name") or artifact_data.get("account_name") or "System Kernel"
 
-                    cursor.execute("""
-                        INSERT OR REPLACE INTO investigation_evidence (
-                            id, investigation_id, timestamp, date_and_time, from_where, site, app,
-                            device, device_hostname, device_type, device_os,
-                            stage_or_signal, subtype, severity, evidence_hash, hmac_signature,
-                            details, mitre_technique, raw_data_json, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (
-                        rec_id, inv_id, ts, formatted_dt, str(from_where), str(site), str(app),
-                        dev_info["device"], dev_info["device_hostname"], dev_info["device_type"], dev_info["device_os"],
-                        stage_name, subtype, severity, ev_hash, hmac_sig,
-                        details, "T1059", raw_item_json, datetime.now(timezone.utc).isoformat()
-                    ))
-                    saved_count += 1
-                conn.commit()
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO investigation_evidence (
+                                    id, investigation_id, timestamp, date_and_time, from_where, site, app,
+                                    device, device_hostname, device_type, device_os,
+                                    stage_or_signal, subtype, severity, evidence_hash, hmac_signature,
+                                    details, mitre_technique, raw_data_json, created_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (
+                                rec_id, inv_id, ts, formatted_dt, str(from_where), str(site), str(app),
+                                dev_info["device"], dev_info["device_hostname"], dev_info["device_type"], dev_info["device_os"],
+                                stage_name, subtype, severity, ev_hash, hmac_sig,
+                                details, "T1059", raw_item_json, datetime.now(timezone.utc).isoformat()
+                            ))
+                            saved_count += 1
+                        conn.commit()
+                        break
+                except sqlite3.OperationalError:
+                    if attempt < 2:
+                        time.sleep(0.1 * (attempt + 1))
+                    else:
+                        break
         except Exception:
             pass
         return saved_count

@@ -68,7 +68,7 @@ def run_watchdog_loop(poll_interval: float = 4.0):
                     dl_up = dl.upper()
                     current_drives.add(dl_up)
                     # New insertion detected!
-                    if dl_up not in known_drives and dl_up != "C:":
+                    if dl_up not in known_drives and dl_up not in ("C:", "/", "/ROOT", "/SYSTEM", "/BOOT", "/USR"):
                         logger.critical(f"NEW HARDWARE INSERTION INTERCEPTED on {dl_up} ({dev.get('name')})")
                         res = hardware_port_service.intercept_device_insertion(dev)
                         logger.info(f"Insertion Interception Result: {res.get('verdict')} - {res.get('message')}")

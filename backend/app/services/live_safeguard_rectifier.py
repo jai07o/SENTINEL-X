@@ -244,7 +244,7 @@ class LiveThreatHunter:
                     }
                     threats.append(threat_item)
 
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, Exception):
                 continue
 
         return threats

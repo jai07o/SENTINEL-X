@@ -20,23 +20,35 @@ import hashlib
 import hmac
 import subprocess
 import asyncio
+import sqlite3
+import uuid
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DATA_DIR = ROOT_DIR / "data"
+DATABASE_DIR = DATA_DIR / "database"
 EVIDENCE_DIR = DATA_DIR / "evidence"
+FORENSICS_DIR = DATA_DIR / "forensics"
 REPORTS_DIR = DATA_DIR / "reports"
-EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+TELEMETRY_DIR = DATA_DIR / "telemetry"
+MODELS_DIR = DATA_DIR / "models"
+QUARANTINE_DIR = DATA_DIR / "quarantine"
+
+for directory in (DATABASE_DIR, EVIDENCE_DIR, FORENSICS_DIR, REPORTS_DIR, TELEMETRY_DIR, MODELS_DIR, QUARANTINE_DIR):
+    directory.mkdir(parents=True, exist_ok=True)
+
+DB_PATH = DATABASE_DIR / "sentinel_x.db"
 
 
 class AIThreatInvestigatorService:
     """
     SENTINEL-X AI Linux Threat Investigator.
     Monitors, correlates, explains, reconstructs timelines, and recommends remediation
-    for complex multi-signal cyber attacks.
+    for complex multi-signal cyber attacks, storing rich digital forensics proof
+    in the single overall database.
     """
 
     HMAC_SECRET = b"SENTINEL_X_AI_THREAT_INVESTIGATOR_KEY_2026_HMAC"
@@ -58,12 +70,159 @@ class AIThreatInvestigatorService:
     HIGH_RISK_PORTS = {4444, 1337, 6667, 8888, 9001, 9999, 31337, 5555, 7777}
 
     def __init__(self):
+        self.database_dir = DATABASE_DIR
         self.evidence_dir = EVIDENCE_DIR
+        self.forensics_dir = FORENSICS_DIR
         self.reports_dir = REPORTS_DIR
+        self.telemetry_dir = TELEMETRY_DIR
+        self.models_dir = MODELS_DIR
+        self.quarantine_dir = QUARANTINE_DIR
+        self.db_path = DB_PATH
         self.is_monitoring: bool = False
         self._monitor_task: Optional[asyncio.Task] = None
         self._file_baselines: Dict[str, Dict[str, Any]] = {}
         self._initialize_file_baselines()
+        self._init_database()
+
+    def _init_database(self):
+        """Initializes the unified evidence table in the single overall database."""
+        try:
+            legacy_db = ROOT_DIR / "sentinel_dev.db"
+            if legacy_db.exists() and not self.db_path.exists():
+                try:
+                    shutil.copy2(legacy_db, self.db_path)
+                except Exception:
+                    pass
+
+            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS investigation_evidence (
+                        id TEXT PRIMARY KEY,
+                        investigation_id TEXT NOT NULL,
+                        timestamp TEXT NOT NULL,
+                        date_and_time TEXT NOT NULL,
+                        from_where TEXT NOT NULL,
+                        site TEXT NOT NULL,
+                        app TEXT NOT NULL,
+                        device TEXT NOT NULL,
+                        device_hostname TEXT NOT NULL,
+                        device_type TEXT NOT NULL,
+                        device_os TEXT NOT NULL,
+                        stage_or_signal TEXT NOT NULL,
+                        subtype TEXT NOT NULL,
+                        severity TEXT NOT NULL,
+                        evidence_hash TEXT NOT NULL,
+                        hmac_signature TEXT NOT NULL,
+                        details TEXT NOT NULL,
+                        mitre_technique TEXT,
+                        raw_data_json TEXT NOT NULL,
+                        created_at TEXT NOT NULL
+                    );
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_inv_id ON investigation_evidence(investigation_id);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_timestamp ON investigation_evidence(timestamp);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_stage ON investigation_evidence(stage_or_signal);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_app ON investigation_evidence(app);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_site ON investigation_evidence(site);")
+                conn.commit()
+        except Exception as e:
+            pass
+
+    def save_evidence_record(self, record: Dict[str, Any]) -> bool:
+        """Inserts a structured evidence record with rich metadata into the overall database."""
+        try:
+            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO investigation_evidence (
+                        id, investigation_id, timestamp, date_and_time, from_where, site, app,
+                        device, device_hostname, device_type, device_os,
+                        stage_or_signal, subtype, severity, evidence_hash, hmac_signature,
+                        details, mitre_technique, raw_data_json, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    record.get("id"),
+                    record.get("investigation_id"),
+                    record.get("timestamp"),
+                    record.get("date_and_time"),
+                    record.get("from_where"),
+                    record.get("site"),
+                    record.get("app"),
+                    record.get("device"),
+                    record.get("device_hostname"),
+                    record.get("device_type"),
+                    record.get("device_os"),
+                    record.get("stage_or_signal"),
+                    record.get("subtype"),
+                    record.get("severity"),
+                    record.get("evidence_hash"),
+                    record.get("hmac_signature"),
+                    record.get("details"),
+                    record.get("mitre_technique"),
+                    record.get("raw_data_json"),
+                    record.get("created_at")
+                ))
+                conn.commit()
+                return True
+        except Exception:
+            return False
+
+    def get_stored_evidence(
+        self,
+        investigation_id: Optional[str] = None,
+        stage_or_signal: Optional[str] = None,
+        severity: Optional[str] = None,
+        limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """Queries stored evidence records from the single overall database."""
+        records = []
+        try:
+            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                query = "SELECT * FROM investigation_evidence WHERE 1=1"
+                params = []
+                if investigation_id:
+                    query += " AND investigation_id = ?"
+                    params.append(investigation_id)
+                if stage_or_signal:
+                    query += " AND stage_or_signal = ?"
+                    params.append(stage_or_signal)
+                if severity:
+                    query += " AND severity = ?"
+                    params.append(severity)
+                query += " ORDER BY timestamp DESC LIMIT ?"
+                params.append(limit)
+
+                rows = cursor.execute(query, params).fetchall()
+                for r in rows:
+                    records.append(dict(r))
+        except Exception:
+            pass
+        return records
+
+    @staticmethod
+    def get_host_device_info() -> Dict[str, str]:
+        """Gathers genuine host device metadata for forensic evidence attribution."""
+        import socket
+        import platform
+        hname = socket.gethostname()
+        sys_os = f"{platform.system()} {platform.release()} ({platform.machine()})"
+        is_laptop = False
+        try:
+            battery = psutil.sensors_battery()
+            if battery is not None:
+                is_laptop = True
+        except Exception:
+            pass
+        dev_type = "Laptop" if is_laptop else "Desktop PC / Server"
+        return {
+            "hostname": hname,
+            "device_type": dev_type,
+            "os": sys_os,
+            "full_label": f"{hname} ({dev_type} - {sys_os})"
+        }
 
     def _hash_data(self, data: str) -> str:
         return hashlib.sha256(data.encode("utf-8")).hexdigest()
@@ -498,24 +657,138 @@ class AIThreatInvestigatorService:
         investigation_id = f"AI-INVESTIGATION-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
         start_time = datetime.now(timezone.utc)
 
-        # 1. Harvest the 4 Critical Signals
+        # 1. Harvest the 4 Critical Operational Signals
         proc_audit = self.audit_suspicious_processes()
         login_audit = self.audit_login_attempts()
         file_audit = self.audit_modified_system_files()
         net_audit = self.audit_unusual_network_connections()
 
+        # 2. Harvest Deep Digital Forensics (4 Stages + RAM Memory + MACB)
+        forensic_findings = []
+        forensic_dossier = {}
+        try:
+            from backend.app.services.digital_forensics_investigator_service import digital_forensics_investigator
+            forensic_dossier = digital_forensics_investigator.run_complete_investigation()
+
+            # Stage 1: Initial Access
+            st1 = forensic_dossier.get("stage_1_initial_access", {})
+            for art in st1.get("failed_logon_artifacts", []):
+                forensic_findings.append({
+                    "signal": "STAGE_1_INITIAL_ACCESS",
+                    "subtype": "BRUTE_FORCE_CREDENTIAL_SPRAY",
+                    "severity": "HIGH",
+                    "source_ip": art.get("source_ip") or "127.0.0.1",
+                    "rationale": art.get("details") or art.get("raw_log", "Brute-force credential failure"),
+                    "mitre_technique": "T1110 (Brute Force)",
+                    "timestamp": art.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "app": "Authentication Daemon",
+                    "from_where": "Security Event Log / auth.log",
+                    "site": art.get("source_ip", "Local Host")
+                })
+            for art in st1.get("remote_logon_artifacts", []):
+                forensic_findings.append({
+                    "signal": "STAGE_1_INITIAL_ACCESS",
+                    "subtype": "REMOTE_AUTHENTICATION_ENTRY",
+                    "severity": "HIGH",
+                    "source_ip": art.get("source_ip"),
+                    "rationale": art.get("details") or art.get("raw_log", "Remote authentication entry point"),
+                    "mitre_technique": "T1078 (Valid Accounts)",
+                    "timestamp": art.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "app": "Remote Logon Service",
+                    "from_where": "Security Event Log / auth.log",
+                    "site": art.get("source_ip", "Remote Endpoint")
+                })
+
+            # Stage 2: Lateral Movement
+            st2 = forensic_dossier.get("stage_2_lateral_movement", {})
+            for cmd_art in st2.get("suspicious_commands_identified", []):
+                forensic_findings.append({
+                    "signal": "STAGE_2_LATERAL_MOVEMENT",
+                    "subtype": "SUSPICIOUS_SHELL_COMMAND",
+                    "severity": "HIGH",
+                    "rationale": f"Suspicious command history: {cmd_art.get('command')}",
+                    "mitre_technique": "T1059 (Command and Scripting Interpreter)",
+                    "timestamp": cmd_art.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "app": cmd_art.get("shell", "Shell Interpreter"),
+                    "from_where": cmd_art.get("history_file", "Shell History"),
+                    "site": "Local Host"
+                })
+
+            # Stage 3: Persistence
+            st3 = forensic_dossier.get("stage_3_persistence", {})
+            for bin_art in st3.get("staged_binaries_identified", []):
+                forensic_findings.append({
+                    "signal": "STAGE_3_PERSISTENCE",
+                    "subtype": "STAGED_MALICIOUS_BINARY",
+                    "severity": "CRITICAL",
+                    "file_path": bin_art.get("path"),
+                    "rationale": f"Staged payload binary detected in temp folder: {bin_art.get('filename')}",
+                    "mitre_technique": "T1547 (Boot or Logon Autostart Execution)",
+                    "timestamp": bin_art.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "app": bin_art.get("filename"),
+                    "from_where": bin_art.get("path"),
+                    "site": "Local Host"
+                })
+            for lotl in st3.get("lotl_tools_identified", []):
+                forensic_findings.append({
+                    "signal": "STAGE_3_PERSISTENCE",
+                    "subtype": "LOTL_DUAL_USE_TOOL_ABUSE",
+                    "severity": "HIGH",
+                    "rationale": f"Dual-use Living-off-the-Land tool found: {lotl.get('tool')}",
+                    "mitre_technique": "T1218 (System Binary Proxy Execution)",
+                    "timestamp": lotl.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "app": lotl.get("tool"),
+                    "from_where": lotl.get("path"),
+                    "site": "Local Host"
+                })
+
+            # Stage 4: Data Exfiltration
+            st4 = forensic_dossier.get("stage_4_data_exfiltration", {})
+            for exfil in st4.get("staged_archives_identified", []):
+                forensic_findings.append({
+                    "signal": "STAGE_4_DATA_EXFILTRATION",
+                    "subtype": "STAGED_DATA_ARCHIVE",
+                    "severity": "HIGH",
+                    "file_path": exfil.get("path"),
+                    "rationale": f"Staged archive prepared for exfiltration: {exfil.get('filename')} ({exfil.get('size_bytes')} bytes)",
+                    "mitre_technique": "T1560 (Archive Collected Data)",
+                    "timestamp": exfil.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "app": "Archive Manager",
+                    "from_where": exfil.get("path"),
+                    "site": "Local Host"
+                })
+
+            # Volatile Memory (RAM) Analysis
+            ram = forensic_dossier.get("memory_dump_analysis", {})
+            for sus_mem in ram.get("suspicious_memory_processes", []):
+                forensic_findings.append({
+                    "signal": "MEMORY_DUMP_ANALYSIS",
+                    "subtype": "SUSPICIOUS_RAM_ALLOCATION",
+                    "severity": "CRITICAL",
+                    "process_name": sus_mem.get("process_name"),
+                    "rationale": f"Volatile RAM anomaly: PID {sus_mem.get('pid')} ({sus_mem.get('process_name')}) RSS: {sus_mem.get('rss_mb')}MB",
+                    "mitre_technique": "T1055 (Process Injection)",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "app": sus_mem.get("process_name"),
+                    "from_where": f"Volatile RAM PID {sus_mem.get('pid')}",
+                    "site": "Local Host"
+                })
+        except Exception as e:
+            forensic_dossier = {"status": "FORENSIC_INTEGRATION_NOTE", "details": str(e)}
+
         all_findings = (
             proc_audit.get("findings", []) +
             login_audit.get("findings", []) +
             file_audit.get("findings", []) +
-            net_audit.get("findings", [])
+            net_audit.get("findings", []) +
+            forensic_findings
         )
 
         critical_count = sum(1 for f in all_findings if f.get("severity") == "CRITICAL")
         high_count = sum(1 for f in all_findings if f.get("severity") == "HIGH")
         total_signals = len(all_findings)
 
-        # 2. Compute Threat Risk Score & Multi-Signal Correlation Score
+        # 3. Compute Threat Risk Score & Multi-Signal Correlation Score
         correlation_score = min(100, (critical_count * 25) + (high_count * 10))
         if correlation_score >= 60:
             threat_status = "CRITICAL_ACTIVE_INTRUSION_CORRELATED"
@@ -524,7 +797,7 @@ class AIThreatInvestigatorService:
         else:
             threat_status = "BASELINE_CLEAN_NO_THREAT_CORRELATED"
 
-        # 3. Assemble Chronological Incident Timeline
+        # 4. Assemble Chronological Incident Timeline
         timeline = []
         for idx, f in enumerate(all_findings):
             timeline.append({
@@ -541,7 +814,7 @@ class AIThreatInvestigatorService:
 
         timeline.sort(key=lambda x: str(x.get("timestamp") or ""))
 
-        # 4. Generate Grounded AI Explanation
+        # 5. Generate Grounded AI Explanation
         ai_explanation = self._generate_ai_explanation(
             threat_status=threat_status,
             proc_audit=proc_audit,
@@ -551,15 +824,88 @@ class AIThreatInvestigatorService:
             total_signals=total_signals
         )
 
-        # 5. Formulate Safe Remediation Recommendations
+        # 6. Formulate Safe Remediation Recommendations
         remediation_steps = self._generate_safe_remediation(all_findings)
+
+        # 7. Device Fingerprint & Database Persistence (Store Every Evidence Finding)
+        device_info = self.get_host_device_info()
+        records_saved_count = 0
+
+        for f in all_findings:
+            rec_id = f"EV-{investigation_id}-{uuid.uuid4().hex[:8]}"
+            ts_iso = f.get("timestamp") or datetime.now(timezone.utc).isoformat()
+            try:
+                dt_obj = datetime.fromisoformat(ts_iso.replace("Z", "+00:00"))
+                date_and_time = dt_obj.strftime("%Y-%m-%d %H:%M:%S UTC")
+            except Exception:
+                date_and_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+            from_where = (
+                f.get("file_path") or
+                f.get("exe_path") or
+                f.get("local_endpoint") or
+                f.get("source_ip") or
+                f.get("path") or
+                f.get("from_where") or
+                "Local Operating System Subsystem"
+            )
+
+            site = (
+                f.get("remote_endpoint") or
+                f.get("target_url") or
+                f.get("url") or
+                f.get("site") or
+                f.get("source_ip") or
+                "Local Host"
+            )
+
+            app = (
+                f.get("process_name") or
+                f.get("tool_name") or
+                f.get("binary_name") or
+                f.get("app") or
+                f.get("service_name") or
+                "System Kernel / Daemon"
+            )
+
+            details_text = f.get("rationale") or f.get("description") or f.get("details") or ""
+            raw_payload_json = json.dumps(f, default=str)
+            ev_hash = self._hash_data(raw_payload_json)
+            hmac_sig = self._hmac_sign(raw_payload_json)
+
+            rec = {
+                "id": rec_id,
+                "investigation_id": investigation_id,
+                "timestamp": ts_iso,
+                "date_and_time": date_and_time,
+                "from_where": str(from_where),
+                "site": str(site),
+                "app": str(app),
+                "device": device_info["full_label"],
+                "device_hostname": device_info["hostname"],
+                "device_type": device_info["device_type"],
+                "device_os": device_info["os"],
+                "stage_or_signal": f.get("signal") or f.get("stage") or "SECURITY_SIGNAL",
+                "subtype": f.get("subtype") or "ANOMALY",
+                "severity": f.get("severity") or "MEDIUM",
+                "evidence_hash": ev_hash,
+                "hmac_signature": hmac_sig,
+                "details": details_text,
+                "mitre_technique": f.get("mitre_technique", "T1059"),
+                "raw_data_json": raw_payload_json,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            if self.save_evidence_record(rec):
+                records_saved_count += 1
 
         duration_sec = round((datetime.now(timezone.utc) - start_time).total_seconds(), 2)
 
         result = {
             "investigation_id": investigation_id,
-            "hostname": sys.platform,
+            "hostname": device_info["hostname"],
+            "device": device_info["full_label"],
             "investigation_timestamp": start_time.isoformat(),
+            "date_and_time": start_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
             "duration_seconds": duration_sec,
             "threat_status": threat_status,
             "threat_correlation_score": correlation_score,
@@ -568,14 +914,27 @@ class AIThreatInvestigatorService:
                 "suspicious_processes": proc_audit.get("suspicious_process_count", 0),
                 "login_attempts": len(login_audit.get("findings", [])),
                 "modified_system_files": file_audit.get("file_tampering_findings", 0),
-                "unusual_network_connections": net_audit.get("anomalous_connections_count", 0)
+                "unusual_network_connections": net_audit.get("anomalous_connections_count", 0),
+                "deep_digital_forensic_artifacts": len(forensic_findings)
             },
-            # 4 Core Signals
+            # 4 Core Operational Signals
             "signals": {
                 "processes": proc_audit,
                 "logins": login_audit,
                 "files": file_audit,
                 "network": net_audit
+            },
+            # Deep Digital Forensics
+            "digital_forensics_summary": {
+                "artifacts_identified": len(forensic_findings),
+                "stages_covered": ["Stage 1 Initial Access", "Stage 2 Lateral Movement", "Stage 3 Persistence", "Stage 4 Exfiltration", "RAM Volatile Memory", "MFT MACB Timestamps"]
+            },
+            # Database Persistence Summary
+            "database_storage": {
+                "database_path": str(self.db_path),
+                "table_name": "investigation_evidence",
+                "records_persisted": records_saved_count,
+                "device_registered": device_info["full_label"]
             },
             # AI-Powered Explanation
             "ai_threat_explanation": ai_explanation,
@@ -585,7 +944,7 @@ class AIThreatInvestigatorService:
             "safe_remediation_recommendations": remediation_steps
         }
 
-        # 6. Cryptographically Seal Dossier
+        # 8. Cryptographically Seal Dossier
         raw_json = json.dumps(result, indent=2, default=str)
         sha256_hash = self._hash_data(raw_json)
         hmac_sig = self._hmac_sign(raw_json)
@@ -598,6 +957,7 @@ class AIThreatInvestigatorService:
             "sealed_at": datetime.now(timezone.utc).isoformat()
         }
 
+        # Save Sealed Evidence in data/evidence/
         vault_file = self.evidence_dir / f"{investigation_id}.json"
         with open(vault_file, "w", encoding="utf-8") as f:
             f.write(json.dumps(result, indent=2, default=str))
@@ -611,7 +971,26 @@ class AIThreatInvestigatorService:
 
         result["sealed_evidence_filepath"] = str(vault_file)
 
-        # 7. Generate Signed Markdown Certificate
+        # Save Deep Forensics Snapshot in data/forensics/
+        if forensic_dossier:
+            forensics_snap = self.forensics_dir / f"FORENSIC-SNAPSHOT-{investigation_id}.json"
+            try:
+                with open(forensics_snap, "w", encoding="utf-8") as f:
+                    f.write(json.dumps(forensic_dossier, indent=2, default=str))
+                result["forensic_snapshot_path"] = str(forensics_snap)
+            except Exception:
+                pass
+
+        # Save Host Telemetry Snapshot in data/telemetry/
+        telemetry_snap = self.telemetry_dir / f"TELEMETRY-{investigation_id}.json"
+        try:
+            with open(telemetry_snap, "w", encoding="utf-8") as f:
+                f.write(json.dumps(result["signals"], indent=2, default=str))
+            result["telemetry_snapshot_path"] = str(telemetry_snap)
+        except Exception:
+            pass
+
+        # 9. Generate Signed Markdown Certificate in data/reports/
         cert_file = self._generate_markdown_report(result)
         result["investigation_certificate_path"] = str(cert_file)
 

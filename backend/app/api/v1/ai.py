@@ -113,3 +113,31 @@ async def get_live_threat_signals(
         "files": ai_threat_investigator.audit_modified_system_files(),
         "network": ai_threat_investigator.audit_unusual_network_connections()
     }
+
+
+@router.get("/threat-investigator/database-evidence")
+async def get_database_stored_evidence(
+    investigation_id: str = None,
+    stage_or_signal: str = None,
+    severity: str = None,
+    limit: int = 100,
+    current_user: User = Depends(require_analyst),
+):
+    """
+    Queries all forensic evidence records persisted in the single overall database (sentinel_x.db)
+    complete with timestamp, date_and_time, from_where, site, app, and device metadata.
+    """
+    from backend.app.services.ai_threat_investigator_service import ai_threat_investigator
+    records = ai_threat_investigator.get_stored_evidence(
+        investigation_id=investigation_id,
+        stage_or_signal=stage_or_signal,
+        severity=severity,
+        limit=limit
+    )
+    return {
+        "database": str(ai_threat_investigator.db_path),
+        "table": "investigation_evidence",
+        "total_records": len(records),
+        "evidence": records
+    }
+

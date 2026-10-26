@@ -122,9 +122,33 @@ def test_multi_signal_correlation_and_investigation():
     seal = res.get("cryptographic_evidence_seal", {})
     assert "HMAC-SHA256" in seal["algorithm"]
     assert "sha256_fingerprint" in seal
-    assert "hmac_signature" in seal
-    assert Path(res["sealed_evidence_filepath"]).exists()
-    assert Path(res["investigation_certificate_path"]).exists()
+    # Database Storage Verification
+    db_storage = res.get("database_storage", {})
+    assert "database_path" in db_storage
+    assert "investigation_evidence" == db_storage["table_name"]
+    assert Path(db_storage["database_path"]).exists()
+    assert "records_persisted" in db_storage
+
+    # Query Database Evidence Records directly
+    stored = ai_threat_investigator.get_stored_evidence(investigation_id=res["investigation_id"])
+    assert isinstance(stored, list)
+    if stored:
+        first = stored[0]
+        assert "timestamp" in first
+        assert "date_and_time" in first
+        assert "from_where" in first
+        assert "site" in first
+        assert "app" in first
+        assert "device" in first
+        assert "evidence_hash" in first
+        assert "hmac_signature" in first
+
+    # Dedicated Folders Verification
+    assert ai_threat_investigator.database_dir.exists()
+    assert ai_threat_investigator.evidence_dir.exists()
+    assert ai_threat_investigator.forensics_dir.exists()
+    assert ai_threat_investigator.reports_dir.exists()
+    assert ai_threat_investigator.telemetry_dir.exists()
 
 
 @pytest.mark.asyncio
@@ -139,6 +163,7 @@ async def test_api_threat_investigator_endpoints(client: AsyncClient, admin_toke
     assert "investigation_id" in data
     assert "threat_correlation_score" in data
     assert "signal_breakdown" in data
+    assert "database_storage" in data
     
     # 2. Query 4 live signals directly
     resp_sig = await client.get("/api/v1/ai/threat-investigator/signals", headers=headers)
@@ -155,3 +180,12 @@ async def test_api_threat_investigator_endpoints(client: AsyncClient, admin_toke
     latest_data = resp_latest.json()
     assert "investigation_id" in latest_data
     assert "cryptographic_evidence_seal" in latest_data
+
+    # 4. Retrieve database-stored evidence records with rich metadata
+    resp_db = await client.get("/api/v1/ai/threat-investigator/database-evidence", headers=headers)
+    assert resp_db.status_code == 200
+    db_data = resp_db.json()
+    assert "database" in db_data
+    assert "table" in db_data
+    assert "total_records" in db_data
+    assert isinstance(db_data["evidence"], list)

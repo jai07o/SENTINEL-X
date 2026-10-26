@@ -1625,13 +1625,26 @@ def cmd_ai_threat_investigator(continuous: bool = False):
             print(f"    - Command: {CYAN}{r.get('recommended_command')}{RESET}")
             print(f"    - Safety:  {r.get('safety_precaution')}")
 
+        # Database Storage & Digital Forensics Attribution
+        db_storage = res.get("database_storage", {})
+        print(f"\n{CYAN}{BOLD}[UNIFIED DATABASE EVIDENCE STORAGE (SINGLE OVERALL DB)]{RESET}")
+        print(f" • {BOLD}Central Database:{RESET}   {db_storage.get('database_path')}")
+        print(f" • {BOLD}Evidence Table:{RESET}     {db_storage.get('table_name')}")
+        print(f" • {BOLD}Records Persisted:{RESET}  {GREEN}{BOLD}{db_storage.get('records_persisted')} evidence records saved with timestamps & origin metadata{RESET}")
+        print(f" • {BOLD}Device Attribution:{RESET} {db_storage.get('device_registered')}")
+        print(f" • {BOLD}Stored Fields:{RESET}      timestamp, date_and_time, from_where, site, app, device, hash, HMAC, details")
+
         seal = res.get("cryptographic_evidence_seal", {})
         print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
-        print(f" {BOLD}CRYPTOGRAPHIC EVIDENCE CHAIN OF CUSTODY (SEALED){RESET}")
+        print(f" {BOLD}CRYPTOGRAPHIC EVIDENCE CHAIN OF CUSTODY & DEDICATED FOLDERS{RESET}")
         print(f"{CYAN}{BOLD}=============================================================================={RESET}")
         print(f"{BOLD}SHA-256 Digest:{RESET}   {seal.get('sha256_fingerprint')}")
         print(f"{BOLD}HMAC Signature:{RESET}   {seal.get('hmac_signature')}")
-        print(f"{BOLD}Evidence Vault:{RESET}   {res.get('sealed_evidence_filepath')}")
+        print(f"{BOLD}Evidence Vault:{RESET}   {res.get('sealed_evidence_filepath')} (chmod 0400)")
+        if res.get('forensic_snapshot_path'):
+            print(f"{BOLD}Forensics Snap:{RESET}   {res.get('forensic_snapshot_path')}")
+        if res.get('telemetry_snapshot_path'):
+            print(f"{BOLD}Telemetry Snap:{RESET}   {res.get('telemetry_snapshot_path')}")
         print(f"{BOLD}Signed Report:{RESET}    {res.get('investigation_certificate_path')}\n")
 
     if not continuous:

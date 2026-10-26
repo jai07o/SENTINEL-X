@@ -7,13 +7,28 @@ from pydantic import Field
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BASE_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data"
+DATABASE_DIR = DATA_DIR / "database"
 UPLOAD_DIR = DATA_DIR / "uploads"
 EVIDENCE_DIR = DATA_DIR / "evidence"
+FORENSICS_DIR = DATA_DIR / "forensics"
 REPORTS_DIR = DATA_DIR / "reports"
+TELEMETRY_DIR = DATA_DIR / "telemetry"
+MODELS_DIR = DATA_DIR / "models"
 QUARANTINE_DIR = DATA_DIR / "quarantine"
 RULES_DIR = BASE_DIR / "app" / "data"
 
-for directory in (DATA_DIR, UPLOAD_DIR, EVIDENCE_DIR, REPORTS_DIR, QUARANTINE_DIR, RULES_DIR):
+for directory in (
+    DATA_DIR,
+    DATABASE_DIR,
+    UPLOAD_DIR,
+    EVIDENCE_DIR,
+    FORENSICS_DIR,
+    REPORTS_DIR,
+    TELEMETRY_DIR,
+    MODELS_DIR,
+    QUARANTINE_DIR,
+    RULES_DIR,
+):
     directory.mkdir(parents=True, exist_ok=True)
 
 

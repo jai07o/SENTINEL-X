@@ -122,10 +122,41 @@ Traditional cybersecurity has been critically crippled by fragmented, conflictin
 SENTINEL-X solves this entire dilemma in **ONE unified, automated master workflow**:
 
 - **The Golden Forensics Rule**: In every workflow, volatile crime scenes (memory strings, socket states, command lines, remote C2 IPs, and hardware serials) are **cryptographically locked into an immutable read-only vault (`chmod 0400` / `attrib +r`) with SHA-256 and HMAC-SHA256 signatures BEFORE any containment action alters host state**.
-- **SENTINEL-X — AI Linux Threat Investigator (Multi-Signal Correlation)**:
-  - *Problem Solved*: Attacks leave suspicious processes, login attempts, modified system files, and unusual network connections that are difficult to investigate manually.
-  - *Built*: Real-time monitoring agent that correlates all 4 signals (`Suspicious Processes`, `Login Attempts`, `Modified System Files / FIM`, `Unusual Network Sockets`), synthesizes grounded AI explanations, reconstructs chronological incident timelines, and recommends safe, non-destructive remediation.
-  - *Run Directly*: `python cli.py ai-investigator` (Single audit) or `python cli.py ai-investigator --continuous` (10s daemon loop).
+- **SENTINEL-X — AI Linux Threat Investigator (Multi-Signal Correlation & Cyber Detective Major Workflow)**:
+  - *Problem Solved*: Attacks leave fragmented footprints across processes, logins, modified system files, and network sockets that are difficult and slow to investigate manually.
+  - *Built*: Real-time monitoring agent that correlates the **4 Operational Signals** (`Suspicious Processes`, `Login Attempts`, `Modified System Files / FIM`, `Unusual Network Sockets`) with deep **Digital Forensics Cyber Detective** evidence (`Stage 1 Initial Access`, `Stage 2 Lateral Movement`, `Stage 3 Persistence`, `Stage 4 Data Exfiltration`, `Volatile RAM Memory Dumps`, and `Master File Table (MFT) MACB Timestamps`).
+  - *Synthesizes*: Grounded defensive AI threat explanations, reconstructs chronological incident timelines, and prescribes non-destructive safe remediation actions.
+  - *Run Directly*: `python cli.py ai-investigator` (Single audit), `python cli.py ai-investigator --continuous` (10s daemon loop), interactive CLI menu option `[AI5]`, or unified launcher option `[8B]`.
+
+#### Single Centralized Database Architecture (`sentinel_x.db`)
+All operational and forensic evidence gathered across the platform is persisted into **one single overall database**:
+- **Database Location**: `data/database/sentinel_x.db`
+- **Evidence Ledger Table**: `investigation_evidence`
+- **Persisted Metadata Attributes**:
+  - `timestamp`: Exact ISO timestamp when the event occurred (`2026-10-27T02:42:02.193847Z`)
+  - `date_and_time`: Human-readable date and time (`2026-10-27 02:42:02 UTC`)
+  - `from_where`: Exact origin file path, IP address, or security log journal (`/var/log/auth.log`, `C:\Windows\Temp\dropper.exe`)
+  - `site`: Target website, remote URL, external C2 domain, or local host (`https://malicious-c2.net:4444`, `45.33.32.156`, or `Local Host`)
+  - `app`: Application name, process binary, or service involved (`python.exe`, `powershell.exe`, `sshd`, `cmd.exe`)
+  - `device`: Full host device attribution (`ZERO_BOOK_13 (Laptop - Windows 11 (AMD64))`)
+  - `stage_or_signal`: Attack stage or operational signal (`STAGE_1_INITIAL_ACCESS`, `SUSPICIOUS_PROCESSES`, `FIM`)
+  - `subtype`: Subtype classification (`BRUTE_FORCE_CREDENTIAL_SPRAY`, `REVERSE_SHELL_COMMAND`)
+  - `severity`: Threat severity rating (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`)
+  - `evidence_hash`: Cryptographic SHA-256 fingerprint of raw evidence payload
+  - `hmac_signature`: HMAC-SHA256 tamper-proof custody seal
+  - `details`: Technical explanation of threat mechanics and MITRE ATT&CK technique
+  - `raw_data_json`: Complete raw telemetry and forensic artifact payload
+
+#### Dedicated Data Folders Structure
+Data is cleanly segregated into specialized, dedicated folders under the `data/` directory:
+- **`data/database/`**: Housing the single overall database (`sentinel_x.db`).
+- **`data/evidence/`**: Cryptographically sealed read-only (`0400`) raw JSON vaults (`AI-INVESTIGATION-*.json`).
+- **`data/forensics/`**: Deep digital forensics snapshots (`FORENSIC-SNAPSHOT-*.json`, memory dumps, MACB logs).
+- **`data/reports/`**: Signed Markdown & PDF audit certificates (`CERT-AI-INVESTIGATION-*.md`).
+- **`data/telemetry/`**: Real-time operational socket, process, and network telemetry (`TELEMETRY-*.json`).
+- **`data/quarantine/`**: Isolated hostile payloads and quarantined files.
+- **`data/models/`**: Autonomous AI model weights, retraining histories, and update schedules.
+
 - **The Post-Hacking Cyber Detective Engine**: Automatically reconstructs the end-to-end timeline across the **4 Stages of an Attack**:
   - *Stage 1 (Initial Access)*: Compromised credentials (brute-force Event ID 4625, remote logins Event ID 4624), phishing droppers, and unpatched server exploit injections.
   - *Stage 2 (Lateral Movement)*: Anti-forensic log clearances (Event ID 1102/104), rogue user/admin accounts (Event ID 4720/4728), and carved terminal command histories.
@@ -159,7 +190,7 @@ SENTINEL-X strictly follows the Master Implementation Workflow across 10 structu
 - **Phase 6 (Malware Triage & Forensics)**: Shannon entropy analysis, PE/ELF header extraction, read-only evidence vault (`0400`), SHA-256 chain of custody, and MFT MACB timestamps.
 - **Phase 7 (Desktop Application)**: Tauri v2 desktop console with system notifications and local/remote backend connectivity.
 - **Phase 8 (Chrome Security Extension)**: Manifest V3 extension auditing TLS and HTTP security headers with zero remote code execution.
-- **Phase 9 (Integration & Evaluation)**: 73+ automated regression tests covering detection latency, duplicate suppression, and memory profiling.
+- **Phase 9 (Integration & Evaluation)**: 95 automated regression tests across 19 test suites covering detection latency, duplicate suppression, and memory profiling.
 - **Phase 10 (Multi-Platform Release)**: Native Android APK packaging (`dist/android/sentinel-x-security.apk`), macOS App bundle (`dist/mac/SENTINEL-X.app`), direct terminal CLI tool (`cli.py`), and unified launcher (`launcher.py`).
 
 ---
@@ -227,7 +258,7 @@ SENTINEL-X strictly follows the Master Implementation Workflow across 10 structu
 | **Browser Extension** | Chrome Manifest V3 | User-initiated page security audit, TLS evaluation, and HTTP security header scanner. |
 | **Linux Agent** | Python Daemon / inotify / journalctl | Low-overhead background telemetry collector with resource limits (`CPUQuota=10%`, `MemoryLimit=128M`). |
 | **Offline Protection** | OS Registry / Windows Task Scheduler | Zero-runtime OS hardening (AutoRun 0xFF, Removable Deny_Execute) and 24/7 background scheduled watchdog. |
-| **Testing Engine** | pytest / pytest-asyncio | **64 comprehensive automated tests** across 14 test suites with 100% pass rate. |
+| **Testing Engine** | pytest / pytest-asyncio | **95 comprehensive automated tests** across 19 test suites with 100% pass rate. |
 
 ---
 
@@ -327,10 +358,17 @@ cyber_security/
 │   │       ├── assessment_service.py          # Scope gate enforcement, port scanner, SSRF guard
 │   │       ├── malware_service.py             # Shannon entropy, PE/ELF parser, IOC extractor
 │   │       ├── forensics_service.py           # Cryptographic intake, read-only lock, tamper detector
+│   │       ├── ai_threat_investigator_service.py # AI Linux Threat Investigator (4 signals, timeline, DB evidence)
+│   │       ├── digital_forensics_investigator_service.py # 4-Stage Post-Breach Cyber Detective & MFT/RAM Timeline
+│   │       ├── footprint_sanitizer_service.py # Recon surveillance, deception honeypaths & anti-trace purge
+│   │       ├── active_system_service.py       # Active host deep scan, hardware ports & system repair
 │   │       ├── network_service.py             # Zeek conn/dns parser, port anomaly baseline
 │   │       ├── ai_service.py                  # Schema-grounded explanation, credential redactor
 │   │       └── report_service.py              # Technical dossier generator (Markdown/JSON)
-│   └── tests/                         # Automated Backend Test Suite (64 Tests, 100% Pass)
+│   └── tests/                         # Automated Backend Test Suite (95 Tests Across 20 Modules, 100% Pass)
+│       ├── test_ai_threat_investigator.py                 # Multi-signal correlation, AI explanation, DB persistence
+│       ├── test_digital_forensics_investigator.py         # 4-stage breach timeline, MACB timestamps, RAM analysis
+│       ├── test_footprint_sanitizer.py                    # Recon surveillance, deception decoy, anti-trace wipe
 │       ├── test_total_360_safeguard.py                    # 360° 6-sector audit, 99.8% consensus, vault, API
 │       ├── test_wired_hardware_socket_offline_guardian.py # Safe charging, pendrive vault, sockets, offline shield
 │       ├── test_wifi_network_guardian.py                  # Wi-Fi Evil Twin, ARP poison, pre-severance vault
@@ -338,6 +376,7 @@ cyber_security/
 │       ├── test_omni_scanner.py                           # Links, deep paths, QR decoder, polyglot pictures
 │       ├── test_data_management_and_ports.py              # Database purges, storage stats, port quarantine
 │       ├── test_platform_armor_and_security.py            # Code self-integrity, brute-force armor, headers
+│       ├── test_active_system.py                          # Deep scan, laptop/PC detection, one-click repair
 │       ├── test_normalization.py                          # Deduplication & timestamp parsing
 │       ├── test_rules_engine.py                           # Threshold triggers & sliding window expiry
 │       ├── test_ewcc_engine.py                            # Source weighting, distro consistency, temporal decay
@@ -428,10 +467,14 @@ cyber_security/
 │   ├── Dockerfile.frontend            # Multi-stage Vite build + Nginx reverse proxy
 │   └── nginx.conf                     # Hardened reverse proxy & WebSocket gateway
 │
-└── data/                              # Persistent Vaults & Reports
+└── data/                              # Dedicated Segregated Storage Architecture
+    ├── database/                      # Single overall platform database (sentinel_x.db)
     ├── evidence/                      # Immutable read-only forensic crime scenes (0400)
-    ├── reports/                       # Digitally signed rectification certificates (.md)
+    ├── forensics/                     # Deep digital forensics snapshots (memory, MACB, attack stages)
+    ├── reports/                       # Digitally signed rectification certificates (.md / .json)
+    ├── telemetry/                     # Real-time process, socket, and network telemetry dumps
     ├── quarantine/                    # Disarmed malware droppers (chmod 0000)
+    ├── models/                        # Autonomous AI neural weights & retraining checkpoints
     └── trusted_wifi_signatures.json   # Pinned BSSID hardware MAC signatures for clone detection
 ```
 
@@ -1754,6 +1797,7 @@ python launcher.py cli
 | **View AI Weights & Status** | `python cli.py ai-status` | Displays active neural model accuracy, precision, recall, loss metrics, and recurrence cadence. |
 | **Set AI Recurrence Cadence** | `python cli.py set-ai-schedule --recurrence [weekly\|monthly\|6months]` | Configures automated background retraining cadence (7 days, 30 days, or 180 days). |
 | **Deep Breach Evidence Seal** | `python cli.py breach-evidence` | Audits volatile memory, browser cookie vaults, DPAPI secrets, shadow copies, and socket exfiltration on live host; cryptographically seals evidence into `data/evidence/BREACH-EVID-*.json`. |
+| **AI Linux Threat Investigator** | `python cli.py ai-investigator [--continuous]` | Correlates 4 operational signals (processes, logins, files, network) with 4-stage digital forensics, executes safe remediation, generates read-only evidence vaults (`0400`), and records metadata into single overall database (`data/database/sentinel_x.db`). |
 
 ---
 
@@ -1770,7 +1814,7 @@ The test suite validates all defensive boundaries, normalization logic, and end-
 python3 -m pytest -v
 ```
 
-### Verified Test Matrix (73/73 Passing)
+### Verified Test Matrix (95/95 Passing Across 19 Test Suites)
 | Test Suite | Purpose | Status |
 | :--- | :--- | :--- |
 | `test_normalization.py` | Multi-timestamp parsing, canonical payload hashing, duplicate suppression | **PASS** |
@@ -1789,6 +1833,9 @@ python3 -m pytest -v
 | `test_total_360_safeguard.py` | Full 6-sector 360° safeguard audit metrics, 99.8% precision consensus, multi-sector volatile evidence vault (0400), master rectification certificate, and REST API | **PASS** |
 | `test_active_system.py` | Host auto-connection, Laptop vs Desktop hardware fingerprinting, deep OS scan, connected mobiles/USB detection, juice-jacking check, one-click complete repair (0400), and REST API | **PASS** |
 | `test_ai_training_and_breach.py` | Automated AI continuous retraining, gradient descent convergence, loss minimization, weekly/monthly/6-month recurrence scheduling, and cryptographic data breach forensic evidence sealing | **PASS** |
+| `test_footprint_sanitizer.py` | Recon surveillance, deception honeypaths, and anti-trace zero-remanence purge with cryptographic certificate | **PASS** |
+| `test_digital_forensics_investigator.py` | 4-stage post-breach attack lifecycle, RAM volatile memory analysis, and MFT MACB timestamp reconstruction | **PASS** |
+| `test_ai_threat_investigator.py` | 4 operational signals, deep digital forensics correlation, safe non-destructive remediation, read-only vaults (`0400`), and metadata persistence into single database (`sentinel_x.db`) | **PASS** |
 
 ---
 

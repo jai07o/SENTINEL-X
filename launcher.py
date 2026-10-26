@@ -430,7 +430,14 @@ def main():
         elif cmd in ("discover-footprints", "footprints"):
             subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "discover-footprints"], cwd=str(ROOT_DIR))
             return
+        elif cmd in ("forensic-investigation", "forensics", "investigate-breach", "cyber-detective"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "forensic-investigation"] + sys.argv[2:], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("ethical-disengage", "safe-disengage", "disengage"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "ethical-disengage"], cwd=str(ROOT_DIR))
+            return
         elif cmd in ("stop-third-party", "stop-intruder"):
+
             subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py")] + sys.argv[1:], cwd=str(ROOT_DIR))
             return
         elif cmd in ("web", "start", "run"):
@@ -460,6 +467,8 @@ def main():
         print("  [7]  ACTIVE NETWORK SOCKETS & BACKDOOR TROJAN HUNTER (RATs, C2 Channels)")
         print("  [8]  CONTINUOUS AI RETRAINING & SELF-EVOLVING SAFEGUARDS (Weekly/Monthly/6-Months)")
         print("  [9]  DEEP DATA BREACH FORENSIC DISCOVERY & CRYPTOGRAPHIC SEAL (Zero Dummy Data)")
+        print("  [9B] 🕵️ DIGITAL FORENSICS CYBER DETECTIVE (4-Stage Attack Timeline Reconstruction & MFT/RAM)")
+        print("  [9C] 🛡️ ETHICAL HACKER SAFE DISENGAGEMENT (Purge Operator Traces & Certificate)")
         print("  [10] SURVEIL RECONNAISSANCE & FOOTPRINTING (Detect Port Sweeps & OS Fingerprinting)")
         print("  [11] 🎭 MISLEAD ATTACKER PATH & FOOTPRINTS (Deceptive OS, Honeypaths & Canaries)")
         print("  [12] 🧹 CLEAN & SHRED ALL OPERATOR FOOTPRINTS COMPLETELY (Anti-Trace Zero-Remanence)")
@@ -471,7 +480,8 @@ def main():
         print("  [18] Exit")
         print("=" * 65)
 
-        choice = input("Select an option [1-18]: ").strip()
+        choice = input("Select an option [1-18, 9B, 9C]: ").strip()
+
         cli_path = ROOT_DIR / "cli.py"
 
         if choice == "1":
@@ -507,6 +517,13 @@ def main():
         elif choice == "9":
             run_breach_forensics()
             input("\nPress Enter to continue...")
+        elif choice.upper() in ("9B", "DET1", "FORENSICS", "CYBER-DETECTIVE"):
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "forensic-investigation"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice.upper() in ("9C", "DET2", "DISENGAGE"):
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "ethical-disengage"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+
         elif choice == "10":
             subprocess.run([str(VENV_PYTHON), str(cli_path), "surveil-footprints"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")

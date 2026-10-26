@@ -1412,8 +1412,152 @@ def cmd_breach_forensics():
 
 
 # ---------------------------------------------------------
+# Digital Forensics Cyber Detective & Timeline Reconstruction Engine
+# ---------------------------------------------------------
+def cmd_digital_forensic_investigator(clean_ethical_operator: bool = False):
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}DIGITAL FORENSICS CYBER DETECTIVE -- 4-STAGE ATTACK TIMELINE RECONSTRUCTION{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{YELLOW}[*] Acting as Cyber Detective: inspecting system footprints left behind by attacker...{RESET}")
+    print(f"{YELLOW}[*] Reconstructing breach timeline: Entry Point, Movement, Tools/Malware, Exfiltration...{RESET}\n")
+
+    from backend.app.services.digital_forensics_investigator_service import digital_forensics_investigator
+    res = digital_forensics_investigator.run_complete_forensic_investigation()
+
+    verdict = res.get("cyber_detective_verdict")
+    v_badge = f"{GREEN}{BOLD}[SYSTEM CLEAN / NO ATTACKER FOOTPRINTS DETECTED]{RESET}" if "CLEAN" in verdict else f"{RED}{BOLD}[{verdict}]{RESET}"
+
+    print(f"{BOLD}Forensic Case ID:{RESET}        {CYAN}{res.get('investigation_id')}{RESET}")
+    print(f"{BOLD}Breach Verdict:{RESET}          {v_badge}")
+    print(f"{BOLD}Threat Risk Score:{RESET}       {RED if res.get('threat_risk_score', 0) >= 50 else (YELLOW if res.get('threat_risk_score', 0) >= 20 else GREEN)}{BOLD}{res.get('threat_risk_score')}/100{RESET}")
+    print(f"{BOLD}Total Footprints:{RESET}        {res.get('total_footprints_discovered')} discovered in {res.get('duration_seconds')}s")
+    print(f"{BOLD}Critical Indicators:{RESET}     {RED}{res.get('critical_indicators')}{RESET} | {BOLD}High Severity:{RESET} {YELLOW}{res.get('high_severity_indicators')}{RESET}")
+
+    # Stage 1: The Entry Point (Initial Access)
+    s1 = res.get("stage_1_initial_access", {})
+    creds = s1.get("compromised_credentials", {})
+    phish = s1.get("phishing_artifacts", {})
+    vulns = s1.get("exploited_vulnerabilities", {})
+    print(f"\n{CYAN}{BOLD}[1. THE ENTRY POINT (INITIAL ACCESS)]{RESET} -- Investigating the 'Broken Window'")
+    print(f" • {BOLD}Compromised Credentials:{RESET} Brute-force events: {creds.get('brute_force_evidence_count', 0)} | Unfamiliar IP logins: {creds.get('remote_logons_identified', 0)}")
+    for f in creds.get("failed_logon_artifacts", [])[:2]:
+        print(f"   - {YELLOW}[FAILED LOGIN]{RESET} Account: {f.get('target_account')} from IP: {f.get('source_ip')}")
+    for r in creds.get("remote_logon_artifacts", [])[:2]:
+        print(f"   - {RED}[REMOTE LOGIN]{RESET} Account: {r.get('user_account')} from IP: {r.get('source_ip')}")
+    print(f" • {BOLD}Phishing Artifacts:{RESET} Attachments/droppers flagged: {phish.get('phishing_artifacts_detected', 0)}")
+    for p in phish.get("findings", [])[:2]:
+        print(f"   - {RED}[PHISHING]{RESET} {p.get('file_name')} ({p.get('artifact_type')})")
+    print(f" • {BOLD}Exploited Vulnerabilities:{RESET} Software crashes / server injection logs: {vulns.get('vulnerability_indicators_found', 0)}")
+    for v in vulns.get("findings", [])[:2]:
+        print(f"   - {RED}[EXPLOIT]{RESET} {v.get('type')}: {v.get('details')}")
+
+    # Stage 2: Attacker Movement & Behavior (Lateral Movement)
+    s2 = res.get("stage_2_lateral_movement", {})
+    logs = s2.get("log_clearances", {})
+    rogue = s2.get("rogue_accounts", {})
+    cmd = s2.get("command_history", {})
+    print(f"\n{CYAN}{BOLD}[2. ATTACKER MOVEMENT & BEHAVIOR (LATERAL MOVEMENT)]{RESET} -- Tracking Network Footprints")
+    log_status = f"{RED}{BOLD}RED FLAG: EVENT LOGS CLEARED{RESET}" if logs.get("log_tampering_detected") else f"{GREEN}Audited logs intact{RESET}"
+    print(f" • {BOLD}Log Clearances:{RESET} {log_status} ({logs.get('clearance_events_count', 0)} clearance events)")
+    for l in logs.get("findings", [])[:2]:
+        print(f"   - {RED}[ANTI-FORENSIC WIPE]{RESET} Event {l.get('event_id')} in {l.get('log_source')}")
+    print(f" • {BOLD}Rogue Accounts:{RESET} Newly created accounts: {rogue.get('rogue_accounts_detected', 0)}")
+    for ra in rogue.get("findings", [])[:2]:
+        print(f"   - {RED}[ROGUE USER]{RESET} {ra.get('account_name')} ({ra.get('action')})")
+    print(f" • {BOLD}Command History:{RESET} Suspicious scripts/PowerShell commands carved: {cmd.get('suspicious_commands_identified', 0)}")
+    for c in cmd.get("findings", [])[:3]:
+        print(f"   - {YELLOW}[NAV CMD]{RESET} {c.get('command')}")
+
+    # Stage 3: Tools and Malware (Persistence)
+    s3 = res.get("stage_3_persistence", {})
+    malw = s3.get("malicious_executables", {})
+    reg = s3.get("registry_modifications", {})
+    lotl = s3.get("living_off_the_land_tools", {})
+    print(f"\n{CYAN}{BOLD}[3. TOOLS AND MALWARE (PERSISTENCE)]{RESET} -- Hunting Reboots Hooks & Dual-Use Tools")
+    print(f" • {BOLD}Malicious Executables:{RESET} Staged payloads/extortion notes: {malw.get('staged_binaries_count', 0)}")
+    for m in malw.get("findings", [])[:2]:
+        print(f"   - {RED}[PERSISTENCE]{RESET} {m.get('file_name')} ({m.get('category')})")
+    print(f" • {BOLD}Registry Modifications:{RESET} Autorun Run/RunOnce keys: {reg.get('total_startup_keys_inspected', 0)} | Suspicious: {reg.get('suspicious_registry_hooks', 0)}")
+    for rk in reg.get("findings", [])[:2]:
+        if rk.get("is_suspicious_autorun"):
+            print(f"   - {RED}[REG HOOK]{RESET} {rk.get('registry_hive')}\\{rk.get('entry_name')} -> {rk.get('command_value')}")
+    print(f" • {BOLD}Living-off-the-Land (LotL) Tools:{RESET} Legitimate tools abused: {lotl.get('abused_lotl_processes_detected', 0)}")
+    for lo in lotl.get("findings", [])[:2]:
+        print(f"   - {RED}[LOTL ABUSE]{RESET} PID {lo.get('pid')} ({lo.get('process_name')}): {lo.get('cmdline')}")
+
+    # Stage 4: Data Exfiltration (The Theft)
+    s4 = res.get("stage_4_data_exfiltration", {})
+    stage = s4.get("staging_files", {})
+    net = s4.get("unusual_network_spikes", {})
+    cloud = s4.get("cloud_api_logs", {})
+    print(f"\n{CYAN}{BOLD}[4. DATA EXFILTRATION (THE THEFT)]{RESET} -- Hunting Signs of Data Movement")
+    print(f" • {BOLD}Staging Files:{RESET} Staged compressed archives (.zip/.7z/.tar): {stage.get('staged_archives_count', 0)}")
+    for sa in stage.get("findings", [])[:2]:
+        print(f"   - {YELLOW}[ARCHIVE]{RESET} {sa.get('archive_name')} ({sa.get('size_mb')} MB) in staging folder")
+    print(f" • {BOLD}Unusual Network Spikes:{RESET} High-risk outbound sockets: {net.get('suspicious_outbound_exfiltrations', 0)}")
+    for n in net.get("findings", [])[:2]:
+        print(f"   - {RED}[EXFIL BEACON]{RESET} PID {n.get('pid')} -> {n.get('remote_ip')}:{n.get('remote_port')}")
+    print(f" • {BOLD}Cloud API Logs:{RESET} Corporate cloud accounts monitored: {cloud.get('corporate_cloud_stores_monitored', 0)}")
+
+    # Summary of Key Artifacts Analyzed
+    arts = res.get("summary_of_key_artifacts", {})
+    ev_logs = arts.get("event_logs", {})
+    ram = arts.get("memory_dump_analysis", {})
+    mft = arts.get("mft_macb_timestamps", {})
+    print(f"\n{CYAN}{BOLD}[SUMMARY OF KEY ARTIFACTS ANALYZED]{RESET}")
+    print(f" • {BOLD}Event Logs:{RESET} Security Log Wiped: {RED if ev_logs.get('security_log_wiped') else GREEN}{ev_logs.get('security_log_wiped')}{RESET} | Failed Auth: {ev_logs.get('failed_authentications')} | External Logins: {ev_logs.get('remote_external_logons')}")
+    print(f" • {BOLD}Memory Dump Analysis:{RESET} Active RAM Processes: {ram.get('total_active_processes_inspected')} | Volatile RAM Anomalies: {ram.get('volatile_ram_anomalies_found')}")
+    print(f" • {BOLD}MFT (Master File Table) & MACB:{RESET} Total Files Analyzed: {mft.get('total_analyzed_files')} | Timestomping Anomalies: {mft.get('timestomp_tampering_anomalies')}")
+
+    # Reconstructed Timeline Table
+    timeline = res.get("reconstructed_breach_timeline", [])
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}RECONSTRUCTED CHRONOLOGICAL BREACH TIMELINE ({len(timeline)} Events){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    if timeline:
+        for idx, ev in enumerate(timeline[:10]):
+            sev_col = RED if ev.get("severity") == "CRITICAL" else (YELLOW if ev.get("severity") == "HIGH" else GREEN)
+            print(f" [{idx+1:02d}] {sev_col}[{ev.get('severity')}]{RESET} {BOLD}{ev.get('stage')}{RESET} :: {ev.get('title')}")
+            print(f"      Time: {ev.get('timestamp')} | {ev.get('details')[:110]}")
+    else:
+        print(f" {GREEN}[+] No breach timeline events discovered. Host filesystem and event logs are baseline clean.{RESET}")
+
+    seal = res.get("cryptographic_evidence_seal", {})
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}CRYPTOGRAPHIC EVIDENCE CHAIN OF CUSTODY & CERTIFICATE{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}SHA-256 Digest:{RESET}   {seal.get('sha256_fingerprint')}")
+    print(f"{BOLD}HMAC Signature:{RESET}   {seal.get('hmac_signature')}")
+    print(f"{BOLD}Evidence Vault:{RESET}   {res.get('sealed_evidence_filepath')}")
+    print(f"{BOLD}Signed Report:{RESET}    {res.get('investigation_certificate_path')}\n")
+
+    if clean_ethical_operator:
+        cmd_ethical_hacker_safe_disengage()
+
+
+def cmd_ethical_hacker_safe_disengage():
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}ETHICAL HACKER SAFE POST-TESTING DISENGAGEMENT & FOOTPRINT PURGE{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{YELLOW}[*] Purging authorized operator test footprints (Command histories, staging droppers, DNS)...{RESET}")
+    from backend.app.services.digital_forensics_investigator_service import digital_forensics_investigator
+    res = digital_forensics_investigator.disengage_ethical_hacker_footprints()
+
+    print(f"\n{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f" {GREEN}{BOLD}[+] ETHICAL OPERATOR SAFE DISENGAGEMENT COMPLETED{RESET}")
+    print(f"{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}Status:{RESET}              {GREEN}{res.get('status')}{RESET}")
+    print(f"{BOLD}Signed Certificate:{RESET}  {res.get('certificate_path')}\n")
+    print(f"{BOLD}Executed Purge Actions:{RESET}")
+    for a in res.get("actions_executed", []):
+        print(f"  {GREEN}✓{RESET} {a}")
+    print(f"\n{GREEN}[+] Operator footprints safely cleared. System left in pristine baseline state.{RESET}\n")
+
+
+# ---------------------------------------------------------
 # Ethical Hacker Footprint Surveillance, Deception & Disengagement
 # ---------------------------------------------------------
+
 def cmd_surveil_footprints():
     print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
     print(f" {BOLD}RECONNAISSANCE & FOOTPRINTING SURVEILLANCE (PORT SCANS & OS PROBES){RESET}")
@@ -1623,17 +1767,28 @@ def run_interactive_menu():
         print("  [ETH2] 🎭 MISLEAD ATTACKER PATH & FOOTPRINTS (Deceptive OS, Honeypaths & Canaries)")
         print("  [ETH3] 🧹 CLEAN & WIPE ALL FOOTPRINTS COMPLETELY (Anti-Trace Zero-Remanence Purge)")
         print("  [ETH4] 🛑 STOP THIRD-PARTY INTRUDER & COLLECT ORIGIN EVIDENCE (Freeze & Firewall Block)")
+        print("  [DET1] 🕵️ DIGITAL FORENSICS CYBER DETECTIVE (4-Stage Attack Timeline Reconstruction & MFT/RAM)")
+        print("  [DET2] 🛡️ ETHICAL HACKER SAFE DISENGAGEMENT (Purge Operator Traces & Certificate)")
         print("  [32] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
         print("  [33] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [0-33, AI1-AI4, or ETH1-ETH4]: ").strip()
+        choice = input("Select an option [0-33, AI1-AI4, ETH1-ETH4, DET1-DET2]: ").strip()
 
         choice_clean = choice.strip().upper()
-        if choice_clean in ("ETH1", "SURVEIL-FOOTPRINTS", "SURVEIL-RECON", "RECON"):
+        if choice_clean in ("DET1", "FORENSICS", "CYBER-DETECTIVE", "INVESTIGATE-BREACH", "TIMELINE"):
+            cmd_digital_forensic_investigator()
+            input("\nPress Enter to return to menu...")
+            continue
+        elif choice_clean in ("DET2", "DISENGAGE", "SAFE-DISENGAGE", "ETHICAL-DISENGAGE"):
+            cmd_ethical_hacker_safe_disengage()
+            input("\nPress Enter to return to menu...")
+            continue
+        elif choice_clean in ("ETH1", "SURVEIL-FOOTPRINTS", "SURVEIL-RECON", "RECON"):
             cmd_surveil_footprints()
             input("\nPress Enter to return to menu...")
             continue
+
         elif choice_clean in ("ETH2", "MISLEAD-FOOTPRINTS", "DECEPTION", "MISLEAD"):
             cmd_mislead_footprints()
             input("\nPress Enter to return to menu...")
@@ -1977,7 +2132,15 @@ def main():
     p_stp = subparsers.add_parser("stop-third-party", help="Immediately stop third-party intruder, block remote IP in firewall & seal evidence")
     p_stp.add_argument("target", help="Remote IP address or rogue process PID to intercept")
 
+    # Digital Forensics Cyber Detective & Timeline Reconstruction
+    p_forensic = subparsers.add_parser("forensic-investigation", help="Execute 4-Stage Post-Breach Cyber Detective Investigation & Timeline Reconstruction")
+    p_forensic.add_argument("--clean-ethical-operator", action="store_true", help="Cleanly disengage and purge ethical operator footprints after investigation")
+    subparsers.add_parser("investigate-breach", help="Alias for forensic-investigation")
+    subparsers.add_parser("cyber-detective", help="Alias for forensic-investigation")
+    subparsers.add_parser("ethical-disengage", help="Purge operator testing command histories, droppers & DNS cache (Safe Disengagement)")
+
     # stop-all
+
     subparsers.add_parser("stop-all", help="Stop all running SENTINEL-X platform services (backend, frontend, background watchers)")
     subparsers.add_parser("stop", help="Stop all running SENTINEL-X platform services")
 
@@ -2090,11 +2253,17 @@ def main():
         cmd_discover_footprints()
     elif args.command in ("stop-third-party", "stop-intruder"):
         cmd_stop_third_party(args.target)
+    elif args.command in ("forensic-investigation", "investigate-breach", "cyber-detective"):
+        clean_op = getattr(args, "clean_ethical_operator", False)
+        cmd_digital_forensic_investigator(clean_ethical_operator=clean_op)
+    elif args.command in ("ethical-disengage", "safe-disengage"):
+        cmd_ethical_hacker_safe_disengage()
     elif args.command == "contain-and-preserve":
         cmd_contain_and_preserve(args.incident_id)
     elif args.command in ("stop", "stop-all"):
         from launcher import stop_all_services
         stop_all_services()
+
 
 
 if __name__ == "__main__":

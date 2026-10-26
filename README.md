@@ -54,6 +54,7 @@
    - [5.30 Real-World Deep Data Breach Forensic Discovery & Cryptographic Sealing (Zero Dummy Data)](#530-real-world-deep-data-breach-forensic-discovery--cryptographic-sealing-zero-dummy-data)
    - [5.31 Ethical Hacker Footprint Surveillance, Cyber Deception & Anti-Trace Disengagement Engine](#531-ethical-hacker-footprint-surveillance-cyber-deception--anti-trace-disengagement-engine)
    - [5.32 Cross-Platform Application Packaging Suite (Android APK, macOS App & Manifest V3 Extension)](#532-cross-platform-application-packaging-suite-android-apk-macos-app--manifest-v3-extension)
+   - [5.33 Post-Hacking Digital Forensics Cyber Detective & 4-Stage Attack Timeline Reconstruction Engine](#533-post-hacking-digital-forensics-cyber-detective--4-stage-attack-timeline-reconstruction-engine)
 6. [The 28 SOC Operations Web Views](#6-the-28-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -1008,6 +1009,101 @@ To ensure complete universal availability across all desktop, mobile, and browse
    - Output: `dist/extension/sentinel-x-companion.zip` (36.77 KB, ready for Developer Mode loading or Web Store deployment).
 4. **Unified Build Hub in Launcher**:
    - Option `[14]` in `launcher.py` ("CROSS-PLATFORM APPS") provides an interactive menu to build the Android APK, macOS App, and Browser Extension individually or all at once.
+
+---
+
+### 5.33 Post-Hacking Digital Forensics Cyber Detective & 4-Stage Attack Timeline Reconstruction Engine
+When digital forensics investigators analyze a system after a hack, they act like **cyber detectives**, hunting for specific digital footprints left behind by the attacker to reconstruct the exact timeline of the breach: figuring out **how the attacker got in**, **what they did**, and **what they took**.
+
+SENTINEL-X features an authentic, production-grade **Digital Forensics Cyber Detective Investigation & Timeline Reconstruction Engine** ([`digital_forensics_investigator_service.py`](file:///c:/Users/kakan/Desktop/cyber_security/backend/app/services/digital_forensics_investigator_service.py)) built with a **Zero Dummy Data Guarantee**: every analyzer directly queries live operating system artifacts (Windows Event Logs via `wevtutil`, volatile RAM process memory via `psutil`, registry persistence hives via `winreg`, live outbound sockets, and filesystem MACB timestamps).
+
+#### The 4 Stages of Post-Hacking Forensic Investigation
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                     SENTINEL-X POST-BREACH CYBER DETECTIVE RECONSTRUCTION ENGINE                 │
+├───────────────────────────────┬──────────────────────────────────┬───────────────────────────────┤
+│ 1. THE ENTRY POINT (INITIAL)  │ 2. MOVEMENT & LATERAL BEHAVIOR   │ 3. TOOLS & MALWARE (PERSIST)  │
+│  - Compromised Credentials    │  - Log Clearances (Red Flags)    │  - Malicious Staged Binaries  │
+│    (Event 4625 Brute-Force,   │    (Event 1102 / 104 Tampering)  │  - Registry Hooks (Run/RunOnce│
+│     Event 4624 External IPs)  │  - Rogue Accounts (Event 4720,   │  - Living-off-the-Land (LotL) │
+│  - Phishing Artifacts (.iso,  │    Admin Group 4728/4732 Add)    │    (WMI, PsExec, CertUtil)    │
+│    Zone.Identifier, Droppers) │  - Command History Carving       │                               │
+│  - Exploited Vulnerabilities  │    (PowerShell 4104 / Bash logs) │ 4. DATA EXFILTRATION (THEFT)  │
+│    (Crash Logs, Injections)   │                                  │  - Staging Archives (.zip/.7z)│
+│                               │                                  │  - Unusual Network Spikes     │
+│                               │                                  │  - Corporate Cloud API Logs   │
+├───────────────────────────────┴──────────────────────────────────┴───────────────────────────────┤
+│ SUMMARY OF KEY ARTIFACTS: Event Logs (Security/System) │ Volatile RAM Memory Dump │ MFT MACB     │
+│ RECONSTRUCTED TIMELINE: Chronological Narrative │ Immutable Vault (chmod 0400) │ HMAC Signature  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+##### 1. The Entry Point (Initial Access)
+Forensics inspects the "broken window" or exact vulnerability used to breach the host:
+- **Compromised Credentials**: Audits Windows Security Event ID 4625 for brute-force credential spraying bursts and Event ID 4624 (Logon Type 3 Network / Type 10 Remote Interactive) originating from unfamiliar external or non-RFC1918 IP addresses.
+- **Phishing Artifacts**: Scans Downloads, Outlook/Thunderbird temporary attachment caches (`Content.Outlook`), and Temp for container droppers (`.iso`, `.vhd`, `.img` used to bypass Mark-of-the-Web), double-extension files (e.g. `Invoice.pdf.exe`), LNK shortcut droppers, and alternate data streams (`Zone.Identifier`).
+- **Exploited Vulnerabilities**: Inspects Windows Application Event ID 1000 (software crashes/faults caused by buffer overflows or exploit attempts) and web server logs for malicious command injections (`cmd.exe`, `/bin/sh`, directory traversal `../..`, Log4j, SQL injection).
+
+##### 2. Attacker Movement & Behavior (Lateral Movement)
+Investigators track the attacker's footprints across internal systems:
+- **Log Clearances (Major Red Flag)**: Detects anti-forensic log tampering: Windows Event ID 1102 (*"The audit log was cleared"*), Event ID 104 (*"The log file was cleared"*), or truncated Linux `/var/log/auth.log` files.
+- **Rogue Accounts**: Audits Windows Security Event ID 4720 (*"A user account was created"*), Event ID 4728 / 4732 (*"Member added to Administrators"*), and performs live local account baseline comparisons to flag persistence accounts.
+- **Command History**: Carves user command histories from PowerShell ConsoleHost history (`ConsoleHost_history.txt`), PowerShell ScriptBlock Event ID 4104, and Linux `.bash_history` for attacker navigation commands (`whoami /all`, `net user`, `mimikatz`, `vssadmin delete`, `IEX`, `DownloadString`).
+
+##### 3. Tools and Malware (Persistence)
+Hackers install tools to maintain control across system reboots:
+- **Malicious Executables**: Scans AppData, Temp, ProgramData, and System directories for staged malware, ransomware extortion notes (`README_RESTORE_FILES.txt`), and masquerading system processes.
+- **Registry Modifications**: Queries Windows Registry startup hives via `winreg` (`HKCU\Run`, `HKCU\RunOnce`, `HKLM\Run`, `HKLM\RunOnce`), Winlogon Shell modifications, and active scheduled tasks.
+- **Living-off-the-Land (LotL) Tools**: Audits running processes for abuse of legitimate administrative binaries (`wmic.exe` shadowcopy delete, `psexec` lateral execution, `certutil -urlcache` downloading payloads, `bitsadmin` staging, `mshta.exe`, `rundll32.exe`).
+
+##### 4. Data Exfiltration (The Theft)
+Investigators hunt for concrete evidence of sensitive data movement:
+- **Staging Files**: Detects compressed archives (`.zip`, `.7z`, `.rar`, `.tar.gz`) compiled in staging folders (`Temp`, `PerfLogs`, `Users/Public`) right before exfiltration.
+- **Unusual Network Spikes**: Inspects active TCP/UDP sockets for high-bandwidth outbound byte transfers to unfamiliar external IPs, C2 listener ports (4444, 1337, 8888, 9001), or unauthorized cloud storage services.
+- **Cloud API Logs**: Audits corporate cloud credential stores (`.aws/credentials`, `.azure/accessTokens.json`, `.config/gcloud/`) for evidence of bulk API sync or bucket exfiltration.
+
+---
+
+#### Summary of Key Forensic Artifacts Analyzed
+- **Event Logs**: Windows Security/System Logs or Linux Syslogs capturing authentication successes/failures, log clearances, and user management.
+- **Memory Dump Analysis**: Volatile RAM inspection (`psutil`) surveying all running processes for masquerading names and temporary storage execution before shutdown wipes volatile memory.
+- **MFT (Master File Table) & MACB Timestamps**: Extracts **M**odified, **A**ccessed, **C**reated, and **B**orn birth timestamps for all flagged files, automatically identifying timestomping anomalies (Modified time earlier than Born time).
+
+---
+
+#### Chronological Breach Timeline & Cryptographic Evidence Vault
+Every discovered artifact and log event is chronologically assembled into the **Reconstructed Breach Timeline**:
+- Computes overall Breach Threat Risk Score (0-100) and Cyber Detective Verdict.
+- Seals evidence into read-only vault (`data/evidence/FORENSIC-CASE-*.json`, `chmod 0400` / `attrib +r`) with SHA-256 digest and HMAC-SHA256 signature.
+- Issues a signed markdown Cyber Detective Forensic Certificate: `data/reports/CERT-FORENSIC-CASE-*.md`.
+
+---
+
+#### Ethical Hacker Safe Disengagement ("Save the Ethical Hacker")
+When authorized penetration testers or ethical hackers conclude an engagement, SENTINEL-X allows them to disengage cleanly:
+- Wipes operator command histories (PowerShell ConsoleHost, bash history).
+- Securely shreds temporary ethical testing droppers and staging archives.
+- Flushes Windows DNS and ARP resolver caches.
+- Generates a signed Disengagement Certificate: `data/reports/CERT-ETHICAL-DISENGAGEMENT-*.md`.
+
+---
+
+#### Terminal CLI & Menu Usage
+```bash
+# Run Master 4-Stage Post-Breach Digital Forensics Investigation
+python cli.py forensic-investigation
+
+# Run Investigation and Cleanly Disengage Ethical Operator Footprints
+python cli.py forensic-investigation --clean-ethical-operator
+
+# Standalone Ethical Hacker Safe Disengagement
+python cli.py ethical-disengage
+
+# Direct Launcher Menu
+python launcher.py
+# Select [9B] for Forensic Investigation or [9C] for Ethical Disengagement
+```
 
 ---
 

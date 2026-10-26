@@ -279,3 +279,51 @@ async def delete_evidence_item(
         raise HTTPException(status_code=404, detail="Evidence item not found")
     return {"success": True, "message": f"Evidence item {evidence_id} deleted"}
 
+
+@router.post("/investigate-breach")
+async def run_forensic_breach_investigation(
+    current_user: User = Depends(require_analyst),
+):
+    """
+    Executes the Digital Forensics Cyber Detective Investigation across the 4 Stages of an Attack:
+    1. Initial Access (Compromised Credentials, Phishing Artifacts, Exploited Vulnerabilities)
+    2. Lateral Movement (Log Clearances, Rogue Accounts, Command History)
+    3. Persistence (Malicious Executables, Registry Hooks, LotL Tools)
+    4. Data Exfiltration (Staging Files, Unusual Network Spikes, Cloud API Logs)
+    Includes live Event Log parsing, Volatile RAM Memory Dump analysis, and MFT MACB timestamps.
+    """
+    from backend.app.services.digital_forensics_investigator_service import digital_forensics_investigator
+    results = digital_forensics_investigator.run_complete_forensic_investigation()
+    return results
+
+
+@router.get("/investigation-latest")
+async def get_latest_forensic_investigation(
+    current_user: User = Depends(require_viewer),
+):
+    """Retrieves the most recent Cyber Detective Digital Forensics Investigation."""
+    import json
+    from backend.app.services.digital_forensics_investigator_service import EVIDENCE_DIR
+    cases = sorted(EVIDENCE_DIR.glob("FORENSIC-CASE-*.json"), reverse=True)
+    if not cases:
+        raise HTTPException(status_code=404, detail="No forensic investigation cases recorded yet.")
+    try:
+        with open(cases[0], "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load latest forensic case: {str(e)}")
+
+
+@router.post("/ethical-disengage")
+async def ethical_hacker_safe_disengage(
+    current_user: User = Depends(require_analyst),
+):
+    """
+    Purges operator command histories and test droppers upon test completion,
+    protecting authorized ethical testers and producing a signed disengagement certificate.
+    """
+    from backend.app.services.digital_forensics_investigator_service import digital_forensics_investigator
+    res = digital_forensics_investigator.disengage_ethical_hacker_footprints()
+    return res
+
+

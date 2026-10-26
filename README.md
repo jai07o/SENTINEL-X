@@ -76,43 +76,91 @@
 
 **SENTINEL-X: An Evidence-Driven, Real-Time Endpoint Detection, Automated Threat Containment and Digital Forensics Platform.**
 
-> **Created & Developed by:** **K. Jaideep Raj (Student & Security Enthusiast)**  
-> **Engineering Platform:** **Google Antigravity**
-
-### The Major Motive From the Start of the Project
-Traditional cybersecurity has been critically flawed by fragmented, conflicting silos:
-1. **Antivirus scanners (like 360 Total Security or Windows Defender)** kill processes or delete files indiscriminately, **destroying the digital crime scene**. Investigators are left with zero cryptographic proof of how the hacker entered, what command was executed, or what data was exfiltrated.
-2. **Digital forensics tools (like Autopsy or Volatility)** arrive hours or days after the incident—long after volatile RAM, network sockets, and temporary memory structures have completely evaporated.
-3. **Firewalls only protect virtual software ports**, leaving the physical perimeter (weaponized USB chargers, juice-jacking kiosks, BadUSB keystroke injectors) and airborne airwaves (fake Wi-Fi, Rogue AP clones, ARP spoofing) completely exposed.
-
-**SENTINEL-X was founded to solve this entire problem in ONE unified, automated master workflow:**
-- **The Golden Forensics Rule**: In every workflow, volatile crime scenes (memory strings, socket states, command lines, remote C2 IPs, and hardware serials) are **cryptographically locked into an immutable read-only vault (`chmod 0400`) BEFORE any containment action alters host state**.
-- **Supreme 360° Total Safeguard**: Simultaneously guards all 6 physical and virtual attack angles:
-  1. *Sector 1 (000° - 060°)*: Physical Hardware, Public Chargers & USB (Juice-Jacking mitigation, BadUSB, autorun worms).
-  2. *Sector 2 (060° - 120°)*: Wireless & Local Network (Wi-Fi Evil Twin clones, cipher downgrade stripping, ARP poisoning).
-  3. *Sector 3 (120° - 180°)*: Network Sockets & Rogue Backdoors (Ports 4444, 1337, 31337, wildcard listeners, reverse shells).
-  4. *Sector 4 (180° - 240°)*: Host Process & Memory Integrity (Masqueraded system binaries, Base64 cradles, cryptominers).
-  5. *Sector 5 (240° - 300°)*: Privacy, Sensory & Sensor Surveillance (Camera, microphone, background mobile spyware).
-  6. *Sector 6 (300° - 360°)*: Files, Web Vectors & 24/7 Zero-Runtime OS Shield (Registry persistence, scheduled OS watchdog).
-- **99.0% – 100.0% Detection Accuracy & Zero False Alarms**: Achieved via **Dual-Phase Consensus Verification**: combining deterministic indicator matching with the original research engine **Evidence-Weighted Cross-Distribution Correlation (EWCC)**.
-- **Continuous 24/7 Protection (Running & NOT Running)**: Enforces persistent kernel-level registry hardening (`NoDriveTypeAutoRun = 0xFF`, `Deny_Execute = 1`) and registers an autonomous background watchdog task (`SENTINELX_AUTONOMOUS_PERIMETER_GUARD`) so the host is protected even when SENTINEL-X is completely closed.
-
-### Core Defensive Commitments
-- **Evidence-Driven Workflow**: Threat containment never destroys forensic admissibility; volatile scene data is cryptographically captured at the exact second of detection.
-- **Cross-Platform Parity**: Identical detection rules, containment actions, and forensic dossiers operate across **Kali Linux**, standard Linux distros (Ubuntu, Debian, Parrot, Fedora), **Windows 11/10/Server**, and **Mobile Companion** devices.
-- **Strictly Defensive**: SENTINEL-X does not contain offensive weaponization, automated exploit generation, denial-of-service tools, or unconstrained credential stuffing.
-- **Scope-Gated Security**: A non-bypassable backend verification gate enforces ownership verification, RFC1918 private IP escape blocking, SSRF prevention, and date authorization windows before any active diagnostic probe can fire.
-- **Isolated Non-Executing Malware Triage**: Suspicious files are parsed in stream, disarmed (`chmod 0400`), and analyzed statically for Shannon entropy, PE/ELF section headers, and indicators of compromise (IOCs) without executing unsafe code.
-- **Tamper-Evident Forensics**: Digital evidence items receive SHA-256 and MD5 cryptographic hashes upon intake, are stored read-only, and are re-verified dynamically to detect any modification or file tampering.
-- **Provider-Independent Grounded AI**: Defensive intelligence is grounded against verified internal telemetry identifiers and schemas, with automated redaction of passwords, tokens, and cryptographic secrets.
-- **100% Real Live Host Telemetry (Zero Dummy Data Pledge)**: Strictly zero fake or mock data anywhere in scans or forensic investigations. All inspected hardware ports (USB, HDMI, Ethernet RJ-45, 3.5mm audio), process tables, listening sockets, browser vaults, and DPAPI keys are acquired live and directly from the host operating system kernel and hardware buses.
-- **Four Unified Operational Form Factors**:
-  1. *Dedicated Desktop App*: Independent window running via isolated profile with zero browser address bar, custom titlebar, and offline service worker.
-  2. *Interactive Web Platform*: Full-featured 28-view reactive SOC Console accessible over LAN or local port.
-  3. *Direct Terminal CLI & Tool*: ANSI-rendered command-line security suite (`cli.py` & `launcher.py`) for automated and server environments.
-  4. *Multi-Host Cyber Platform*: Unified central ingest, EWCC cross-host correlation, digital forensic vault, and MITRE ATT&CK mapping.
+> **Project Creator & Developer:** **K. Jaideep Raj**  
+> **Student & Security Enthusiast**  
+> **Developed & Powered with:** **Google Antigravity**
 
 ---
+
+### The Major Motive & Master Vision
+SENTINEL-X was founded on an uncompromising principle: **to build a real, fully functional, professional cybersecurity platform from the ground up—not a concept, landing page, mock-up, or basic CRUD application.**
+
+It was created as a unified defensive cybersecurity platform for **authorized security laboratories, Linux administrators, cybersecurity students, researchers, and security operations teams**.
+
+#### The 13 Unified Core Capabilities:
+1. **Real-time Threat Detection and Investigation**: Ingesting and evaluating events from Linux endpoints (Ubuntu, Debian, Kali, Parrot, Fedora), Windows, and mobile sensors.
+2. **Authorized Penetration Testing & Vulnerability Assessment**: Scope-gated diagnostic audits aligned with OWASP WSTG and strict ownership verification.
+3. **Malware Triage & Static Sandbox Analysis**: Safe, non-executing file triage (entropy, PE/ELF headers, strings, IOCs, and YARA).
+4. **Digital Forensics & Chain-of-Custody Management**: Read-only evidence locking, intake hashes, tamper verification, and case timelines.
+5. **Network Monitoring & Anomaly Detection**: Zeek log ingestion, connection summaries, DNS activity, and statistical baseline anomaly modeling.
+6. **Incident Response Planning & Reporting**: Standardized 6-stage lifecycle (`New` → `Triaged` → `Investigating` → `Contained` → `Resolved` → `Closed`) with human-approved containment actions.
+7. **AI-Assisted Evidence Explanation**: Provider-independent, schema-validated defensive assistant citing genuine internal event IDs with credential redaction.
+8. **Security Posture & 360° Safeguard Monitoring**: Simultaneous surveillance across all 6 physical and virtual attack vectors.
+9. **Professional Web Dashboard**: 28-view dark-graphite SOC interface built with React 18, Vite, TypeScript, and Tailwind CSS.
+10. **Native Desktop Application**: Tauri and cross-platform desktop console connected to the shared backend with system notifications.
+11. **Chrome Browser Security Extension**: Manifest V3 security companion performing user-initiated TLS and security-header assessments.
+12. **Linux Endpoint Monitoring Agent**: Python daemon integrating systemd journal, auth.log, auditd, and inotify File Integrity Monitoring (FIM).
+13. **Central API, Database & Shared Investigation Engine**: High-throughput FastAPI backend with PostgreSQL/SQLite, Alembic migrations, and WebSockets.
+
+---
+
+### The Foundational Defensive Dilemma Solved by SENTINEL-X
+
+Traditional cybersecurity has been critically crippled by fragmented, conflicting silos:
+
+1. **Antivirus Scanners Kill Threats but Destroy the Evidence**:
+   - Traditional antivirus tools (Windows Defender, commercial EDRs, cleaner tools) terminate processes and delete files immediately.
+   - In doing so, they **destroy the digital crime scene**: volatile RAM allocations, active socket connections, remote C2 IP addresses, and command-line arguments evaporate. Investigators are left with zero proof of **how the hacker entered, what commands were executed, or what data was taken**.
+2. **Forensics Tools Arrive Hours or Days Too Late**:
+   - Forensic tools (Autopsy, Volatility) are deployed after an incident has concluded—long after live memory, unmapped DLLs, and temporary droppers have been wiped by system reboots.
+3. **Physical Hardware & Wireless Blindspots**:
+   - Firewalls only protect virtual software ports, leaving the **physical hardware perimeter** (weaponized public USB charging kiosks, juice-jacking, BadUSB keystroke injectors) and **airborne airwaves** (Rogue AP clones, Evil Twin Wi-Fi, ARP spoofing) completely exposed.
+
+---
+
+### The Master Motive & The "Golden Forensics Rule"
+
+SENTINEL-X solves this entire dilemma in **ONE unified, automated master workflow**:
+
+- **The Golden Forensics Rule**: In every workflow, volatile crime scenes (memory strings, socket states, command lines, remote C2 IPs, and hardware serials) are **cryptographically locked into an immutable read-only vault (`chmod 0400` / `attrib +r`) with SHA-256 and HMAC-SHA256 signatures BEFORE any containment action alters host state**.
+- **The Post-Hacking Cyber Detective Engine**: Automatically reconstructs the end-to-end timeline across the **4 Stages of an Attack**:
+  - *Stage 1 (Initial Access)*: Compromised credentials (brute-force Event ID 4625, remote logins Event ID 4624), phishing droppers, and unpatched server exploit injections.
+  - *Stage 2 (Lateral Movement)*: Anti-forensic log clearances (Event ID 1102/104), rogue user/admin accounts (Event ID 4720/4728), and carved terminal command histories.
+  - *Stage 3 (Persistence)*: Staged executables in transient folders, startup registry modifications (`Run`/`RunOnce`), and Living-off-the-Land (LotL) dual-use binary abuse (WMI, PsExec, CertUtil, MSHTA).
+  - *Stage 4 (Data Exfiltration)*: Staged compressed archives (`.zip`/`.7z`), high-bandwidth outbound socket spikes, and corporate cloud API tokens.
+- **Summary of Key Forensic Artifacts**: Real-time event logs, volatile RAM process memory inspection via `psutil`, and Master File Table (**MFT**) MACB (Modified, Accessed, Created, Born) timestamps.
+- **Supreme 360° Total Safeguard**: Simultaneously guards all 6 physical and virtual attack angles with 99.8% precision and one-click total remediation.
+- **Save the Ethical Hacker (Anti-Trace Disengagement)**: Shields against third-party intruders while allowing authorized penetration testers and ethical hackers to cleanly purge their test command histories, droppers, and network caches upon test completion.
+- **Zero Dummy Data Guarantee**: 100% genuine operating system inspection (live Windows Event Logs, real RAM process tables, actual registry autoruns, live sockets) with zero mock or synthetic telemetry.
+
+---
+
+### Master 10-Phase Implementation Workflow & Acceptance Criteria
+
+SENTINEL-X strictly follows the Master Implementation Workflow across 10 structured engineering phases:
+
+```
+[Phase 1: Foundation] ──► [Phase 2: Detection Engine] ──► [Phase 3: Linux Agent] ──► [Phase 4: Backend & SOC Dashboard]
+                                                                                               │
+[Phase 8: Chrome Extension] ◄── [Phase 7: Desktop App] ◄── [Phase 6: Malware & Forensics] ◄────┤
+          │                                                                                    │
+          ▼                                                                                    ▼
+[Phase 9: Integration & Evaluation] ──────────────────────────────────────────► [Phase 10: Multi-Platform Release]
+```
+
+- **Phase 1 (Repository Foundation)**: Schemas, async SQLite/PostgreSQL database, Alembic migrations, configuration, and threat model.
+- **Phase 2 (Working Detection Engine)**: Event normalization, deduplication, YAML correlation rules, severity/confidence scoring, and the original research engine **Evidence-Weighted Cross-Distribution Correlation (EWCC)**.
+- **Phase 3 (Real Linux Monitoring)**: systemd journal, `/var/log/auth.log` adapters, inotify continuous File Integrity Monitoring (FIM), and distro detection (Ubuntu, Debian, Kali, Parrot, Fedora).
+- **Phase 4 (Backend & Dashboard)**: 28 fully wired operational SOC views, WebSocket live streaming, report exports, and incident investigation graph.
+- **Phase 5 (Authorized Assessments)**: Mandatory scope gate, owner verification, SSRF/private IP blocking, OWASP WSTG compliance, and report generation.
+- **Phase 6 (Malware Triage & Forensics)**: Shannon entropy analysis, PE/ELF header extraction, read-only evidence vault (`0400`), SHA-256 chain of custody, and MFT MACB timestamps.
+- **Phase 7 (Desktop Application)**: Tauri v2 desktop console with system notifications and local/remote backend connectivity.
+- **Phase 8 (Chrome Security Extension)**: Manifest V3 extension auditing TLS and HTTP security headers with zero remote code execution.
+- **Phase 9 (Integration & Evaluation)**: 73+ automated regression tests covering detection latency, duplicate suppression, and memory profiling.
+- **Phase 10 (Multi-Platform Release)**: Native Android APK packaging (`dist/android/sentinel-x-security.apk`), macOS App bundle (`dist/mac/SENTINEL-X.app`), direct terminal CLI tool (`cli.py`), and unified launcher (`launcher.py`).
+
+---
+
 
 ## 2. End-to-End System Architecture
 

@@ -1302,21 +1302,48 @@ SENTINEL-X is engineered for seamless deployment across **Laptops/Workstations**
 
 ### 9.1 How to Deploy on Laptop / PC (Windows, macOS, Linux)
 
-#### Option A: One-Click Interactive Full-Stack Launch
-To launch both the FastAPI backend and the interactive React dashboard simultaneously:
-- **Windows**: Double-click **`start.bat`** or **`run.bat`** in the repository root.
+#### How to Start the Project (All at a Time)
+To launch the FastAPI backend (port 8000), the Vite React SOC dashboard (port 5173), and open the web dashboard simultaneously:
+- **Windows (Double-Click)**:
+  Double-click **`start.bat`** or **`run.bat`** in the repository root.
   ```cmd
   .\start.bat
   ```
-  *This automatically checks the Python virtual environment, installs dependencies, launches the backend on `http://127.0.0.1:8000`, starts the Vite dev server on `http://127.0.0.1:5173`, and opens your default browser.*
+  *This automatically checks the Python virtual environment, starts the backend server, starts the Vite frontend dev server, and opens your default browser at `http://127.0.0.1:5173/`.*
+- **Interactive Multi-Control Hub (`launcher.py`)**:
+  ```cmd
+  python launcher.py web
+  ```
+  *(Or run `python launcher.py` and choose menu option `[1]`)*.
 - **Linux / macOS**:
   ```bash
   chmod +x scripts/start_platform.sh
   ./scripts/start_platform.sh
   ```
+
+---
+
+#### How to Stop the Project (All at a Time)
+To cleanly terminate the backend, the frontend dev server, and all background watchdogs/agents simultaneously, freeing ports 8000 and 5173:
+- **Windows (Double-Click)**:
+  Double-click **`stop.bat`** in the repository root.
+  ```cmd
+  .\stop.bat
+  ```
 - **Unified Terminal Controller (`launcher.py`)**:
   ```cmd
-  python launcher.py web
+  python launcher.py stop
+  ```
+  *(Or run `python launcher.py` and choose menu option `[12] Stop All Running Services`)*.
+- **Direct Terminal CLI (`cli.py`)**:
+  ```cmd
+  python cli.py stop
+  ```
+  *(Or run `python cli.py` and choose menu option `[32] Stop All Running Services`)*.
+- **Linux / macOS**:
+  ```bash
+  chmod +x scripts/stop_platform.sh
+  ./scripts/stop_platform.sh
   ```
 
 #### Option B: Deploying the Autonomous Real-Time Background Sentinel Daemon

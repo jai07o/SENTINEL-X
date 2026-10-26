@@ -1414,10 +1414,11 @@ def run_interactive_menu():
         print("  [AI2] VIEW AI MODEL STATUS & RECURRING CADENCE (Accuracy, Loss, Checkpoints)")
         print("  [AI3] SET RECURRING RETRAINING CADENCE (Weekly / Monthly / 6-Months)")
         print("  [AI4] DISCOVER DATA BREACH FORENSIC EVIDENCE (Memory, Tokens, VSS & Exfil)")
-        print("  [32] Exit")
+        print("  [32] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
+        print("  [33] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [0-32 or AI1-AI4]: ").strip()
+        choice = input("Select an option [0-33 or AI1-AI4]: ").strip()
 
         choice_clean = choice.strip().upper()
         if choice_clean in ("0A", "SCAN", "SYS-SCAN", "DEEP"):
@@ -1576,7 +1577,11 @@ def run_interactive_menu():
         elif choice.upper() in ("AI4", "BREACH", "BREACH-EVIDENCE"):
             cmd_breach_forensics()
             input("\nPress Enter to return to menu...")
-        elif choice in ("32", "q", "exit"):
+        elif choice == "32":
+            from launcher import stop_all_services
+            stop_all_services()
+            input("\nPress Enter to return to menu...")
+        elif choice in ("33", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
         else:
@@ -1736,6 +1741,10 @@ def main():
     # breach-evidence
     subparsers.add_parser("breach-evidence", help="Discover and seal deep data breach forensic evidence (memory, tokens, VSS, exfiltration)")
 
+    # stop-all
+    subparsers.add_parser("stop-all", help="Stop all running SENTINEL-X platform services (backend, frontend, background watchers)")
+    subparsers.add_parser("stop", help="Stop all running SENTINEL-X platform services")
+
     # interactive
     subparsers.add_parser("interactive", help="Launch interactive menu console")
 
@@ -1837,6 +1846,9 @@ def main():
         cmd_simulate_hack(args.platform)
     elif args.command == "contain-and-preserve":
         cmd_contain_and_preserve(args.incident_id)
+    elif args.command in ("stop", "stop-all"):
+        from launcher import stop_all_services
+        stop_all_services()
 
 
 if __name__ == "__main__":

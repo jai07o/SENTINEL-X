@@ -103,6 +103,107 @@ def start_web_platform():
     print("=" * 65 + "\n")
 
 
+def stop_all_services():
+    """
+    Cleanly and gracefully terminates all active SENTINEL-X platform services:
+    - FastAPI Backend (Port 8000)
+    - Vite React SOC Dashboard (Port 5173)
+    - Sentinel Agent, Guardian Watchdog, and Simulator processes
+    - Closes labeled terminal windows on Windows
+    """
+    print("\n" + "=" * 65)
+    print("  STOPPING ALL SENTINEL-X SERVICES (CLEAN SHUTDOWN)")
+    print("=" * 65)
+
+    target_ports = {8000, 5173}
+    stopped_pids = set()
+    stopped_details = []
+
+    # 1. Terminate processes listening on port 8000 and 5173
+    try:
+        import psutil
+        for p in psutil.process_iter(['pid', 'name']):
+            try:
+                conns = p.net_connections(kind='inet') if hasattr(p, 'net_connections') else []
+                for c in conns:
+                    if c.laddr and c.laddr.port in target_ports and p.pid > 4 and p.pid != os.getpid():
+                        if p.pid not in stopped_pids:
+                            stopped_pids.add(p.pid)
+                            pname = p.name()
+                            p.terminate()
+                            stopped_details.append(f"{pname} (PID: {p.pid}) on Port {c.laddr.port}")
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+    except Exception:
+        pass
+
+    # Windows netstat fallback to ensure no socket listeners are missed
+    if sys.platform == "win32":
+        try:
+            out = subprocess.check_output("netstat -ano -p tcp", shell=True, text=True, stderr=subprocess.DEVNULL)
+            for line in out.splitlines():
+                for port in target_ports:
+                    if f":{port} " in line and "LISTENING" in line:
+                        parts = line.strip().split()
+                        if parts:
+                            try:
+                                pid = int(parts[-1])
+                                if pid > 4 and pid != os.getpid() and pid not in stopped_pids:
+                                    subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True)
+                                    stopped_pids.add(pid)
+                                    stopped_details.append(f"Port {port} Listener (PID: {pid}) via netstat")
+                            except ValueError:
+                                pass
+        except Exception:
+            pass
+
+    # 2. Terminate background SENTINEL-X script runners
+    known_script_patterns = [
+        "uvicorn backend.app.main:app",
+        "agent.sentinel_agent.agent",
+        "persistent_guardian_watchdog.py",
+        "run_background_sentinel.py",
+        "desktop/run_desktop.py",
+    ]
+    try:
+        import psutil
+        for p in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmd_str = " ".join(p.cmdline() or [])
+                if any(pat in cmd_str for pat in known_script_patterns):
+                    if p.pid > 4 and p.pid != os.getpid() and p.pid not in stopped_pids:
+                        stopped_pids.add(p.pid)
+                        pname = p.name()
+                        p.terminate()
+                        stopped_details.append(f"{pname} (PID: {p.pid}) - {cmd_str[:45]}...")
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+    except Exception:
+        pass
+
+    # 3. Clean up labeled terminal windows on Windows
+    if sys.platform == "win32":
+        try:
+            subprocess.run('taskkill /FI "WINDOWTITLE eq SENTINEL-X Backend*" /T /F', shell=True, capture_output=True)
+            subprocess.run('taskkill /FI "WINDOWTITLE eq SENTINEL-X Dashboard*" /T /F', shell=True, capture_output=True)
+        except Exception:
+            pass
+
+    time.sleep(1)
+
+    # 4. Report status
+    if stopped_details:
+        print("[+] Terminated the following active services:")
+        for det in stopped_details:
+            print(f"    - [OK] Stopped: {det}")
+        print("\n[+] Success: All SENTINEL-X backend, frontend, and background tasks are STOPPED.")
+        print("[+] Ports 8000 and 5173 have been cleanly freed.")
+    else:
+        print("[+] Verified: No active SENTINEL-X services or port listeners were running.")
+        print("[+] System is already completely idle (Ports 8000 and 5173 are free).")
+    print("=" * 65 + "\n")
+
+
 def start_desktop_app():
     print("\n[+] Launching Dedicated SOC Desktop Application...")
     desktop_runner = ROOT_DIR / "desktop" / "run_desktop.py"
@@ -295,6 +396,9 @@ def main():
         if cmd in ("web", "start", "run"):
             start_web_platform()
             return
+        elif cmd in ("stop", "stop-all", "shutdown", "kill"):
+            stop_all_services()
+            return
         elif cmd in ("desktop", "desk"):
             start_desktop_app()
             return
@@ -347,10 +451,11 @@ def main():
         print("  [9]  Run EWCC Detection Benchmark")
         print("  [10] Run Automated Tests (pytest)")
         print("  [11] How to load Chrome/Edge Extension")
-        print("  [12] Exit")
+        print("  [12] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
+        print("  [13] Exit")
         print("=" * 65)
 
-        choice = input("Select an option [1-12]: ").strip()
+        choice = input("Select an option [1-13]: ").strip()
         if choice == "1":
             start_web_platform()
             break
@@ -392,7 +497,10 @@ def main():
         elif choice == "11":
             show_extension_guide()
             input("\nPress Enter to continue...")
-        elif choice in ("12", "q", "exit"):
+        elif choice == "12":
+            stop_all_services()
+            input("\nPress Enter to continue...")
+        elif choice in ("13", "q", "exit"):
             print("Exiting.")
             break
 

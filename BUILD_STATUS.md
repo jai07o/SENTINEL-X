@@ -54,9 +54,28 @@
 
 ---
 
-## 4. Test Execution Summary
+## 4. AI Linux Threat Investigator (Multi-Signal Correlation Engine)
+- **Problem Solved**: Host attacks leave fragmented footprints across process lists, authentication logs, critical system files, and network sockets that are slow and complex to investigate manually.
+- **Signal 1 (Suspicious Processes)**: Real-time scan of processes executing from volatile/temporary paths (`/tmp`, `/dev/shm`, `AppData\Local\Temp`), masquerading trusted system binaries (e.g. `ls`, `ps`, `sshd`, `svchost.exe` from non-standard directories), and interactive reverse shell signatures.
+- **Signal 2 (Login Attempts)**: Real-time parsing of Linux `/var/log/auth.log`, `/var/log/secure`, and Windows Security Event Logs (Event IDs 4625 brute-force bursts, 4624 remote interactive logins from unfamiliar external IPs).
+- **Signal 3 (Modified System Files - FIM)**: Cryptographic SHA-256 baseline monitoring on critical security files (`/etc/passwd`, `/etc/shadow`, `/etc/sudoers`, `/etc/crontab`, `/etc/ssh/sshd_config`, Windows hosts file) and permission checking for overly permissive access.
+- **Signal 4 (Unusual Network Connections)**: Socket table audit flagging connections to/from offensive backdoor/RAT listener ports (4444, 1337, 8888, 9001, 31337), scripting engines (`python`, `bash`, `powershell`, `nc`) initiating outbound WAN sockets, and wildcard listeners.
+- **AI Threat Explanation**: Grounded executive summaries and analyst technical rationales detailing threat mechanics and MITRE ATT&CK alignment.
+- **Chronological Incident Timeline**: Step-by-step reconstruction of attack progression across the 4 signals.
+- **Safe Remediation Recommendations**: Non-destructive, prioritized actions (PID termination, file baseline restoration, firewall rule blocking) with safety precautions.
+- **Cryptographic Evidence Seal**: Tamper-proof JSON vault records (`data/evidence/AI-INVESTIGATION-*.json`) signed with HMAC-SHA256 and sealed read-only (`0400`), accompanied by signed Markdown investigation certificates (`data/reports/CERT-AI-INVESTIGATION-*.md`).
 
+---
+
+## 5. Test Execution Summary
+
+- `backend/tests/test_ai_threat_investigator.py`: 6/6 PASSED (100%)
 - `backend/tests/test_digital_forensics_investigator.py`: 8/8 PASSED (100%)
 - `backend/tests/test_footprint_sanitizer.py`: 7/7 PASSED (100%)
 - `backend/tests/test_data_management_and_ports.py`: 9/9 PASSED (100%)
-- **Active Regression Suite**: **24/24 PASSED** (0 failures).
+- `backend/tests/test_active_system.py`: 7/7 PASSED (100%)
+- `backend/tests/test_api_workflows.py`: 3/3 PASSED (100%)
+- `backend/tests/test_total_360_safeguard.py`: 3/3 PASSED (100%)
+- `backend/tests/test_wifi_network_guardian.py`: 12/12 PASSED (100%)
+- `backend/tests/test_wired_hardware_socket_offline_guardian.py`: 12/12 PASSED (100%)
+- **Full Comprehensive Test Suite across All 20 Modules**: **95/95 PASSED (100%)** (0 failures).

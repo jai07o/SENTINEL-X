@@ -415,6 +415,9 @@ def main():
         elif cmd in ("ai-status", "weights"):
             subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "ai-status"], cwd=str(ROOT_DIR))
             return
+        elif cmd in ("ai-investigator", "threat-investigator", "investigate", "signals"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "ai-investigator"] + sys.argv[2:], cwd=str(ROOT_DIR))
+            return
         elif cmd in ("breach-evidence", "breach", "evidence"):
             subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "breach-evidence"], cwd=str(ROOT_DIR))
             return
@@ -466,6 +469,7 @@ def main():
         print("  [6]  WI-FI ROGUE AP, EVIL TWIN & NETWORK SECURITY ARMOR (Airwaves Shield)")
         print("  [7]  ACTIVE NETWORK SOCKETS & BACKDOOR TROJAN HUNTER (RATs, C2 Channels)")
         print("  [8]  CONTINUOUS AI RETRAINING & SELF-EVOLVING SAFEGUARDS (Weekly/Monthly/6-Months)")
+        print("  [8B] 🤖 AI LINUX THREAT INVESTIGATOR (Processes, Logins, Modified Files & Sockets)")
         print("  [9]  DEEP DATA BREACH FORENSIC DISCOVERY & CRYPTOGRAPHIC SEAL (Zero Dummy Data)")
         print("  [9B] 🕵️ DIGITAL FORENSICS CYBER DETECTIVE (4-Stage Attack Timeline Reconstruction & MFT/RAM)")
         print("  [9C] 🛡️ ETHICAL HACKER SAFE DISENGAGEMENT (Purge Operator Traces & Certificate)")
@@ -513,6 +517,9 @@ def main():
             input("\nPress Enter to continue...")
         elif choice == "8":
             manage_ai_engine()
+            input("\nPress Enter to continue...")
+        elif choice.upper() in ("8B", "AI5", "AI-INVESTIGATOR", "THREAT-INVESTIGATOR", "SIGNALS"):
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "ai-investigator"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
         elif choice == "9":
             run_breach_forensics()

@@ -68,3 +68,48 @@ async def explain_incident_with_ai(
     )
 
     return report
+
+
+@router.post("/threat-investigator")
+async def run_ai_threat_investigator(
+    current_user: User = Depends(require_analyst),
+):
+    """
+    SENTINEL-X — AI Linux Threat Investigator:
+    Correlates suspicious processes, login attempts, modified system files (FIM), and unusual network connections.
+    Explains suspicious behavior, produces an incident timeline, and recommends safe remediation.
+    """
+    from backend.app.services.ai_threat_investigator_service import ai_threat_investigator
+    results = ai_threat_investigator.correlate_and_investigate()
+    return results
+
+
+@router.get("/threat-investigator/latest")
+async def get_latest_ai_threat_investigation(
+    current_user: User = Depends(require_analyst),
+):
+    """Retrieves the latest AI Linux Threat Investigation dossier and timeline."""
+    import json
+    from backend.app.services.ai_threat_investigator_service import EVIDENCE_DIR
+    cases = sorted(EVIDENCE_DIR.glob("AI-INVESTIGATION-*.json"), reverse=True)
+    if not cases:
+        raise HTTPException(status_code=404, detail="No AI threat investigation cases recorded yet.")
+    try:
+        with open(cases[0], "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load latest investigation: {str(e)}")
+
+
+@router.get("/threat-investigator/signals")
+async def get_live_threat_signals(
+    current_user: User = Depends(require_analyst),
+):
+    """Directly queries and returns the 4 live threat signals without full sealing."""
+    from backend.app.services.ai_threat_investigator_service import ai_threat_investigator
+    return {
+        "processes": ai_threat_investigator.audit_suspicious_processes(),
+        "logins": ai_threat_investigator.audit_login_attempts(),
+        "files": ai_threat_investigator.audit_modified_system_files(),
+        "network": ai_threat_investigator.audit_unusual_network_connections()
+    }

@@ -1555,8 +1555,104 @@ def cmd_ethical_hacker_safe_disengage():
 
 
 # ---------------------------------------------------------
+# SENTINEL-X — AI Linux Threat Investigator
+# ---------------------------------------------------------
+def cmd_ai_threat_investigator(continuous: bool = False):
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}SENTINEL-X -- AI LINUX THREAT INVESTIGATOR (MULTI-SIGNAL CORRELATION){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{YELLOW}[*] Problem Solved: Correlating suspicious processes, login attempts, modified files & network sockets.{RESET}")
+    print(f"{YELLOW}[*] Synthesizing AI explanations, reconstructing incident timelines & generating safe remediation...{RESET}\n")
+
+    from backend.app.services.ai_threat_investigator_service import ai_threat_investigator
+
+    def run_cycle():
+        res = ai_threat_investigator.correlate_and_investigate()
+        status = res.get("threat_status")
+        score = res.get("threat_correlation_score", 0)
+        s_badge = f"{GREEN}{BOLD}[BASELINE CLEAN / NO THREAT CORRELATED]{RESET}" if "CLEAN" in status else f"{RED}{BOLD}[{status}]{RESET}"
+
+        print(f"{BOLD}Investigation ID:{RESET}    {CYAN}{res.get('investigation_id')}{RESET}")
+        print(f"{BOLD}Threat Status:{RESET}       {s_badge}")
+        print(f"{BOLD}Correlation Score:{RESET}   {RED if score >= 50 else (YELLOW if score >= 20 else GREEN)}{BOLD}{score}/100{RESET}")
+        print(f"{BOLD}Correlated Signals:{RESET}  {res.get('total_correlated_signals')} signals evaluated in {res.get('duration_seconds')}s")
+
+        # 4 Signals Breakdown
+        sb = res.get("signal_breakdown", {})
+        print(f"\n{CYAN}{BOLD}[THE 4 CORRELATED THREAT SIGNALS]{RESET}")
+        print(f" 1. {BOLD}Suspicious Processes:{RESET}           {RED if sb.get('suspicious_processes') else GREEN}{sb.get('suspicious_processes')}{RESET} flagged")
+        for p in res.get("signals", {}).get("processes", {}).get("findings", [])[:2]:
+            print(f"    - {RED}[PROCESS]{RESET} PID {p.get('pid')} ({p.get('process_name')}): {p.get('rationale')}")
+
+        print(f" 2. {BOLD}Login Attempts (Auth Logs):{RESET}      {RED if sb.get('login_attempts') else GREEN}{sb.get('login_attempts')}{RESET} events")
+        for l in res.get("signals", {}).get("logins", {}).get("findings", [])[:2]:
+            print(f"    - {YELLOW}[LOGIN]{RESET} {l.get('subtype')}: {l.get('rationale')}")
+
+        print(f" 3. {BOLD}Modified System Files (FIM):{RESET}     {RED if sb.get('modified_system_files') else GREEN}{sb.get('modified_system_files')}{RESET} tampering anomalies")
+        for f in res.get("signals", {}).get("files", {}).get("findings", [])[:2]:
+            print(f"    - {RED}[FIM]{RESET} {f.get('file_path')}: {f.get('rationale')}")
+
+        print(f" 4. {BOLD}Unusual Network Connections:{RESET}    {RED if sb.get('unusual_network_connections') else GREEN}{sb.get('unusual_network_connections')}{RESET} anomalous sockets")
+        for n in res.get("signals", {}).get("network", {}).get("findings", [])[:2]:
+            print(f"    - {RED}[SOCKET]{RESET} {n.get('process_name')} -> {n.get('remote_endpoint')}: {n.get('rationale')}")
+
+        # AI Threat Explanation
+        ai_exp = res.get("ai_threat_explanation", {})
+        print(f"\n{CYAN}{BOLD}[AI-POWERED THREAT EXPLANATION]{RESET}")
+        print(f" • {BOLD}Executive Summary:{RESET}\n   {ai_exp.get('summary')}")
+        print(f"\n • {BOLD}Technical Analyst Rationale:{RESET}\n   {ai_exp.get('analyst_rationale')}")
+        mitre = ai_exp.get("mitre_alignment", [])
+        if mitre:
+            print(f" • {BOLD}MITRE ATT&CK Alignment:{RESET} {', '.join(mitre)}")
+
+        # Incident Timeline
+        timeline = res.get("incident_timeline", [])
+        print(f"\n{CYAN}{BOLD}[CHRONOLOGICAL INCIDENT TIMELINE ({len(timeline)} Events)]{RESET}")
+        if timeline:
+            for ev in timeline[:6]:
+                sev_col = RED if ev.get("severity") == "CRITICAL" else (YELLOW if ev.get("severity") == "HIGH" else GREEN)
+                print(f"  [{ev.get('sequence_number'):02d}] {sev_col}[{ev.get('severity')}]{RESET} {ev.get('timestamp')} :: {BOLD}{ev.get('title')}{RESET}")
+                print(f"       {ev.get('description')[:100]}")
+        else:
+            print(f"  {GREEN}[+] No incident timeline events. All 4 signals within baseline.{RESET}")
+
+        # Safe Remediation Recommendations
+        remed = res.get("safe_remediation_recommendations", [])
+        print(f"\n{GREEN}{BOLD}[RECOMMENDED SAFE REMEDIATION (NON-DESTRUCTIVE)]{RESET}")
+        for r in remed:
+            print(f"  Step {r.get('step')}: {BOLD}{r.get('action')}{RESET} [Priority: {YELLOW}{r.get('priority')}{RESET}]")
+            print(f"    - Target:  {r.get('target')}")
+            print(f"    - Command: {CYAN}{r.get('recommended_command')}{RESET}")
+            print(f"    - Safety:  {r.get('safety_precaution')}")
+
+        seal = res.get("cryptographic_evidence_seal", {})
+        print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+        print(f" {BOLD}CRYPTOGRAPHIC EVIDENCE CHAIN OF CUSTODY (SEALED){RESET}")
+        print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+        print(f"{BOLD}SHA-256 Digest:{RESET}   {seal.get('sha256_fingerprint')}")
+        print(f"{BOLD}HMAC Signature:{RESET}   {seal.get('hmac_signature')}")
+        print(f"{BOLD}Evidence Vault:{RESET}   {res.get('sealed_evidence_filepath')}")
+        print(f"{BOLD}Signed Report:{RESET}    {res.get('investigation_certificate_path')}\n")
+
+    if not continuous:
+        run_cycle()
+    else:
+        print(f"{GREEN}[+] Continuous AI Threat Investigator active. Polling signals every 10 seconds (Ctrl+C to stop)...{RESET}\n")
+        try:
+            cycle = 1
+            while True:
+                print(f"{CYAN}--- [INVESTIGATION CYCLE #{cycle} - {datetime.now(timezone.utc).strftime('%H:%M:%S UTC')}] ---{RESET}")
+                run_cycle()
+                cycle += 1
+                time.sleep(10)
+        except KeyboardInterrupt:
+            print(f"\n{YELLOW}[!] Continuous AI Threat Investigator paused by user.{RESET}\n")
+
+
+# ---------------------------------------------------------
 # Ethical Hacker Footprint Surveillance, Deception & Disengagement
 # ---------------------------------------------------------
+
 
 def cmd_surveil_footprints():
     print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
@@ -1763,6 +1859,7 @@ def run_interactive_menu():
         print("  [AI2] VIEW AI MODEL STATUS & RECURRING CADENCE (Accuracy, Loss, Checkpoints)")
         print("  [AI3] SET RECURRING RETRAINING CADENCE (Weekly / Monthly / 6-Months)")
         print("  [AI4] DISCOVER DATA BREACH FORENSIC EVIDENCE (Memory, Tokens, VSS & Exfil)")
+        print("  [AI5] 🤖 AI LINUX THREAT INVESTIGATOR (Processes, Logins, Modified Files & Sockets)")
         print("  [ETH1] SURVEIL RECONNAISSANCE & FOOTPRINTING (Port Scans, OS Probes, Banner Grabs)")
         print("  [ETH2] 🎭 MISLEAD ATTACKER PATH & FOOTPRINTS (Deceptive OS, Honeypaths & Canaries)")
         print("  [ETH3] 🧹 CLEAN & WIPE ALL FOOTPRINTS COMPLETELY (Anti-Trace Zero-Remanence Purge)")
@@ -1773,7 +1870,7 @@ def run_interactive_menu():
         print("  [33] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [0-33, AI1-AI4, ETH1-ETH4, DET1-DET2]: ").strip()
+        choice = input("Select an option [0-33, AI1-AI5, ETH1-ETH4, DET1-DET2]: ").strip()
 
         choice_clean = choice.strip().upper()
         if choice_clean in ("DET1", "FORENSICS", "CYBER-DETECTIVE", "INVESTIGATE-BREACH", "TIMELINE"):
@@ -1958,6 +2055,10 @@ def run_interactive_menu():
         elif choice.upper() in ("AI4", "BREACH", "BREACH-EVIDENCE"):
             cmd_breach_forensics()
             input("\nPress Enter to return to menu...")
+        elif choice.upper() in ("AI5", "AI-INVESTIGATOR", "THREAT-INVESTIGATOR", "SIGNALS"):
+            c_input = input("Run continuous 10s monitoring agent loop? (y/n) [default: n]: ").strip().lower()
+            cmd_ai_threat_investigator(continuous=(c_input == "y"))
+            input("\nPress Enter to return to menu...")
         elif choice == "32":
             from launcher import stop_all_services
             stop_all_services()
@@ -2137,7 +2238,11 @@ def main():
     p_forensic.add_argument("--clean-ethical-operator", action="store_true", help="Cleanly disengage and purge ethical operator footprints after investigation")
     subparsers.add_parser("investigate-breach", help="Alias for forensic-investigation")
     subparsers.add_parser("cyber-detective", help="Alias for forensic-investigation")
-    subparsers.add_parser("ethical-disengage", help="Purge operator testing command histories, droppers & DNS cache (Safe Disengagement)")
+    # AI Linux Threat Investigator (Multi-Signal Correlation)
+    p_ai_inv = subparsers.add_parser("ai-investigator", help="SENTINEL-X AI Linux Threat Investigator (Processes, Logins, Modified Files & Sockets)")
+    p_ai_inv.add_argument("--continuous", action="store_true", help="Run continuous 10-second monitoring agent loop")
+    subparsers.add_parser("threat-investigator", help="Alias for ai-investigator")
+    subparsers.add_parser("investigate-signals", help="Alias for ai-investigator")
 
     # stop-all
 
@@ -2258,6 +2363,8 @@ def main():
         cmd_digital_forensic_investigator(clean_ethical_operator=clean_op)
     elif args.command in ("ethical-disengage", "safe-disengage"):
         cmd_ethical_hacker_safe_disengage()
+    elif args.command in ("ai-investigator", "threat-investigator", "investigate-signals"):
+        cmd_ai_threat_investigator(continuous=getattr(args, "continuous", False))
     elif args.command == "contain-and-preserve":
         cmd_contain_and_preserve(args.incident_id)
     elif args.command in ("stop", "stop-all"):

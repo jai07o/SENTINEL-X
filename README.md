@@ -76,8 +76,7 @@
 
 **SENTINEL-X: An Evidence-Driven, Real-Time Endpoint Detection, Automated Threat Containment and Digital Forensics Platform.**
 
-> **Project Creator & Developer:** **K. Jaideep Raj**  
-> **Student & Security Enthusiast**  
+> **Project Creator & Developer:** **K. Jaideep Raj**    
 > **Developed & Powered with:** **Google Antigravity**
 
 ---
@@ -123,6 +122,10 @@ Traditional cybersecurity has been critically crippled by fragmented, conflictin
 SENTINEL-X solves this entire dilemma in **ONE unified, automated master workflow**:
 
 - **The Golden Forensics Rule**: In every workflow, volatile crime scenes (memory strings, socket states, command lines, remote C2 IPs, and hardware serials) are **cryptographically locked into an immutable read-only vault (`chmod 0400` / `attrib +r`) with SHA-256 and HMAC-SHA256 signatures BEFORE any containment action alters host state**.
+- **SENTINEL-X — AI Linux Threat Investigator (Multi-Signal Correlation)**:
+  - *Problem Solved*: Attacks leave suspicious processes, login attempts, modified system files, and unusual network connections that are difficult to investigate manually.
+  - *Built*: Real-time monitoring agent that correlates all 4 signals (`Suspicious Processes`, `Login Attempts`, `Modified System Files / FIM`, `Unusual Network Sockets`), synthesizes grounded AI explanations, reconstructs chronological incident timelines, and recommends safe, non-destructive remediation.
+  - *Run Directly*: `python cli.py ai-investigator` (Single audit) or `python cli.py ai-investigator --continuous` (10s daemon loop).
 - **The Post-Hacking Cyber Detective Engine**: Automatically reconstructs the end-to-end timeline across the **4 Stages of an Attack**:
   - *Stage 1 (Initial Access)*: Compromised credentials (brute-force Event ID 4625, remote logins Event ID 4624), phishing droppers, and unpatched server exploit injections.
   - *Stage 2 (Lateral Movement)*: Anti-forensic log clearances (Event ID 1102/104), rogue user/admin accounts (Event ID 4720/4728), and carved terminal command histories.

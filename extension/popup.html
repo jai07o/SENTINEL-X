@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SENTINEL-X Companion</title>
+  <title>SENTINEL-X Security Companion</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,7 +12,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     body {
-      width: 380px;
+      width: 400px;
       background-color: #0b1120;
       color: #f1f5f9;
       font-size: 12px;
@@ -30,7 +30,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 14px;
       color: #fff;
     }
@@ -41,10 +41,10 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 9999px;
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       font-family: monospace;
     }
     .status-online {
@@ -61,16 +61,19 @@
       background: #0f172a;
       border: 1px solid #1e293b;
       border-radius: 8px;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 10px;
     }
     .card-title {
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .url-display {
       font-family: monospace;
@@ -81,36 +84,63 @@
       padding: 6px;
       border-radius: 4px;
       border: 1px solid #1e293b;
+      margin-bottom: 8px;
     }
     .btn {
       width: 100%;
-      padding: 8px 12px;
+      padding: 9px 12px;
       border-radius: 6px;
-      font-weight: 600;
-      font-size: 11px;
+      font-weight: 700;
+      font-size: 11.5px;
       cursor: pointer;
       border: none;
-      transition: background 0.2s;
+      transition: all 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      margin-bottom: 6px;
+    }
+    .btn-master {
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      color: #020617;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
+      font-size: 12px;
+    }
+    .btn-master:hover {
+      background: linear-gradient(135deg, #22d3ee, #0ea5e9);
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.5);
     }
     .btn-primary {
-      background: #06b6d4;
-      color: #020617;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #0284c755;
     }
     .btn-primary:hover {
-      background: #22d3ee;
+      background: #334155;
+      color: #7dd3fc;
     }
     .btn-secondary {
       background: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
-      margin-top: 6px;
     }
     .btn-secondary:hover {
       background: #334155;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .result-box {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 11px;
+      margin-top: 8px;
+      line-height: 1.5;
     }
     .header-list {
       display: flex;
@@ -125,39 +155,20 @@
       padding: 4px 6px;
       border-radius: 4px;
       background: #020617;
-      font-size: 10.5px;
-    }
-    .header-name {
-      font-family: monospace;
-      color: #cbd5e1;
+      font-size: 10px;
     }
     .tag {
       padding: 1px 6px;
       border-radius: 3px;
-      font-size: 9.5px;
-      font-weight: 600;
+      font-size: 9px;
+      font-weight: 700;
     }
-    .tag-pass {
-      background: rgba(16, 185, 129, 0.2);
-      color: #34d399;
-    }
-    .tag-fail {
-      background: rgba(239, 68, 68, 0.2);
-      color: #f87171;
-    }
+    .tag-pass { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .tag-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; }
     .settings-drawer {
       margin-top: 10px;
       border-top: 1px solid #1e293b;
       padding-top: 10px;
-    }
-    .form-group {
-      margin-bottom: 8px;
-    }
-    .form-label {
-      font-size: 10px;
-      color: #94a3b8;
-      display: block;
-      margin-bottom: 3px;
     }
     .input {
       width: 100%;
@@ -167,16 +178,15 @@
       padding: 5px 8px;
       color: #e2e8f0;
       font-size: 11px;
-    }
-    .input:focus {
-      outline: none;
-      border-color: #06b6d4;
+      margin-top: 3px;
+      margin-bottom: 6px;
     }
     .notification {
-      padding: 6px 8px;
-      border-radius: 4px;
-      font-size: 10.5px;
-      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 10px;
       display: none;
     }
     .notification-success {
@@ -184,65 +194,80 @@
       color: #34d399;
       border: 1px solid rgba(16, 185, 129, 0.4);
     }
+    .notification-info {
+      background: rgba(6, 182, 212, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="brand">
       <img src="icons/icon48.png" width="22" height="22" style="border-radius: 4px; vertical-align: middle;" alt="Logo" />
-      SENTINEL<span>-X</span>
+      SENTINEL<span>-X</span> COMPANION
     </div>
     <div id="connectionStatus" class="status-badge status-offline">CONNECTING...</div>
   </div>
 
-  <div id="noticeBox" class="notification notification-success"></div>
+  <div id="noticeBox" class="notification notification-info"></div>
 
-  <!-- Current Target Scope -->
+  <!-- Master Connect & Safeguard Action -->
   <div class="card">
-    <div class="card-title">Target Scope Under Test</div>
-    <div id="targetUrl" class="url-display">Inspecting active tab...</div>
-    <div style="margin-top: 8px;">
-      <button id="inspectBtn" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        Inspect Page Security
-      </button>
+    <div class="card-title">
+      <span>Master Safeguard Sweep</span>
+      <span style="font-size: 9px; color: #10b981;">Wired & Wireless</span>
     </div>
+    <button id="masterSafeguardBtn" class="btn btn-master">
+      ⚡ CONNECT &amp; SAFEGUARD EVERYTHING
+    </button>
+    <div id="sweepResultBox" class="result-box" style="display: none;"></div>
   </div>
 
-  <!-- Security Audit Results -->
+  <!-- Quick Defense Controls -->
+  <div class="card">
+    <div class="card-title">Hardware &amp; Network Shields</div>
+    <div class="grid-2">
+      <button id="safeChargingBtn" class="btn btn-primary">
+        🛡️ Safe Charging
+      </button>
+      <button id="wifiAuditBtn" class="btn btn-primary">
+        📶 Wi-Fi Audit
+      </button>
+    </div>
+    <div id="shieldResultBox" class="result-box" style="display: none;"></div>
+  </div>
+
+  <!-- Web Tab Inspection -->
+  <div class="card">
+    <div class="card-title">Active Tab Inspection</div>
+    <div id="targetUrl" class="url-display">Inspecting active tab...</div>
+    <button id="inspectBtn" class="btn btn-secondary">
+      🔍 Inspect HTTP Headers &amp; TLS
+    </button>
+  </div>
+
+  <!-- Inspection Results -->
   <div id="resultsCard" class="card" style="display: none;">
     <div class="card-title">Security Posture Findings</div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
       <span style="color: #94a3b8;">Transport Protocol:</span>
-      <span id="tlsStatus" style="font-weight: 600;">--</span>
+      <span id="tlsStatus" style="font-weight: 700;">--</span>
     </div>
-
-    <div class="header-list" id="headerChecks">
-      <!-- Injected by popup.js -->
-    </div>
-
-    <div style="margin-top: 10px;">
-      <button id="saveFindingBtn" class="btn btn-secondary">
-        Save Finding to SENTINEL-X
-      </button>
-    </div>
+    <div class="header-list" id="headerChecks"></div>
   </div>
 
-  <!-- Settings Accordion -->
+  <!-- Settings Drawer -->
   <div class="settings-drawer">
     <div class="card-title" style="cursor: pointer;" id="toggleSettings">
       ⚙️ Connection Settings ▼
     </div>
     <div id="settingsBody" style="display: none; margin-top: 6px;">
-      <div class="form-group">
-        <label class="form-label">Backend API URL</label>
-        <input type="text" id="backendUrlInput" class="input" value="http://127.0.0.1:8000" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Agent / Client API Key</label>
-        <input type="password" id="apiKeyInput" class="input" placeholder="sx_dev_agent_key_default" />
-      </div>
-      <button id="saveSettingsBtn" class="btn btn-secondary" style="margin-top: 4px;">Save Settings</button>
+      <label style="font-size: 10px; color: #94a3b8;">Backend API URL</label>
+      <input type="text" id="backendUrlInput" class="input" value="http://127.0.0.1:8000" />
+      <label style="font-size: 10px; color: #94a3b8;">API Key</label>
+      <input type="password" id="apiKeyInput" class="input" placeholder="sx_dev_agent_key_default" />
+      <button id="saveSettingsBtn" class="btn btn-secondary">Save Settings</button>
     </div>
   </div>
 

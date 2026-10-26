@@ -52,6 +52,8 @@
    - [5.28 Active System Auto-Connection, In-Depth Real-Time OS Deep Scanner & Connected Devices Guard](#528-active-system-auto-connection-in-depth-real-time-os-deep-scanner--connected-devices-guard)
    - [5.29 Automated Recurring AI Retraining & Self-Evolving Safeguards (Weekly, Monthly, 6 Months)](#529-automated-recurring-ai-retraining--self-evolving-safeguards-weekly-monthly-6-months)
    - [5.30 Real-World Deep Data Breach Forensic Discovery & Cryptographic Sealing (Zero Dummy Data)](#530-real-world-deep-data-breach-forensic-discovery--cryptographic-sealing-zero-dummy-data)
+   - [5.31 Ethical Hacker Footprint Surveillance, Cyber Deception & Anti-Trace Disengagement Engine](#531-ethical-hacker-footprint-surveillance-cyber-deception--anti-trace-disengagement-engine)
+   - [5.32 Cross-Platform Application Packaging Suite (Android APK, macOS App & Manifest V3 Extension)](#532-cross-platform-application-packaging-suite-android-apk-macos-app--manifest-v3-extension)
 6. [The 28 SOC Operations Web Views](#6-the-28-soc-operations-web-views)
 7. [Comprehensive REST API Reference](#7-comprehensive-rest-api-reference)
 8. [Default Credentials & Access Identifiers](#8-default-credentials--access-identifiers)
@@ -951,6 +953,64 @@ Inspired by the multi-engine paradigm of 360 Total Security and engineered to fa
 
 ---
 
+### 5.31 Ethical Hacker Footprint Surveillance, Cyber Deception & Anti-Trace Disengagement Engine
+In ethical hacking and penetration testing methodology, **Footprinting** is defined as the crucial initial phase where an attacker or security assessor collects as much intelligence as possible about a target network, system, organization, or individual (reconnaissance, port sweeps, OS fingerprinting, service banner grabbing, network topology mapping, DNS enumeration, and user enumeration).
+
+SENTINEL-X delivers a four-pillar defensive footprinting architecture:
+1. **Footprinting & Reconnaissance Surveillance (`surveil_active_footprinting`)**:
+   - Actively monitors host network sockets and transport state in real-time.
+   - Detects SYN port scanning bursts, stealth FIN sweeps, and horizontal port scanning across high-risk service ports (21, 22, 23, 80, 443, 445, 1433, 3306, 3389, 4444, 8080).
+   - Flags suspicious external origin IPs, tallies a Reconnaissance Threat Score (0–100), and classifies threat levels (`NORMAL_BASELINE`, `MODERATE`, `ELEVATED`).
+2. **Cyber Deception & Path Misdirection (`mislead_attacker_footprints`)**:
+   - Designed specifically to mislead external scanners and third-party penetration testers away from critical user data down deceptive rabbit holes:
+     - **Decoy OS & Banner Fingerprints**: Injects false operating system banners (e.g. simulating SunOS 5.10 Solaris, Cisco IOS 15.0, or legacy Windows NT 4.0 Server) with deceptive TTL values (254, 255) and fake service signatures (OpenSSH 3.8, Apache 1.3.33) to invalidate automated exploit generation.
+     - **Honeypath Decoy Ports & Latency Tarpits**: Deploys lightweight decoy honey-listeners on high-probe ports (21/FTP, 23/Telnet, 8080/HTTP, 6379/Redis) with artificial response delays that exhaust scanning resources.
+     - **Canary Decoy Breadcrumbs**: Seeds fake internal credential files (`decoy_ldap_credentials.bak`, `decoy_network_topology.conf`, `decoy_aws_keys.env`) containing canary tokens to detect file exfiltration attempts and lure intruders along false trails.
+     - **Stealth Packet Cloaking**: Sets firewall drop behavior to silently discard unsolicited reconnaissance packets.
+     - **Deception Manifest**: Issues a signed certificate (`data/reports/CERT-DECEPTION-*.md`) detailing active misdirection profiles.
+3. **Anti-Trace Zero-Remanence Purge (`clean_and_purge_all_footprints`)**:
+   - Designed for ethical hackers completing authorized penetration tests or security operators wishing to eliminate all operational traces:
+     - **Shell History Zero-Fill Shredding**: Overwrites and truncates PowerShell (`ConsoleHost_history.txt`), Bash (`.bash_history`), Zsh (`.zsh_history`), Python (`.python_history`), Node (`.node_repl_history`), and pager histories.
+     - **Execution Recents & RunMRU Wipe**: Erases Windows Explorer RunMRU command history from the registry and deletes recent document shortcut files (`.lnk`).
+     - **Payload & Dropper Shredding**: Performs multi-pass zero-fill shredding on staged artifacts in `data/uploads/` and temp directories.
+     - **Network Cache Purge**: Flushes DNS resolver cache (`ipconfig /flushdns`), NetBIOS remote name table (`nbtstat -R`), and dynamic ARP routing tables (`arp -d *`).
+     - **Clipboard Memory Erase**: Empties the system clipboard to destroy lingering tokens, passwords, and hashes.
+     - **Clean Disengagement Certificate**: Generates an authoritative, SHA-256 sealed disengagement certificate (`data/reports/CERT-DISENGAGEMENT-*.md`) proving 100% clean disengagement with zero residual footprints.
+4. **Third-Party Intrusion Interception & Origin Evidence Sealing (`intercept_third_party_intrusion`)**:
+   - Instantly intercepts unauthorized third-party remote invaders:
+     - **Golden Forensics Freeze**: Freezes volatile digital evidence of origin (remote IP, port, PID, sockets, command line) into read-only vault (`data/evidence/INC-INTRUSION-*_ORIGIN_EVIDENCE.json`, `chmod 0400` / `attrib +r`).
+     - **Firewall Quarantine Rule**: Injects an immediate inbound block rule into Windows Defender Firewall (`netsh advfirewall`) or Linux `iptables`.
+     - **Rogue Process Kill**: Terminates the adversary's process tree and reverse shells.
+     - **Incident Attribution Certificate**: Issues a cryptographically signed incident certificate (`data/reports/CERT-INTRUSION-*.md`).
+- **Terminal CLI Usage**:
+  - `python cli.py surveil-footprints`: Real-time reconnaissance surveillance and probe detection.
+  - `python cli.py mislead-footprints [--profile <PROFILE>]`: Deploys deceptive OS fingerprints, honeypaths, and canary paths.
+  - `python cli.py clean-footprints`: Complete anti-trace zero-remanence disengagement purge.
+  - `python cli.py stop-third-party <TARGET_IP_OR_PID>`: Intercepts intruder, blocks IP, and seals evidence.
+
+---
+
+### 5.32 Cross-Platform Application Packaging Suite (Android APK, macOS App & Manifest V3 Extension)
+To ensure complete universal availability across all desktop, mobile, and browser environments without requiring any web links, SENTINEL-X includes dedicated packaging pipelines producing native distributable applications:
+1. **Native Android Application & APK (`sentinel-x-security.apk`)**:
+   - Located in [`android/`](file:///c:/Users/kakan/Desktop/cyber_security/android) with full Gradle build structure, AndroidManifest (`org.sentinelx.security`), and native Java components (`MainActivity.java`, `SafeChargingReceiver.java`).
+   - Integrated with Capacitor configuration ([`capacitor.config.json`](file:///c:/Users/kakan/Desktop/cyber_security/capacitor.config.json)) for Android 14+ support.
+   - Built via `python scripts/build_android_apk.py` or `scripts/build_android_apk.bat`.
+   - Output: `dist/android/sentinel-x-security.apk` (2.31 MB, standalone installable APK).
+2. **Native macOS Application Bundle (`SENTINEL-X.app`)**:
+   - Native macOS App bundle located in [`desktop/mac/`](file:///c:/Users/kakan/Desktop/cyber_security/desktop/mac) with custom `Info.plist`, native macOS launcher script, and standalone runtime.
+   - Built via `python scripts/build_mac_app.py` or `scripts/build_mac_app.sh`.
+   - Output: `dist/mac/SENTINEL-X.app` and `dist/mac/SENTINEL-X-macOS.zip` (2.57 MB, ready for macOS distribution).
+3. **Browser Security Companion Extension (Manifest V3)**:
+   - Modern Manifest V3 extension located in [`extension/`](file:///c:/Users/kakan/Desktop/cyber_security/extension) compatible with Chrome, Edge, Brave, and Chromium browsers.
+   - Enhanced popup UI with direct triggers for Master Connect & Safeguard Sweep, Safe Charging Clamp, and Wi-Fi Security Audit.
+   - Packaged via `python scripts/package_extension.py`.
+   - Output: `dist/extension/sentinel-x-companion.zip` (36.77 KB, ready for Developer Mode loading or Web Store deployment).
+4. **Unified Build Hub in Launcher**:
+   - Option `[14]` in `launcher.py` ("CROSS-PLATFORM APPS") provides an interactive menu to build the Android APK, macOS App, and Browser Extension individually or all at once.
+
+---
+
 ## 6. The 28 SOC Operations Web Views
 
 The SENTINEL-X web interface provides 28 dedicated, fully wired operational views:
@@ -1519,7 +1579,11 @@ python launcher.py cli
 | **Immunize Host Laptop** | `python cli.py immunize-host` | Permanently immunizes Windows OS registry (`NoDriveTypeAutoRun`, `IniFileMapping`) against USB AutoRun/AutoPlay virus injections. |
 | **Vaccinate Pendrive** | `python cli.py vaccinate-drive <DRIVE>` | Creates an immutable vaccine shield (`autorun.inf` directory with locked attributes) to permanently immunize a pendrive against worms. |
 | **Direct Terminal Data Purge** | `python cli.py purge-data [--category CAT]`| Direct database purge from terminal (`--category events`, `incidents`, `hosts`, `malware`, `forensics`, `reports`, `audit`, or `all`). |
-| **Controlled Attack Simulation** | `python cli.py simulate-hack [--platform P]` | Simulates controlled live attack telemetry, real-time detection, scene evidence preservation in vault with SHA-256, and safe host containment across Kali Linux, Windows, or Mobile. |
+| **Master Connect & Safeguard** | `python cli.py connect-safeguard` | Executes total master sweep across all wired hardware ports, USB chargers (safe charging clamp), pendrives (autorun immunization), Wi-Fi stack, and OS processes with zero web links. |
+| **Footprinting Surveillance** | `python cli.py surveil-footprints` | Actively surveils host sockets for external reconnaissance probes, SYN sweeps, OS fingerprinting, and service banner grabbing. |
+| **Reconnaissance Misdirection**| `python cli.py mislead-footprints` | Feeds deceptive OS banners (Solaris, Cisco, Windows NT), armed honeypath latency tarpits (ports 21, 23, 8080, 6379), and seeds canary breadcrumbs. |
+| **Anti-Trace Zero-Remanence Purge**| `python cli.py clean-footprints` | Secure multi-pass zero-filling shredder for shell histories (PowerShell, Bash, Zsh, Python), RunMRU, droppers, DNS/ARP caches, and clipboard; issues signed Clean Disengagement Certificate. |
+| **Stop Third-Party Intruder** | `python cli.py stop-third-party <IP_OR_PID>` | Arrests hostile remote intruder, freezes origin evidence into immutable vault (`0400`), enforces firewall block rule, kills rogue process, and issues incident certificate. |
 | **One-Click Contain & Preserve** | `python cli.py contain-and-preserve [ID]` | Freezes volatile crime-scene memory & socket evidence in cryptographically locked vault (`0400`), marks incident Contained, isolates host network, and updates custody ledger. |
 | **Supreme Live Host Safeguard** | `python cli.py safeguard [-c]` | Real-time physical host intrusion hunt (RATs, reverse shells, masqueraded binaries, C2 beacons, miners) with optional continuous background daemon mode (`-c`). |
 | **Supreme Incident Rectification** | `python cli.py rectify <PID_OR_NAME>` | Atomically freezes volatile physical crime-scene evidence into immutable vault (`0400`), terminates process tree, wipes registry & startup persistence, quarantines dropper, flushes DNS cache, and generates signed Rectification Certificate. |

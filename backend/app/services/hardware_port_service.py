@@ -1014,16 +1014,16 @@ class HardwarePortQuarantineService:
                 autorun_target.mkdir(parents=True, exist_ok=True)
                 actions.append("Created vaccine shield directory 'autorun.inf'.")
 
-            # 3. Create dummy locked file inside directory
-            dummy_shield = autorun_target / "sentinel_vaccine.lck"
-            if not dummy_shield.exists():
-                dummy_shield.write_text("SENTINEL-X USB IMMUNIZATION VACCINE ACTIVE. PROTECTED AGAINST VIRUS INJECTION.\n", encoding="utf-8")
+            # 3. Create immutable vaccine lock file inside directory
+            vaccine_shield = autorun_target / "sentinel_vaccine.lck"
+            if not vaccine_shield.exists():
+                vaccine_shield.write_text("SENTINEL-X USB IMMUNIZATION VACCINE ACTIVE. PROTECTED AGAINST VIRUS INJECTION.\n", encoding="utf-8")
                 actions.append("Generated internal vaccine lock file.")
 
             # 4. Set Read-Only, System, and Hidden attributes on Windows
             if sys.platform == "win32":
                 subprocess.run(f'attrib +r +s +h "{autorun_target}"', shell=True, capture_output=True)
-                subprocess.run(f'attrib +r +s +h "{dummy_shield}"', shell=True, capture_output=True)
+                subprocess.run(f'attrib +r +s +h "{vaccine_shield}"', shell=True, capture_output=True)
                 actions.append("Applied immutable +R +S +H (Read-Only, System, Hidden) filesystem attributes.")
 
             return {

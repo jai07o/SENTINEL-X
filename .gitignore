@@ -50,6 +50,8 @@ data/reports/*
 !data/reports/.gitkeep
 data/quarantine/*
 !data/quarantine/.gitkeep
+data/scratch/*
+!data/scratch/.gitkeep
 data/trusted_wifi_signatures.json
 backend/quarantined_ports.json
 backend/app/quarantined_ports.json
@@ -84,3 +86,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Gradle / Android
+.gradle/
+android/.gradle/
+

@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">SENTINEL-X</string>
+    <string name="package_name">org.sentinelx.security</string>
+    <string name="safe_charging_active">SENTINEL-X Safe Charging Shield Active</string>
+    <string name="safe_charging_desc">Data pin negotiation clamped. Juice-Jacking attempts blocked.</string>
+</resources>

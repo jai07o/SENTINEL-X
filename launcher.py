@@ -222,53 +222,29 @@ def start_agent():
         subprocess.Popen([str(VENV_PYTHON), "-m", "agent.sentinel_agent.agent"], cwd=str(ROOT_DIR))
 
 
-def run_simulator():
-    print("\n[+] Running Telemetry & Attack Simulator...")
-    print("Choose simulator action:")
-    print("  1. Run Controlled Attack Simulation Pipeline (Kali RAT, Windows Shell, Mobile Spyware)")
-    print("     [Verifies: Live Telemetry -> Attack Detection -> Forensic Vault Seal -> Containment]")
-    print("  2. Run Detection & EWCC Benchmark")
-    print("  3. Inject SSH Brute-Force & PrivEsc Scenarios into live backend")
-    choice = input("Enter option [1, 2, or 3] (default: 1): ").strip() or "1"
-
-    if choice == "1":
-        print("\nSelect target platform:")
-        print("  [1] Kali Linux (Remote Access Trojan & Meterpreter C2)")
-        print("  [2] Windows Host (Encoded PowerShell Reverse Shell)")
-        print("  [3] Mobile Companion (Background Spyware & Sensor Hijack)")
-        print("  [4] All Platforms (Sequential Full Matrix)")
-        p_choice = input("Select platform [1-4] (default: 1): ").strip() or "1"
-        plat_map = {"1": "kali", "2": "windows", "3": "mobile", "4": "all"}
-        target = plat_map.get(p_choice, "kali")
-        
-        cli_path = ROOT_DIR / "cli.py"
-        if target == "all":
-            for p in ("kali", "windows", "mobile"):
-                subprocess.run([str(VENV_PYTHON), str(cli_path), "simulate-hack", "--platform", p], cwd=str(ROOT_DIR))
-        else:
-            subprocess.run([str(VENV_PYTHON), str(cli_path), "simulate-hack", "--platform", target], cwd=str(ROOT_DIR))
-
-    elif choice == "2":
-        subprocess.run([str(VENV_PYTHON), "-m", "simulator.benchmark"], cwd=str(ROOT_DIR))
-    else:
-        script = """
-import httpx
-from simulator.generator import LabTelemetrySimulator
-
-sim = LabTelemetrySimulator()
-events = sim.generate_ssh_brute_force_scenario(num_failures=6) + sim.generate_privilege_escalation_scenario()
-print(f"Injecting {len(events)} synthetic events into http://127.0.0.1:8000/api/v1/events/ingest ...")
-for ev in events:
-    payload = ev.model_dump(mode="json")
-    try:
-        r = httpx.post("http://127.0.0.1:8000/api/v1/events/ingest", json=payload, headers={"X-Sentinel-Key": "sx_dev_agent_key_default"}, timeout=3.0)
-        print(f"  [+] Ingested {ev.event_id}: HTTP {r.status_code}")
-    except Exception as e:
-        print(f"  [-] Failed to connect: {e}")
-        break
-print("Completed injection. Check http://127.0.0.1:5173/incidents for generated alerts.")
-"""
-        subprocess.run([str(VENV_PYTHON), "-c", script], cwd=str(ROOT_DIR))
+def manage_applications_menu():
+    print("\n" + "=" * 65)
+    print("  CROSS-PLATFORM APPLICATION PACKAGING & BUILDS")
+    print("=" * 65)
+    print("  [1] Build Android Mobile Application & APK Package")
+    print("      -> Output: dist/android/sentinel-x-security.apk")
+    print("  [2] Build Native macOS Desktop Application (.app)")
+    print("      -> Output: dist/mac/SENTINEL-X.app & SENTINEL-X-macOS.zip")
+    print("  [3] Package Browser Security Companion Extension")
+    print("      -> Output: dist/extension/sentinel-x-companion.zip (Manifest V3)")
+    print("  [4] Build All Application Types (Android APK + Mac App + Browser Ext)")
+    print("  [5] Return to Main Menu")
+    c = input("Select an option [1-5] (default: 4): ").strip() or "4"
+    if c == "1":
+        subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "build_android_apk.py")], cwd=str(ROOT_DIR))
+    elif c == "2":
+        subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "build_mac_app.py")], cwd=str(ROOT_DIR))
+    elif c == "3":
+        subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "package_extension.py")], cwd=str(ROOT_DIR))
+    elif c == "4":
+        subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "build_android_apk.py")], cwd=str(ROOT_DIR))
+        subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "build_mac_app.py")], cwd=str(ROOT_DIR))
+        subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "package_extension.py")], cwd=str(ROOT_DIR))
 
 
 def run_tests():
@@ -391,37 +367,15 @@ def run_breach_forensics():
 def main():
     if len(sys.argv) > 1:
         cmd = sys.argv[1].lower()
-        if cmd not in ("cli", "terminal", "scan", "deep-scan", "system-scan", "repair", "fix", "system-repair"):
+        if cmd not in ("cli", "terminal", "scan", "deep-scan", "system-scan", "repair", "fix", "system-repair", "connect", "sweep"):
             print_banner()
-        if cmd in ("web", "start", "run"):
-            start_web_platform()
-            return
-        elif cmd in ("stop", "stop-all", "shutdown", "kill"):
-            stop_all_services()
-            return
-        elif cmd in ("desktop", "desk"):
-            start_desktop_app()
-            return
-        elif cmd in ("train-ai", "retrain-ai", "train"):
-            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "train-ai"], cwd=str(ROOT_DIR))
-            return
-        elif cmd in ("ai-status", "weights"):
-            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "ai-status"], cwd=str(ROOT_DIR))
-        elif cmd in ("set-ai-schedule", "schedule-ai"):
-            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py")] + sys.argv[1:], cwd=str(ROOT_DIR))
-            return
-        elif cmd in ("breach-evidence", "breach", "evidence"):
-            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "breach-evidence"], cwd=str(ROOT_DIR))
-            return
-        elif cmd in ("agent",):
-            start_agent()
-            return
-        elif cmd in ("simulator", "sim"):
-            run_simulator()
-            return
-        elif cmd in ("cli", "terminal"):
+        if cmd in ("terminal", "cli"):
             cli_path = ROOT_DIR / "cli.py"
             subprocess.run([str(VENV_PYTHON), str(cli_path)] + sys.argv[2:], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("sweep", "connect", "connect-all", "connect-safeguard", "master"):
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "connect-safeguard"], cwd=str(ROOT_DIR))
             return
         elif cmd in ("scan", "deep-scan", "system-scan"):
             cli_path = ROOT_DIR / "cli.py"
@@ -431,79 +385,157 @@ def main():
             cli_path = ROOT_DIR / "cli.py"
             subprocess.run([str(VENV_PYTHON), str(cli_path), "system-repair"], cwd=str(ROOT_DIR))
             return
+        elif cmd in ("ports", "hardware-ports"):
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "list-ports"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("safe-charging", "juice-jacking"):
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "safe-charging"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("wifi", "scan-wifi"):
+            cli_path = ROOT_DIR / "cli.py"
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "scan-wifi"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("apk", "android"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "build_android_apk.py")], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("mac", "macos", "apple"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "build_mac_app.py")], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("ext", "extension", "chrome"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "scripts" / "package_extension.py")], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("build", "build-all", "apps", "package"):
+            manage_applications_menu()
+            return
+        elif cmd in ("train-ai", "retrain-ai", "train"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "train-ai"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("ai-status", "weights"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "ai-status"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("breach-evidence", "breach", "evidence"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "breach-evidence"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("clean-footprints", "clean-traces", "wipe-footprints", "anti-trace"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "clean-footprints"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("surveil-footprints", "recon", "surveil"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "surveil-footprints"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("mislead-footprints", "deception", "mislead"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "mislead-footprints"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("discover-footprints", "footprints"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py"), "discover-footprints"], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("stop-third-party", "stop-intruder"):
+            subprocess.run([str(VENV_PYTHON), str(ROOT_DIR / "cli.py")] + sys.argv[1:], cwd=str(ROOT_DIR))
+            return
+        elif cmd in ("web", "start", "run"):
+            start_web_platform()
+            return
+        elif cmd in ("desktop", "desk"):
+            start_desktop_app()
+            return
+        elif cmd in ("agent",):
+            start_agent()
+            return
+        elif cmd in ("stop", "stop-all", "shutdown", "kill"):
+            stop_all_services()
+            return
         elif cmd in ("test", "tests"):
             run_tests()
-            return
-        elif cmd in ("ext", "extension"):
-            show_extension_guide()
             return
 
     while True:
         print_banner()
-        print("  [1]  Start Web Platform (Backend + Frontend + Open Browser)")
-        print("  [2]  Open Dedicated Desktop SOC Console (Isolated Native App Window)")
-        print("  [3]  Direct Terminal: Live Host Connect, Deep Virus Scan & Complete Repair")
-        print("  [4]  Continuous AI Retraining & Self-Evolving Safeguards (Weekly/Monthly/6-Months)")
-        print("  [5]  Deep Data Breach Forensic Discovery & Cryptographic Seal (Zero Mock Data)")
-        print("  [6]  Direct Terminal Threat Analyzer & Safeguard Suite (cli.py)")
-        print("  [7]  Start Endpoint Monitoring Agent")
-        print("  [8]  Run Threat Simulator & Scenarios (Windows, Linux, Mobile)")
-        print("  [9]  Run EWCC Detection Benchmark")
-        print("  [10] Run Automated Tests (pytest)")
-        print("  [11] How to load Chrome/Edge Extension")
-        print("  [12] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
-        print("  [13] Exit")
+        print("  [1]  ⚡ DIRECT TERMINAL THREAT HUNT & SAFEGUARD SUITE (Zero Web Links - Direct Terminal)")
+        print("  [2]  ⚡ MASTER CONNECT & SAFEGUARD EVERYTHING (Wired, Wireless, Chargers, Pendrives & OS)")
+        print("  [3]  LIVE SYSTEM CONNECT & IN-DEPTH VIRUS SCAN (Active Host Laptop/PC/Android)")
+        print("  [4]  ONE-CLICK COMPLETE SYSTEM REPAIR & PROBLEM SOLVER (Solve All Problems Completely)")
+        print("  [5]  HARDWARE PORTS, CONNECTED DEVICES & SAFE CHARGING CLAMP (Juice-Jacking Lock)")
+        print("  [6]  WI-FI ROGUE AP, EVIL TWIN & NETWORK SECURITY ARMOR (Airwaves Shield)")
+        print("  [7]  ACTIVE NETWORK SOCKETS & BACKDOOR TROJAN HUNTER (RATs, C2 Channels)")
+        print("  [8]  CONTINUOUS AI RETRAINING & SELF-EVOLVING SAFEGUARDS (Weekly/Monthly/6-Months)")
+        print("  [9]  DEEP DATA BREACH FORENSIC DISCOVERY & CRYPTOGRAPHIC SEAL (Zero Dummy Data)")
+        print("  [10] SURVEIL RECONNAISSANCE & FOOTPRINTING (Detect Port Sweeps & OS Fingerprinting)")
+        print("  [11] 🎭 MISLEAD ATTACKER PATH & FOOTPRINTS (Deceptive OS, Honeypaths & Canaries)")
+        print("  [12] 🧹 CLEAN & SHRED ALL OPERATOR FOOTPRINTS COMPLETELY (Anti-Trace Zero-Remanence)")
+        print("  [13] 🛑 STOP THIRD-PARTY INTRUDER & COLLECT ORIGIN EVIDENCE (Freeze & Firewall Block)")
+        print("  [14] CROSS-PLATFORM APPS: BUILD ANDROID APK, MAC APP & BROWSER EXTENSION PACKAGES")
+        print("  [15] Launch Web Platform (Optional GUI Dashboard)")
+        print("  [16] Dedicated SOC Desktop Console Window")
+        print("  [17] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
+        print("  [18] Exit")
         print("=" * 65)
 
-        choice = input("Select an option [1-13]: ").strip()
+        choice = input("Select an option [1-18]: ").strip()
+        cli_path = ROOT_DIR / "cli.py"
+
         if choice == "1":
-            start_web_platform()
-            break
-        elif choice == "2":
-            start_desktop_app()
-            break
-        elif choice == "3":
-            cli_path = ROOT_DIR / "cli.py"
-            print("\n  [A] Real-Time Deep OS Virus Scan (Inspect Active Host & Devices)")
-            print("  [B] Real-Time Scan & Complete System Repair (Auto-Solve All Issues)")
-            sub_c = input("  Select action [A/B, default A]: ").strip().upper()
-            if sub_c == "B":
-                subprocess.run([str(VENV_PYTHON), str(cli_path), "system-repair"], cwd=str(ROOT_DIR))
-            else:
-                subprocess.run([str(VENV_PYTHON), str(cli_path), "system-scan"], cwd=str(ROOT_DIR))
-            input("\nPress Enter to continue...")
-        elif choice == "4":
-            manage_ai_engine()
-            input("\nPress Enter to continue...")
-        elif choice == "5":
-            run_breach_forensics()
-            input("\nPress Enter to continue...")
-        elif choice == "6":
-            cli_path = ROOT_DIR / "cli.py"
             subprocess.run([str(VENV_PYTHON), str(cli_path)], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
+        elif choice == "2":
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "connect-safeguard"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "3":
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "system-scan"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "4":
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "system-repair"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "5":
+            print("\n  [A] Show All Connected Hardware Ports (USB, RJ-45, HDMI, Audio)")
+            print("  [B] Toggle Safe Charging Clamp (Juice-Jacking Lockout)")
+            sub_c = input("  Select action [A/B, default A]: ").strip().upper()
+            if sub_c == "B":
+                subprocess.run([str(VENV_PYTHON), str(cli_path), "safe-charging"], cwd=str(ROOT_DIR))
+            else:
+                subprocess.run([str(VENV_PYTHON), str(cli_path), "list-ports"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "6":
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "scan-wifi"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
         elif choice == "7":
-            start_agent()
-            break
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "guard-sockets"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
         elif choice == "8":
-            run_simulator()
+            manage_ai_engine()
             input("\nPress Enter to continue...")
         elif choice == "9":
-            subprocess.run([str(VENV_PYTHON), "-m", "simulator.benchmark"], cwd=str(ROOT_DIR))
+            run_breach_forensics()
             input("\nPress Enter to continue...")
         elif choice == "10":
-            run_tests()
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "surveil-footprints"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
         elif choice == "11":
-            show_extension_guide()
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "mislead-footprints"], cwd=str(ROOT_DIR))
             input("\nPress Enter to continue...")
         elif choice == "12":
+            subprocess.run([str(VENV_PYTHON), str(cli_path), "clean-footprints"], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "13":
+            targ = input("Enter intruder Remote IP or Target PID to intercept: ").strip()
+            if targ:
+                subprocess.run([str(VENV_PYTHON), str(cli_path), "stop-third-party", targ], cwd=str(ROOT_DIR))
+            input("\nPress Enter to continue...")
+        elif choice == "14":
+            manage_applications_menu()
+            input("\nPress Enter to continue...")
+        elif choice == "15":
+            start_web_platform()
+            break
+        elif choice == "16":
+            start_desktop_app()
+            break
+        elif choice == "17":
             stop_all_services()
             input("\nPress Enter to continue...")
-        elif choice in ("13", "q", "exit"):
+        elif choice in ("18", "q", "exit"):
             print("Exiting.")
             break
-
         else:
             print("Invalid selection.")
 

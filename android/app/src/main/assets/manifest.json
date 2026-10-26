@@ -1,0 +1,71 @@
+{
+  "id": "com.sentinelx.security.platform",
+  "short_name": "SENTINEL-X",
+  "name": "SENTINEL-X — Unified Cyber Defense, Testing & Forensics",
+  "description": "Production-grade unified cybersecurity platform for real-time threat detection, authorized penetration testing, malware triage, and digital forensics.",
+  "start_url": "/?mode=standalone",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "theme_color": "#090d16",
+  "background_color": "#090d16",
+  "categories": [
+    "security",
+    "utilities",
+    "developer"
+  ],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "360° Total Safeguard",
+      "short_name": "360° Audit",
+      "description": "Run complete multi-vector system safeguard audit",
+      "url": "/total-360?mode=standalone",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live Host Virus Scan",
+      "short_name": "Scan Host",
+      "description": "Run in-depth active host malware & anomaly inspection",
+      "url": "/active-system?mode=standalone",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Self-Training Hub",
+      "short_name": "AI Training",
+      "description": "AI self-learning, breach forensics & scheduled updates",
+      "url": "/ai-training?mode=standalone",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hardware Port Matrix",
+      "short_name": "Port Matrix",
+      "description": "Inspect and guard physical USB, RJ-45, HDMI ports",
+      "url": "/hardware-ports?mode=standalone",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

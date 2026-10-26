@@ -1,0 +1,7 @@
+<resources>
+    <color name="sentinel_bg">#0B1120</color>
+    <color name="sentinel_surface">#0F172A</color>
+    <color name="sentinel_cyan">#06B6D4</color>
+    <color name="sentinel_green">#10B981</color>
+    <color name="sentinel_red">#EF4444</color>
+</resources>

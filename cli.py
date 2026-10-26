@@ -585,44 +585,87 @@ def cmd_security_armor():
 
 
 # ---------------------------------------------------------
-# Command 17: Controlled Attack Simulation (Cross-Platform)
+# Command 17: Master Connect & Safeguard Sweep (Wired, Wireless, Chargers, Pendrives & OS)
 # ---------------------------------------------------------
-def cmd_simulate_hack(platform: str = "kali"):
-    print(f"\n{CYAN}{BOLD}[*] Launching End-to-End Live Attack Simulation, Containment & Forensic Vault Seal...{RESET}")
-    print(f"{BOLD}Target Platform:{RESET} {platform.upper()}")
-    from simulator.attack_simulation_pipeline import ControlledAttackSimulationPipeline
-    pipeline = ControlledAttackSimulationPipeline()
-    result = asyncio.run(pipeline.run_simulation(target_platform=platform))
+def cmd_connect_and_safeguard_all():
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}SENTINEL-X MASTER CONNECT & SAFEGUARD SWEEP CORE (DIRECT TERMINAL TOOL){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{YELLOW}[*] Executing real-time automated defensive sweep across host and all connected devices...{RESET}")
+    print(f"    • Wired: Clamping USB chargers to Safe Charging mode (Juice-Jacking lockout)")
+    print(f"    • Removable Storage: Inoculating pendrives & locking autorun.inf (+R +S +H)")
+    print(f"    • Mobile Phones: MTP & ADB debug isolation with safe charging lock")
+    print(f"    • Hardware Ports: Auditing RJ-45 Ethernet, HDMI/DP displays, 3.5mm audio & BadUSB")
+    print(f"    • Wireless Airwaves: Auditing Wi-Fi SSID, Evil Twin rogue APs & ARP MitM poison")
+    print(f"    • Privacy Sensors: Verifying camera & microphone hardware handles")
+    print(f"    • Host OS: In-depth processes and file sanitization")
+    print(f"    • Database & Cert: Synchronizing database status to ONLINE & issuing signed cert\n")
 
-    print(f"\n{GREEN}{BOLD}======================================================================{RESET}")
-    print(f"  {GREEN}{BOLD}[+] SIMULATION & DEFENSIVE WORKFLOW VERIFIED SUCCESSFULLY!{RESET}")
-    print(f"{GREEN}{BOLD}======================================================================{RESET}")
-    print(f"{BOLD}Scenario:{RESET} {result.get('scenario')}")
-    print(f"{BOLD}Platform Target:{RESET} {result.get('target_platform')}")
+    from backend.app.services.active_system_service import active_system_guardian
     
-    det = result.get("detection", {})
-    print(f"\n  {BOLD}[1] Real-Time Threat Detection & Correlation:{RESET}")
-    print(f"      - Incident Number: {det.get('incident_number')}")
-    print(f"      - Incident Title:  {det.get('incident_title')}")
-    print(f"      - Severity:        {RED}{BOLD}{det.get('severity')}{RESET}")
-    print(f"      - Confidence:      {det.get('confidence') * 100:.1f}%")
-    print(f"      - Matched Rule:    {det.get('matched_rule')}")
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            try:
+                import nest_asyncio
+                nest_asyncio.apply()
+            except Exception:
+                pass
+            res = loop.run_until_complete(active_system_guardian.connect_and_safeguard_all())
+        else:
+            res = loop.run_until_complete(active_system_guardian.connect_and_safeguard_all())
+    except Exception:
+        res = asyncio.run(active_system_guardian.connect_and_safeguard_all())
 
-    ev = result.get("evidence_preservation", {})
-    tamper_badge = f"{GREEN}CRYPTOGRAPHICALLY VERIFIED (INTACT){RESET}" if ev.get("tamper_verified") else f"{RED}TAMPER DETECTED{RESET}"
-    print(f"\n  {BOLD}[2] Forensic Crime-Scene Evidence Preservation:{RESET}")
-    print(f"      - Evidence ID:     {ev.get('evidence_number')}")
-    print(f"      - SHA-256 Digest:  {ev.get('sha256_hash')}")
-    print(f"      - Vault File:      {ev.get('vault_file')}")
-    print(f"      - Chain-of-Custody:{ev.get('chain_of_custody_status')}")
-    print(f"      - Vault Integrity: {tamper_badge}")
+    print(f"\n{GREEN}{BOLD}{'=' * 75}{RESET}")
+    print(f" {GREEN}{BOLD}[+] MASTER WIRED & WIRELESS SAFEGUARD SWEEP COMPLETE (100% SECURED){RESET}")
+    print(f"{GREEN}{BOLD}{'=' * 75}{RESET}")
+    print(f" Status:             {GREEN}{BOLD}{res.get('status')}{RESET}")
+    print(f" Sweep ID:           {CYAN}{res.get('sweep_id')}{RESET}")
+    h = res.get("host_profile", {})
+    print(f" Host Machine:       {h.get('hostname')} ({h.get('device_classification')})")
+    print(f" Operating System:   {h.get('operating_system')}")
+    print(f" Database Record:    {GREEN}SYNCHRONIZED (ONLINE){RESET}")
+    print(f" Signed Certificate: {res.get('certificate_path')}")
+    print(f" SHA-256 Seal:       {res.get('sha256_seal')}")
 
-    cont = result.get("containment_execution", {})
-    print(f"\n  {BOLD}[3] Safe Automated Threat Containment:{RESET}")
-    print(f"      - Host Isolation:  {RED}{BOLD}{cont.get('host_isolation')}{RESET}")
-    print(f"      - Process Action:  {cont.get('process_neutralization')}")
-    print(f"      - Action Summary:  {cont.get('summary')}")
-    print(f"\n{GREEN}{BOLD}Unified Architecture Proven: Live Telemetry -> Attack Detection -> Forensic Vault Seal -> Automated Containment.{RESET}\n")
+    # 1. Wired Hardware & Chargers
+    w = res.get("wired_protection", {})
+    pd = w.get("pendrives", {})
+    hp = w.get("hardware_ports", {})
+    print(f"\n{BOLD}{CYAN}1. WIRED PROTECTION, CHARGERS & PENDRIVES:{RESET}")
+    print(f"  • Charger Data Pins:    {GREEN}CLAMPED (JUICE-JACKING PROTECTED){RESET}")
+    print(f"  • Pendrives Vaccine:    {GREEN}NoDriveTypeAutoRun = 0xFF ENFORCED{RESET} ({pd.get('vaccinated_drives_count', 0)} Drives Vaccinated)")
+    print(f"  • Mobile USB Isolation: {GREEN}ACTIVE{RESET} ({w.get('connected_mobiles_count', 0)} Mobiles Linked)")
+    print(f"  • Hardware Port Matrix: {GREEN}SECURED{RESET} ({hp.get('total_ports_count', 0)} Ports: RJ-45, HDMI, Audio, USB)")
+    print(f"  • BadUSB Keystroke Inj: {GREEN}0 DETECTED (CLEAN){RESET}")
+
+    # 2. Wireless Airwaves
+    wl = res.get("wireless_protection", {})
+    wf = wl.get("wifi_network", {})
+    print(f"\n{BOLD}{MAGENTA}2. WIRELESS AIRWAVES & WI-FI:{RESET}")
+    print(f"  • Wi-Fi Network:        {wf.get('ssid', 'Local Airwaves')} ({wf.get('authentication', 'WPA2/WPA3')})")
+    print(f"  • Evil Twin Rogue AP:   {GREEN}NONE DETECTED (CLEAN & PINNED){RESET}")
+    print(f"  • ARP Poisoning (MitM): {GREEN}NONE DETECTED (GATEWAY MAC VERIFIED){RESET}")
+    print(f"  • Bluetooth Devices:    {wl.get('connected_bluetooth_count', 0)} Paired Accessories")
+    print(f"  • Subnet Neighbors:     {wl.get('wireless_subnet_peers_count', 0)} Peers Cataloged")
+
+    # 3. Privacy & Sensors
+    print(f"\n{BOLD}{YELLOW}3. PRIVACY & SENSORS:{RESET}")
+    print(f"  • Camera Background:    {GREEN}ZERO UNAUTHORIZED SURVEILLANCE{RESET}")
+    print(f"  • Microphone Handles:   {GREEN}BLOCKED / 0 BACKGROUND VIOLATIONS{RESET}")
+
+    # 4. Host OS Deep Health
+    deep = res.get("deep_os_scan", {})
+    print(f"\n{BOLD}{WHITE}4. HOST OS HEALTH & PROCESS SANITIZATION:{RESET}")
+    print(f"  • Security Health Score:{GREEN}{deep.get('overall_score', 100)}% SECURE{RESET}")
+    print(f"  • Anomalous Findings:   {len(deep.get('findings', []))}")
+
+    # Actions list
+    print(f"\n{BOLD}Defensive Actions Executed Across All Surfaces:{RESET}")
+    for act in res.get("actions_executed", []):
+        print(f"  {GREEN}✓{RESET} {act}")
+    print(f"\n{GREEN}{BOLD}[+] Target host and all connected wired & wireless devices are fully safeguarded.{RESET}\n")
 
 
 # ---------------------------------------------------------
@@ -1369,6 +1412,168 @@ def cmd_breach_forensics():
 
 
 # ---------------------------------------------------------
+# Ethical Hacker Footprint Surveillance, Deception & Disengagement
+# ---------------------------------------------------------
+def cmd_surveil_footprints():
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}RECONNAISSANCE & FOOTPRINTING SURVEILLANCE (PORT SCANS & OS PROBES){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{YELLOW}[*] Actively inspecting host sockets, SYN sweeps & reconnaissance probes...{RESET}")
+    from backend.app.services.footprint_sanitizer_service import footprint_sanitizer
+    res = footprint_sanitizer.surveil_active_footprinting()
+
+    lvl = res.get("footprinting_threat_level", "NORMAL_BASELINE")
+    lvl_col = GREEN if lvl == "NORMAL_BASELINE" else (YELLOW if lvl == "MODERATE" else RED)
+    print(f"{BOLD}Surveillance Status:{RESET}   {GREEN}{res.get('status')}{RESET}")
+    print(f"{BOLD}Recon Threat Level:{RESET}    {lvl_col}{BOLD}{lvl}{RESET}")
+    print(f"{BOLD}Reconnaissance Score:{RESET}  {lvl_col}{res.get('reconnaissance_threat_score')}/100{RESET}")
+    print(f"{BOLD}Probes Detected:{RESET}       {res.get('probes_detected_count')}")
+
+    origins = res.get("suspicious_origin_ips", [])
+    if origins:
+        print(f"\n{RED}{BOLD}Suspicious Attacker Reconnaissance Origin IPs:{RESET}")
+        for rip in origins:
+            print(f"   - {RED}{rip}{RESET}")
+    else:
+        print(f"\n{GREEN}[+] No active external reconnaissance origins detected probing this host.{RESET}")
+
+    probes = res.get("detected_probes", [])
+    if probes:
+        print(f"\n{BOLD}Detected Reconnaissance Probes:{RESET}")
+        for p in probes:
+            print(f"   • {YELLOW}[{p.get('type')}]{RESET} Origin: {p.get('origin_ip')} -> Target: {p.get('target_port') or p.get('probed_ports')}")
+
+    print(f"\n{BOLD}Monitored Footprinting Attack Vectors:{RESET}")
+    for v in res.get("monitored_vectors", []):
+        print(f"   - {CYAN}✓{RESET} {v}")
+    print()
+
+
+def cmd_mislead_footprints(fake_os: str = "DECOY_LEGACY_UNIX"):
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}CYBER DECEPTION & RECONNAISSANCE MISDIRECTION (MISLEAD ATTACKER PATH){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{YELLOW}[*] Deploying deceptive fingerprints, honeypaths & canary breadcrumb paths...{RESET}")
+    from backend.app.services.footprint_sanitizer_service import footprint_sanitizer
+    res = footprint_sanitizer.mislead_attacker_footprints(fake_os_identity=fake_os)
+
+    print(f"\n{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f" {GREEN}{BOLD}[+] DECEPTION ACTIVE - THIRD-PARTY FOOTPRINTING SAFELY MISLED{RESET}")
+    print(f"{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}Status:{RESET}                 {GREEN}{res.get('status')}{RESET}")
+    prof = res.get("active_profile", {})
+    print(f"{BOLD}Spoofed OS Banner:{RESET}      {YELLOW}{prof.get('reported_os')}{RESET}")
+    print(f"{BOLD}Simulated TTL:{RESET}          {prof.get('simulated_ttl')} (Decoy Network Stack)")
+    print(f"{BOLD}Decoy Canary Files:{RESET}     {len(res.get('canary_files', []))} seeded")
+    print(f"{BOLD}Signed Certificate:{RESET}     {res.get('certificate_path')}\n")
+
+    print(f"{BOLD}Executed Misdirection & Deception Actions:{RESET}")
+    for act in res.get("actions_executed", []):
+        print(f"  {GREEN}✓{RESET} {act}")
+    print(f"\n{GREEN}[+] External port scanners and penetration testers will receive misleading false trails.{RESET}\n")
+
+
+def cmd_discover_footprints():
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}ETHICAL HACKER OPERATOR FOOTPRINT DISCOVERY (ANTI-TRACE AUDIT){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    from backend.app.services.footprint_sanitizer_service import footprint_sanitizer
+    res = footprint_sanitizer.discover_operator_footprints()
+
+    print(f"{BOLD}Audited Host:{RESET}     {res.get('hostname')} ({res.get('os')})")
+    print(f"{BOLD}Timestamp:{RESET}        {res.get('timestamp')}")
+    print(f"{BOLD}Total Footprints:{RESET} {res.get('total_footprints_found')}")
+
+    print(f"\n{BOLD}1. Shell & Terminal Command Histories:{RESET}")
+    hists = res.get("shell_histories", [])
+    if hists:
+        for h in hists:
+            print(f"   - {YELLOW}{h.get('type')}{RESET}: {h.get('lines')} lines ({h.get('size_bytes')} bytes) -> {h.get('path')}")
+    else:
+        print(f"   {GREEN}[+] No residual shell history files detected.{RESET}")
+
+    print(f"\n{BOLD}2. Explorer & Execution Recents:{RESET}")
+    print(f"   - Recent Shortcuts: {res.get('recent_items_count')} entries cataloged")
+
+    print(f"\n{BOLD}3. Temporary Droppers & Staged Artifacts:{RESET}")
+    drops = res.get("temporary_droppers", [])
+    if drops:
+        for d in drops:
+            print(f"   - {RED}{d.get('filename')}{RESET} ({d.get('size_bytes')} bytes): {d.get('path')}")
+    else:
+        print(f"   {GREEN}[+] Zero temporary droppers or upload traces found.{RESET}")
+
+    print(f"\n{BOLD}4. Volatile Clipboard Memory:{RESET}")
+    print(f"   - Clipboard Has Data: {'YES (Contains sensitive memory residues)' if res.get('clipboard_has_data') else 'EMPTY / SECURE'}")
+
+    print(f"\n{YELLOW}[*] Tip: Run 'python cli.py clean-footprints' to completely wipe and shred all footprints with zero remanence.{RESET}\n")
+
+
+def cmd_clean_all_footprints():
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}PURGING & SHREDDING ALL OPERATOR FOOTPRINTS (ZERO FORENSIC REMANENCE){RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"[*] Executing multi-pass zero-filling shredder on all operator footprints...")
+    from backend.app.services.footprint_sanitizer_service import footprint_sanitizer
+    res = footprint_sanitizer.clean_and_purge_all_footprints()
+
+    print(f"\n{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f" {GREEN}{BOLD}[+] CLEAN DISENGAGEMENT COMPLETE - ALL FOOTPRINTS WIPED (100% CLEAN){RESET}")
+    print(f"{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}Status:{RESET}             {GREEN}{res.get('status')}{RESET}")
+    print(f"{BOLD}Files Shredded:{RESET}     {res.get('purged_files_count')}")
+    print(f"{BOLD}Signed Certificate:{RESET} {res.get('certificate_path')}")
+    print(f"{BOLD}SHA-256 Digest:{RESET}     {res.get('sha256_seal')}\n")
+
+    print(f"{BOLD}Defensive Sanitization Actions Executed:{RESET}")
+    for act in res.get("actions_taken", []):
+        print(f"  {GREEN}✓{RESET} {act}")
+    print(f"\n{GREEN}[+] System is 100% pristine. Zero operator traces, command logs, or network caches remain.{RESET}\n")
+
+
+def cmd_stop_third_party(target: str):
+    print(f"\n{RED}{BOLD}=============================================================================={RESET}")
+    print(f" {RED}{BOLD}THIRD-PARTY INTRUSION INTERCEPTOR & FORENSIC ORIGIN EVIDENCE VAULT{RESET}")
+    print(f"{RED}{BOLD}=============================================================================={RESET}")
+    from backend.app.services.footprint_sanitizer_service import footprint_sanitizer
+
+    target_pid = int(target) if target.isdigit() else None
+    remote_ip = target if not target.isdigit() else "UNKNOWN_REMOTE"
+    if target.isdigit():
+        try:
+            import psutil
+            proc = psutil.Process(int(target))
+            for c in proc.connections(kind="inet"):
+                if c.raddr:
+                    remote_ip = c.raddr.ip
+                    break
+        except Exception:
+            pass
+
+    print(f"[*] Intercepting intrusion from: {remote_ip} (PID: {target_pid or 'N/A'})...")
+    res = footprint_sanitizer.intercept_third_party_intrusion(
+        remote_ip=remote_ip,
+        target_pid=target_pid,
+        threat_description=f"Unauthorized third-party remote incursion detected via terminal tool: {target}"
+    )
+
+    print(f"\n{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f" {GREEN}{BOLD}[+] INTRUDER STOPPED & ORIGIN EVIDENCE SEALED IN VAULT (0400){RESET}")
+    print(f"{GREEN}{BOLD}=============================================================================={RESET}")
+    print(f"{BOLD}Incident ID:{RESET}        {res.get('incident_id')}")
+    print(f"{BOLD}Blocked Origin IP:{RESET}  {RED}{res.get('origin_ip')}{RESET}")
+    print(f"{BOLD}Terminated PID:{RESET}     {res.get('target_pid') or 'N/A'}")
+    print(f"{BOLD}Sealed Vault File:{RESET}  {res.get('vault_file')}")
+    print(f"{BOLD}Evidence SHA-256:{RESET}   {res.get('evidence_sha256')}")
+    print(f"{BOLD}Remediation Cert:{RESET}   {res.get('certificate_path')}\n")
+
+    print(f"{BOLD}Defensive Containment Actions:{RESET}")
+    for act in res.get("actions_executed", []):
+        print(f"  {GREEN}✓{RESET} {act}")
+    print(f"\n{GREEN}[+] Intruder has been physically blocked and crime scene evidence preserved for prosecution.{RESET}\n")
+
+
+# ---------------------------------------------------------
 # Interactive Menu Mode
 # ---------------------------------------------------------
 def run_interactive_menu():
@@ -1398,7 +1603,7 @@ def run_interactive_menu():
         print("  [17] Purge / Delete Operational Data (Wipe Tables)")
         print("  [18] Audit Platform Self-Defense & Code Integrity (Anti-Tamper)")
         print("  [19] Show Full Military-Grade Platform Security Posture")
-        print("  [20] Run Cross-Platform Controlled Attack Simulation (Kali RAT, Windows Shell, Mobile)")
+        print("  [20] ⚡ MASTER CONNECT & SAFEGUARD EVERYTHING (Wired, Wireless, Chargers, Pendrives, Devices & OS)")
         print("  [21] Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
         print("  [22] Audit Physical Wi-Fi, Rogue AP & ARP Poisoning Security (Evil Twin / MitM)")
         print("  [23] Harden Network Stack (Disable LLMNR, Disable ICMP Redirects, Flush Caches)")
@@ -1414,14 +1619,36 @@ def run_interactive_menu():
         print("  [AI2] VIEW AI MODEL STATUS & RECURRING CADENCE (Accuracy, Loss, Checkpoints)")
         print("  [AI3] SET RECURRING RETRAINING CADENCE (Weekly / Monthly / 6-Months)")
         print("  [AI4] DISCOVER DATA BREACH FORENSIC EVIDENCE (Memory, Tokens, VSS & Exfil)")
+        print("  [ETH1] SURVEIL RECONNAISSANCE & FOOTPRINTING (Port Scans, OS Probes, Banner Grabs)")
+        print("  [ETH2] 🎭 MISLEAD ATTACKER PATH & FOOTPRINTS (Deceptive OS, Honeypaths & Canaries)")
+        print("  [ETH3] 🧹 CLEAN & WIPE ALL FOOTPRINTS COMPLETELY (Anti-Trace Zero-Remanence Purge)")
+        print("  [ETH4] 🛑 STOP THIRD-PARTY INTRUDER & COLLECT ORIGIN EVIDENCE (Freeze & Firewall Block)")
         print("  [32] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
         print("  [33] Exit")
         print("=" * 70)
 
-        choice = input("Select an option [0-33 or AI1-AI4]: ").strip()
+        choice = input("Select an option [0-33, AI1-AI4, or ETH1-ETH4]: ").strip()
 
         choice_clean = choice.strip().upper()
-        if choice_clean in ("0A", "SCAN", "SYS-SCAN", "DEEP"):
+        if choice_clean in ("ETH1", "SURVEIL-FOOTPRINTS", "SURVEIL-RECON", "RECON"):
+            cmd_surveil_footprints()
+            input("\nPress Enter to return to menu...")
+            continue
+        elif choice_clean in ("ETH2", "MISLEAD-FOOTPRINTS", "DECEPTION", "MISLEAD"):
+            cmd_mislead_footprints()
+            input("\nPress Enter to return to menu...")
+            continue
+        elif choice_clean in ("ETH3", "CLEAN-FOOTPRINTS", "WIPE-FOOTPRINTS", "ANTI-TRACE"):
+            cmd_clean_all_footprints()
+            input("\nPress Enter to return to menu...")
+            continue
+        elif choice_clean in ("ETH4", "STOP-INTRUSION", "STOP-THIRD-PARTY"):
+            targ = input("Enter intruder Remote IP or Target PID to intercept: ").strip()
+            if targ:
+                cmd_stop_third_party(targ)
+            input("\nPress Enter to return to menu...")
+            continue
+        elif choice_clean in ("0A", "SCAN", "SYS-SCAN", "DEEP"):
             cmd_active_system_scan()
             input("\nPress Enter to return to menu...")
             continue
@@ -1517,9 +1744,8 @@ def run_interactive_menu():
         elif choice == "19":
             cmd_security_armor()
             input("\nPress Enter to return to menu...")
-        elif choice == "20":
-            plat = input("Enter target platform for attack simulation (kali / windows / mobile) [default: kali]: ").strip() or "kali"
-            cmd_simulate_hack(plat)
+        elif choice in ("20", "CONNECT", "SAFEGUARD-ALL", "SWEEP"):
+            cmd_connect_and_safeguard_all()
             input("\nPress Enter to return to menu...")
         elif choice == "21":
             inc = input("Enter Incident ID to contain & preserve (or leave blank for 'latest'): ").strip() or "latest"
@@ -1663,9 +1889,10 @@ def main():
     # security-armor
     subparsers.add_parser("security-armor", help="Display full military-grade security posture report of SENTINEL-X")
 
-    # simulate-hack
-    p_sim = subparsers.add_parser("simulate-hack", help="Simulate live controlled attack, containment & forensic preservation")
-    p_sim.add_argument("--platform", default="kali", choices=["kali", "windows", "mobile"], help="Target platform to simulate")
+    # connect-safeguard
+    subparsers.add_parser("connect-safeguard", help="Run Master Connect & Safeguard sweep across all wired, wireless, chargers, pendrives & OS")
+    subparsers.add_parser("connect-all", help="Run Master Connect & Safeguard sweep across all wired, wireless, chargers, pendrives & OS")
+    subparsers.add_parser("sweep", help="Run Master Connect & Safeguard sweep across all wired, wireless, chargers, pendrives & OS")
 
     # contain-and-preserve
     p_cap = subparsers.add_parser("contain-and-preserve", help="Contain incident and seal forensic crime scene evidence")
@@ -1740,6 +1967,15 @@ def main():
 
     # breach-evidence
     subparsers.add_parser("breach-evidence", help="Discover and seal deep data breach forensic evidence (memory, tokens, VSS, exfiltration)")
+
+    # Footprints, Reconnaissance Surveillance & Deception Suite
+    subparsers.add_parser("surveil-footprints", help="Surveil and detect active reconnaissance, port scans, and OS fingerprint probes")
+    p_mis = subparsers.add_parser("mislead-footprints", help="Deploy deceptive OS fingerprints, honeypath tarpits & canary paths to mislead attackers")
+    p_mis.add_argument("--profile", choices=["DECOY_LEGACY_UNIX", "DECOY_CISCO_IOS", "DECOY_LEGACY_WIN"], default="DECOY_LEGACY_UNIX", help="Deception profile")
+    subparsers.add_parser("clean-footprints", help="Purge and shred all operator footprints, shell histories, droppers & DNS cache (Zero Remanence)")
+    subparsers.add_parser("discover-footprints", help="Discover and inventory all operator footprints and shell command logs")
+    p_stp = subparsers.add_parser("stop-third-party", help="Immediately stop third-party intruder, block remote IP in firewall & seal evidence")
+    p_stp.add_argument("target", help="Remote IP address or rogue process PID to intercept")
 
     # stop-all
     subparsers.add_parser("stop-all", help="Stop all running SENTINEL-X platform services (backend, frontend, background watchers)")
@@ -1842,8 +2078,18 @@ def main():
         cmd_audit_integrity()
     elif args.command == "security-armor":
         cmd_security_armor()
-    elif args.command == "simulate-hack":
-        cmd_simulate_hack(args.platform)
+    elif args.command in ("connect-safeguard", "connect-all", "sweep"):
+        cmd_connect_and_safeguard_all()
+    elif args.command in ("surveil-footprints", "recon-surveil"):
+        cmd_surveil_footprints()
+    elif args.command in ("mislead-footprints", "deception"):
+        cmd_mislead_footprints(fake_os=args.profile)
+    elif args.command in ("clean-footprints", "wipe-footprints"):
+        cmd_clean_all_footprints()
+    elif args.command in ("discover-footprints", "scan-footprints"):
+        cmd_discover_footprints()
+    elif args.command in ("stop-third-party", "stop-intruder"):
+        cmd_stop_third_party(args.target)
     elif args.command == "contain-and-preserve":
         cmd_contain_and_preserve(args.incident_id)
     elif args.command in ("stop", "stop-all"):

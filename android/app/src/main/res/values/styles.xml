@@ -1,0 +1,14 @@
+<resources>
+    <style name="Theme.SentinelX" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/sentinel_cyan</item>
+        <item name="android:windowBackground">@color/sentinel_bg</item>
+        <item name="android:statusBarColor">@color/sentinel_bg</item>
+        <item name="android:navigationBarColor">@color/sentinel_bg</item>
+    </style>
+
+    <style name="Theme.SentinelX.Fullscreen" parent="Theme.SentinelX">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+</resources>

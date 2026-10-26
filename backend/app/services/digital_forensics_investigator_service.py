@@ -40,16 +40,22 @@ import psutil
 import hashlib
 import hmac
 import subprocess
+import sqlite3
+import platform
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DATA_DIR = ROOT_DIR / "data"
+DATABASE_DIR = DATA_DIR / "database"
 EVIDENCE_DIR = DATA_DIR / "evidence"
 REPORTS_DIR = DATA_DIR / "reports"
+DATABASE_DIR.mkdir(parents=True, exist_ok=True)
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = DATABASE_DIR / "sentinel_x.db"
 
 
 class DigitalForensicsInvestigatorService:
@@ -64,6 +70,120 @@ class DigitalForensicsInvestigatorService:
     def __init__(self):
         self.evidence_dir = EVIDENCE_DIR
         self.reports_dir = REPORTS_DIR
+        self.db_path = DB_PATH
+        self._init_database()
+
+    def _init_database(self):
+        """Initializes the unified evidence table in the single overall database."""
+        try:
+            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS investigation_evidence (
+                        id TEXT PRIMARY KEY,
+                        investigation_id TEXT NOT NULL,
+                        timestamp TEXT NOT NULL,
+                        date_and_time TEXT NOT NULL,
+                        from_where TEXT NOT NULL,
+                        site TEXT NOT NULL,
+                        app TEXT NOT NULL,
+                        device TEXT NOT NULL,
+                        device_hostname TEXT NOT NULL,
+                        device_type TEXT NOT NULL,
+                        device_os TEXT NOT NULL,
+                        stage_or_signal TEXT NOT NULL,
+                        subtype TEXT NOT NULL,
+                        severity TEXT NOT NULL,
+                        evidence_hash TEXT NOT NULL,
+                        hmac_signature TEXT NOT NULL,
+                        details TEXT NOT NULL,
+                        mitre_technique TEXT,
+                        raw_data_json TEXT NOT NULL,
+                        created_at TEXT NOT NULL
+                    );
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_inv_id ON investigation_evidence(investigation_id);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_timestamp ON investigation_evidence(timestamp);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_stage ON investigation_evidence(stage_or_signal);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_app ON investigation_evidence(app);")
+                cursor.execute("CREATE INDEX IF NOT EXISTS ix_evidence_site ON investigation_evidence(site);")
+                conn.commit()
+        except Exception:
+            pass
+
+    def get_host_device_info(self) -> Dict[str, str]:
+        """Resolves rich device attribution details for evidence metadata."""
+        hostname = platform.node() or "UNKNOWN_HOST"
+        os_name = platform.system()
+        os_release = platform.release()
+        machine = platform.machine()
+        has_battery = False
+        try:
+            battery = psutil.sensors_battery()
+            has_battery = battery is not None
+        except Exception:
+            pass
+        dev_type = "Laptop" if has_battery else "Desktop/Server"
+        device_label = f"{hostname} ({dev_type} - {os_name} {os_release} ({machine}))"
+        return {
+            "device": device_label,
+            "device_hostname": hostname,
+            "device_type": dev_type,
+            "device_os": f"{os_name} {os_release} ({machine})"
+        }
+
+    def _save_to_central_database(self, inv_result: Dict[str, Any]) -> int:
+        """Persists all discovered findings and timeline events into data/database/sentinel_x.db."""
+        saved_count = 0
+        try:
+            dev_info = self.get_host_device_info()
+            inv_id = inv_result.get("investigation_id", "CASE")
+            timeline = inv_result.get("reconstructed_breach_timeline", [])
+
+            with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+                cursor = conn.cursor()
+                for item in timeline:
+                    rec_id = f"EVD-{inv_id}-{uuid.uuid4().hex[:8].upper()}"
+                    ts = item.get("timestamp") or datetime.now(timezone.utc).isoformat()
+                    try:
+                        clean_ts = ts.replace("Z", "+00:00")
+                        dt = datetime.fromisoformat(clean_ts)
+                        formatted_dt = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+                    except Exception:
+                        formatted_dt = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+                    raw_item_json = json.dumps(item, default=str)
+                    ev_hash = hashlib.sha256(raw_item_json.encode("utf-8")).hexdigest()
+                    hmac_sig = hmac.new(self.HMAC_SECRET, raw_item_json.encode("utf-8"), hashlib.sha256).hexdigest()
+
+                    stage_name = item.get("stage") or "DIGITAL_FORENSICS"
+                    subtype = item.get("category") or "FORENSIC_TIMELINE_EVENT"
+                    severity = item.get("severity") or "HIGH"
+                    details = f"{item.get('title')}: {item.get('description')}"
+
+                    artifact_data = item.get("raw_artifact", {})
+                    from_where = artifact_data.get("file_path") or artifact_data.get("source_ip") or artifact_data.get("channel") or "Forensic Artifact"
+                    site = artifact_data.get("remote_url") or artifact_data.get("remote_ip") or "Local Host"
+                    app = artifact_data.get("process_name") or artifact_data.get("account_name") or "System Kernel"
+
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO investigation_evidence (
+                            id, investigation_id, timestamp, date_and_time, from_where, site, app,
+                            device, device_hostname, device_type, device_os,
+                            stage_or_signal, subtype, severity, evidence_hash, hmac_signature,
+                            details, mitre_technique, raw_data_json, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        rec_id, inv_id, ts, formatted_dt, str(from_where), str(site), str(app),
+                        dev_info["device"], dev_info["device_hostname"], dev_info["device_type"], dev_info["device_os"],
+                        stage_name, subtype, severity, ev_hash, hmac_sig,
+                        details, "T1059", raw_item_json, datetime.now(timezone.utc).isoformat()
+                    ))
+                    saved_count += 1
+                conn.commit()
+        except Exception:
+            pass
+        return saved_count
 
     def _hash_data(self, data: str) -> str:
         return hashlib.sha256(data.encode("utf-8")).hexdigest()
@@ -1169,6 +1289,11 @@ class DigitalForensicsInvestigatorService:
         # Generate Signed Human-Readable Certificate
         cert_path = self._generate_investigation_certificate(result)
         result["investigation_certificate_path"] = str(cert_path)
+
+        # Persist findings and timeline into the single overall database (data/database/sentinel_x.db)
+        persisted_count = self._save_to_central_database(result)
+        result["database_records_persisted"] = persisted_count
+        result["database_path"] = str(self.db_path)
 
         return result
 

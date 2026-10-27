@@ -1,8 +1,13 @@
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 from sqlalchemy import String, Integer, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.auth import User
+    from backend.app.models.forensic import ForensicCase
 
 
 class EvidenceItem(Base):

@@ -10,11 +10,14 @@ from backend.app.main import app
 from backend.app.models.auth import Role, User
 from backend.app.core.security import hash_password, create_access_token
 
+from sqlalchemy.pool import StaticPool
+
 # Test in-memory SQLite database
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
 test_engine = create_async_engine(
     TEST_DB_URL,
+    poolclass=StaticPool,
     connect_args={"check_same_thread": False},
     future=True,
 )
@@ -34,29 +37,42 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         await conn.run_sync(Base.metadata.create_all)
 
     async with TestSessionLocal() as session:
-        # Seed test roles
-        admin_role = Role(name="admin", description="Admin")
-        analyst_role = Role(name="analyst", description="Analyst")
-        viewer_role = Role(name="viewer", description="Viewer")
-        session.add_all([admin_role, analyst_role, viewer_role])
-        await session.commit()
+        # Seed test roles idempotently
+        roles = {}
+        for r_name, r_desc in [("admin", "Admin"), ("analyst", "Analyst"), ("viewer", "Viewer")]:
+            res_r = await session.execute(select(Role).where(Role.name == r_name))
+            role = res_r.scalar_one_or_none()
+            if not role:
+                role = Role(name=r_name, description=r_desc)
+                session.add(role)
+                await session.flush()
+            roles[r_name] = role
 
-        # Seed test users
-        admin_user = User(
-            username="test_admin",
-            email="admin@sentinel-x.org",
-            hashed_password=hash_password("AdminPass123!"),
-            role_id=admin_role.id,
-            is_active=True,
-        )
-        analyst_user = User(
-            username="test_analyst",
-            email="analyst@sentinel-x.org",
-            hashed_password=hash_password("AnalystPass123!"),
-            role_id=analyst_role.id,
-            is_active=True,
-        )
-        session.add_all([admin_user, analyst_user])
+        admin_role = roles["admin"]
+        analyst_role = roles["analyst"]
+
+        # Seed test users idempotently
+        res_admin = await session.execute(select(User).where(User.username == "test_admin"))
+        if not res_admin.scalar_one_or_none():
+            admin_user = User(
+                username="test_admin",
+                email="admin@sentinel-x.org",
+                hashed_password=hash_password("AdminPass123!"),
+                role_id=admin_role.id,
+                is_active=True,
+            )
+            session.add(admin_user)
+
+        res_analyst = await session.execute(select(User).where(User.username == "test_analyst"))
+        if not res_analyst.scalar_one_or_none():
+            analyst_user = User(
+                username="test_analyst",
+                email="analyst@sentinel-x.org",
+                hashed_password=hash_password("AnalystPass123!"),
+                role_id=analyst_role.id,
+                is_active=True,
+            )
+            session.add(analyst_user)
         await session.commit()
 
         # Sync host-derived system credentials into test session

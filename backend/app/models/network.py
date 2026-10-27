@@ -1,8 +1,12 @@
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 from sqlalchemy import String, Integer, Float, DateTime, Boolean, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.host import Host
 
 
 class NetworkObservation(Base):

@@ -1,8 +1,15 @@
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 from sqlalchemy import String, DateTime, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.rule import DetectionRule
+    from backend.app.models.host import Host
+    from backend.app.models.auth import User
+    from backend.app.models.event import NormalizedEvent
 
 
 class Incident(Base):

@@ -11,7 +11,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131.svg?style=flat&logo=tauri)](https://tauri.app)
 [![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4.svg?style=flat&logo=googlechrome)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/Tests-73%2F73_Passed-success.svg)](#10-automated-test-suite--benchmarking)
+[![Tests](https://img.shields.io/badge/Tests-95%2F95_Passed-success.svg)](#10-automated-test-suite--benchmarking)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
@@ -1741,20 +1741,34 @@ docker compose up --build -d
 
 ---
 
-### 9.7 Direct Terminal CLI Security Suite (cli.py)
+### 9.7 Direct Terminal CLI Security Suite (cli.py & Fast Launchers)
 
 If you prefer performing security inspections, link analysis, virus scanning, hardware port quarantines, and data purges directly from PowerShell or the command line without opening a browser:
 
 ```cmd
-# Run interactive menu
-python cli.py
-# or via the launcher
-python launcher.py cli
+# Fast Launchers (Windows Terminal / PowerShell / CMD)
+sentinel tools                           # Display complete terminal tools quick-usage manual
+sentinel safeguard                       # Live physical host threat hunt
+sentinel system-scan                     # Real-time in-depth OS virus & malware scan
+sentinel scan-folder --path ./scripts    # Recursive workspace threat audit
+tools                                    # Launch Master Interactive 50+ Tool Workbench
+
+# Direct Python Execution
+python cli.py tools                      # View all commands directly in terminal
+python cli.py interactive                # Master Interactive Terminal Console
+python cli.py safeguard --continuous     # 24/7 background host guardian
 ```
 
 #### Individual Command-Line Actions:
 | Command | Arguments | What It Does Directly in the Terminal |
 | :--- | :--- | :--- |
+| **Terminal Tools Reference** | `python cli.py tools` / `sentinel tools` | Displays complete terminal reference manual with syntax and examples across all 7 defensive sectors. |
+| **Master Interactive Console** | `python cli.py interactive` / `tools.bat` | Launches full 50+ tool numbered terminal interactive workbench console. |
+| **Workspace & Folder Scanner** | `python cli.py scan-folder [--path <DIR>]` | Recursively crawls target folder, audits Shannon entropy, flags suspicious scripts, and detects web shells/packers. |
+| **Static Malware Triage** | `python cli.py triage-malware <PATH>` | Non-executing deep triage: extracts PE/ELF headers, sections, imports, Shannon entropy, and cryptographic hashes (MD5, SHA-256). |
+| **Vulnerability Assessment** | `python cli.py assess-target <URL_OR_HOST>` | Scans authorized web targets for OWASP Top 10 security header misconfigurations and audits TLS ciphers & SSL certificate validity. |
+| **Active Incidents Viewer** | `python cli.py list-incidents` | Direct terminal viewer for all active, contained, or closed incidents with severity badges and forensic case links. |
+| **Security Dossier Generator** | `python cli.py generate-report [--title <NAME>]` | Generates official publication-ready Markdown and JSON compliance reports signed with cryptographic forensic hashes. |
 | **Direct Link Analysis** | `python cli.py scan-link <URL>` | Traces HTTP redirects, inspects end payload streams, audits domain entropy, flags credential phishing and drive-by malware. |
 | **Deep Path & Software Scan** | `python cli.py deep-scan <URL>` | Recursively crawls redirects and webpage trees, downloading and unpacking all binaries (`.exe`, `.zip`, `.msi`) until the path is certified clean. |
 | **Direct File & Doc Scan** | `python cli.py scan-file <PATH>` | Inspects files for double extension tricks (`.pdf.exe`), unpacks Office VBA macros, audits PDF `/Launch` actions, and flags packed binaries. |
@@ -1798,6 +1812,7 @@ python launcher.py cli
 | **Set AI Recurrence Cadence** | `python cli.py set-ai-schedule --recurrence [weekly\|monthly\|6months]` | Configures automated background retraining cadence (7 days, 30 days, or 180 days). |
 | **Deep Breach Evidence Seal** | `python cli.py breach-evidence` | Audits volatile memory, browser cookie vaults, DPAPI secrets, shadow copies, and socket exfiltration on live host; cryptographically seals evidence into `data/evidence/BREACH-EVID-*.json`. |
 | **AI Linux Threat Investigator** | `python cli.py ai-investigator [--continuous]` | Correlates 4 operational signals (processes, logins, files, network) with 4-stage digital forensics, executes safe remediation, generates read-only evidence vaults (`0400`), and records metadata into single overall database (`data/database/sentinel_x.db`). |
+
 
 ---
 

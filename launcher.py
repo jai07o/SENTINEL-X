@@ -18,6 +18,13 @@ import webbrowser
 import urllib.request
 from pathlib import Path
 
+# Ensure UTF-8 output on Windows consoles
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT_DIR = Path(__file__).resolve().parent
 VENV_PYTHON = ROOT_DIR / ".venv" / "Scripts" / "python.exe"
 if not VENV_PYTHON.exists():
@@ -285,52 +292,19 @@ WHITE = "\033[97m"
 
 
 def print_banner():
-    try:
-        import socket
-        import platform
-        import psutil
-        hname = socket.gethostname()
-        os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
-        battery = psutil.sensors_battery()
-        dev_type = "Mobile / Handheld" if os.path.exists("/data/data/com.termux") else ("Laptop" if battery else "Desktop PC")
-        bat_str = f" | Battery: {round(battery.percent)}% {'[Charging]' if battery.power_plugged else '[Discharging]'}" if battery else " | Power: AC Line"
-    except Exception:
-        hname = "Connected Host"
-        os_info = "Multi-OS Target"
-        dev_type = "Physical Device"
-        bat_str = ""
-
-    banner = f"""{CYAN}{BOLD}
-                   /\\                                    /\\  
-                  /  \\  .------------------------.  /  \\ 
-                 |    \\/   .----------------.   \\/    |
-                 |    /   /   {BLUE}\\          /   {CYAN}\\   \\    |
-                 |   |   |     {BLUE}\\        /     {CYAN}|   |   |
-                 |   |   |   {GREEN}==[{BLUE}\\      /{GREEN}]==   {CYAN}|   |   |
-                 |   |   |       {BLUE}\\    /       {CYAN}|   |   |
-                 |   |   |        {BLUE}\\  /        {CYAN}|   |   |
-                 |   |   |         {WHITE}><         {CYAN}|   |   |
-                 |   |   |        {BLUE}/  \\        {CYAN}|   |   |
-                 |   |   |       {BLUE}/    \\       {CYAN}|   |   |
-                 |   |   |   {GREEN}==[{BLUE}/      \\{GREEN}]==   {CYAN}|   |   |
-                 |   |   |     {BLUE}/        \\     {CYAN}|   |   |
-                 |    \\   \\   {BLUE}/          \\   {CYAN}/   /    |
-                 |    /\\   '----------------'   /\\    |
-                  \\  /  \\                        /  \\  / 
-                   \\/    '------------------------'    \\/
-
-        ____  _____ _   _ _____ ___ _   _ _____ _     __  __ 
-       / ___|| ____| \\ | |_   _|_ _| \\ | | ____| |    \\ \\/ / 
-       \\___ \\|  _| |  \\| | | |  | ||  \\| |  _| | |     \\  /  
-        ___) | |___| |\\  | | |  | || |\\  | |___| |___  /  \\  
-       |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ 
-{RESET}========================================================================
- {WHITE}{BOLD}SENTINEL-X -- Unified Cyber Defense, Testing, Forensics & Investigation Platform{RESET}
- {WHITE}Architecture:{RESET} {YELLOW}Multi-OS Live Guard (Windows, Linux, Android & Chrome Extension){RESET}
- {WHITE}Edition:{RESET} {YELLOW}Enterprise SOC Control Center v2.4.0{RESET}
- {WHITE}Connected Host:{RESET} {CYAN}{BOLD}{hname}{RESET} ({dev_type}) | {WHITE}OS:{RESET} {os_info}{bat_str}
-========================================================================"""
+    banner = f"""{CYAN}{BOLD}================================================================={RESET}
+{CYAN}{BOLD}    ███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗     
+    ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║     
+    ███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║     
+    ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║     
+    ███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
+    ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝{RESET}
+{WHITE}{BOLD}                     SENTINEL-X CONTROL CENTER                       {RESET}
+{CYAN}{BOLD}================================================================={RESET}"""
     print(banner)
+
+
+
 
 
 def manage_ai_engine():

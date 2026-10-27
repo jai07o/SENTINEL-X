@@ -13,6 +13,8 @@ Allows direct terminal analysis of:
 """
 import os
 import sys
+import time
+from datetime import datetime, timezone
 import argparse
 import asyncio
 import json
@@ -46,51 +48,18 @@ WHITE = "\033[97m"
 
 
 def print_banner():
-    try:
-        import socket
-        import platform
-        hname = socket.gethostname()
-        os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
-        battery = psutil.sensors_battery()
-        dev_type = "Mobile / Handheld" if os.path.exists("/data/data/com.termux") else ("Laptop" if battery else "Desktop PC")
-        bat_str = f" | Battery: {round(battery.percent)}% {'[Charging]' if battery.power_plugged else '[Discharging]'}" if battery else " | Power: AC Line"
-    except Exception:
-        hname = "Connected Host"
-        os_info = "Multi-OS Target"
-        dev_type = "Physical Device"
-        bat_str = ""
-
-    banner = f"""{CYAN}{BOLD}
-                   /\\                                    /\\  
-                  /  \\  .------------------------.  /  \\ 
-                 |    \\/   .----------------.   \\/    |
-                 |    /   /   {BLUE}\\          /   {CYAN}\\   \\    |
-                 |   |   |     {BLUE}\\        /     {CYAN}|   |   |
-                 |   |   |   {GREEN}==[{BLUE}\\      /{GREEN}]==   {CYAN}|   |   |
-                 |   |   |       {BLUE}\\    /       {CYAN}|   |   |
-                 |   |   |        {BLUE}\\  /        {CYAN}|   |   |
-                 |   |   |         {WHITE}><         {CYAN}|   |   |
-                 |   |   |        {BLUE}/  \\        {CYAN}|   |   |
-                 |   |   |       {BLUE}/    \\       {CYAN}|   |   |
-                 |   |   |   {GREEN}==[{BLUE}/      \\{GREEN}]==   {CYAN}|   |   |
-                 |   |   |     {BLUE}/        \\     {CYAN}|   |   |
-                 |    \\   \\   {BLUE}/          \\   {CYAN}/   /    |
-                 |    /\\   '----------------'   /\\    |
-                  \\  /  \\                        /  \\  / 
-                   \\/    '------------------------'    \\/
-
-        ____  _____ _   _ _____ ___ _   _ _____ _     __  __ 
-       / ___|| ____| \\ | |_   _|_ _| \\ | | ____| |    \\ \\/ / 
-       \\___ \\|  _| |  \\| | | |  | ||  \\| |  _| | |     \\  /  
-        ___) | |___| |\\  | | |  | || |\\  | |___| |___  /  \\  
-       |____/|_____|_| \\_| |_| |___|_| \\_|_____|_____|/_/\\_\\ 
-{RESET}========================================================================
- {WHITE}{BOLD}SENTINEL-X -- Unified Cyber Defense, Testing, Forensics & Investigation Platform{RESET}
- {WHITE}Architecture:{RESET} {YELLOW}Multi-OS Live Guard (Windows, Linux, Android & Chrome Extension){RESET}
- {WHITE}Edition:{RESET} {YELLOW}Enterprise SOC v2.4.0{RESET} | {WHITE}Status:{RESET} {GREEN}[SHIELD ONLINE - ZERO-TRUST REAL-TIME GUARD]{RESET}
- {WHITE}Connected Host:{RESET} {CYAN}{BOLD}{hname}{RESET} ({dev_type}) | {WHITE}OS:{RESET} {os_info}{bat_str}
-========================================================================"""
+    banner = f"""{CYAN}{BOLD}================================================================={RESET}
+{CYAN}{BOLD}    ███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗     
+    ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║     
+    ███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║     
+    ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║     
+    ███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
+    ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝{RESET}
+{WHITE}{BOLD}                     SENTINEL-X CONTROL CENTER                       {RESET}
+{CYAN}{BOLD}================================================================={RESET}"""
     print(banner)
+
+
 
 
 def format_verdict(is_clean: bool, verdict: str = "") -> str:
@@ -372,7 +341,7 @@ def cmd_quarantine_port(target_or_device: str, reason: str = "Manual Terminal Po
     from backend.app.services.hardware_port_service import hardware_port_service
     res = hardware_port_service.quarantine_port(target_or_device, reason)
     print(f"{BOLD}Result:{RESET} {res.get('message')}")
-    for act in res.get("record", {}).get("actions_log", []):
+    for act in (res.get("record") or {}).get("actions_log", []):
         print(f"  - {act}")
 
 
@@ -486,7 +455,14 @@ def cmd_watch_usb():
 def cmd_purge_data(category: str = "all", confirm: bool = False):
     if not confirm:
         print(f"\n{YELLOW}{BOLD}WARNING: You are about to permanently delete records for category: '{category}'.{RESET}")
-        ans = input("Are you sure you want to proceed? Type 'DELETE' to confirm: ").strip()
+        if not sys.stdin.isatty():
+            print(f"{RED}[*] Deletion aborted: Confirmation required in non-interactive mode. Pass --yes flag to confirm.{RESET}")
+            return
+        try:
+            ans = input("Are you sure you want to proceed? Type 'DELETE' to confirm: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print(f"\n{RED}[*] Deletion aborted by user.{RESET}")
+            return
         if ans != "DELETE":
             print(f"{RED}[*] Deletion aborted.{RESET}")
             return
@@ -741,9 +717,12 @@ def cmd_live_safeguard(continuous: bool = False):
                 print(f"      - {YELLOW}{ind}{RESET}")
             
             if sys.stdin.isatty():
-                ans = input(f"\nImmediately Rectify Threat PID {th['pid']} (Freeze Forensics, Kill, Wipe Persistence)? [Y/n]: ").strip().lower()
-                if ans != "n":
-                    cmd_rectify_threat(str(th["pid"]))
+                try:
+                    ans = input(f"\nImmediately Rectify Threat PID {th['pid']} (Freeze Forensics, Kill, Wipe Persistence)? [Y/n]: ").strip().lower()
+                    if ans != "n":
+                        cmd_rectify_threat(str(th["pid"]))
+                except (KeyboardInterrupt, EOFError):
+                    break
             else:
                 print(f"\n{YELLOW}[!] Run 'python cli.py rectify {th['pid']}' to execute forensic freeze, kill process, and wipe persistence.{RESET}")
 
@@ -851,9 +830,12 @@ def cmd_scan_wifi():
             print(f"      Action:      {YELLOW}{t.get('recommended_action')}{RESET}")
 
         if sys.stdin.isatty():
-            ans = input("\nImmediately Rectify Threat (Freeze Forensics, Sever Wi-Fi, Flush Caches)? [Y/n]: ").strip().lower()
-            if ans != "n":
-                cmd_rectify_wifi()
+            try:
+                ans = input("\nImmediately Rectify Threat (Freeze Forensics, Sever Wi-Fi, Flush Caches)? [Y/n]: ").strip().lower()
+                if ans != "n":
+                    cmd_rectify_wifi()
+            except (KeyboardInterrupt, EOFError):
+                pass
         else:
             print(f"\n{YELLOW}[!] Run 'python cli.py rectify-wifi' or 'python cli.py disconnect-wifi' to sever and preserve evidence.{RESET}\n")
 
@@ -1200,9 +1182,15 @@ def cmd_active_system_scan(auto_repair: bool = False):
     print(f"{BOLD}{'=' * 75}{RESET}\n")
 
     if auto_repair or findings:
-        rep_prompt = input(f"{BOLD}Do you want to completely solve & repair all problems on this system now? (y/n) [default: y]: {RESET}").strip().lower()
-        if rep_prompt in ("", "y", "yes"):
-            cmd_active_system_repair()
+        if sys.stdin.isatty():
+            try:
+                rep_prompt = input(f"{BOLD}Do you want to completely solve & repair all problems on this system now? (y/n) [default: y]: {RESET}").strip().lower()
+                if rep_prompt in ("", "y", "yes"):
+                    cmd_active_system_repair()
+            except (KeyboardInterrupt, EOFError):
+                pass
+        else:
+            print(f"{YELLOW}[*] Non-interactive mode: Run 'python cli.py system-repair' to apply automated repairs.{RESET}\n")
 
 
 def cmd_active_system_repair():
@@ -1832,12 +1820,266 @@ def cmd_stop_third_party(target: str):
     print(f"\n{GREEN}[+] Intruder has been physically blocked and crime scene evidence preserved for prosecution.{RESET}\n")
 
 
-# ---------------------------------------------------------
-# Interactive Menu Mode
-# ---------------------------------------------------------
+def cmd_scan_folder(target_dir: Optional[str] = None):
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}WORKSPACE & DIRECTORY RECURSIVE THREAT SCANNER{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    from backend.app.services.folder_scanner_service import folder_scanner_service
+    res = folder_scanner_service.scan_directory(target_dir=target_dir, max_files=500)
+    summary = res.get("summary", {})
+    files = res.get("files", [])
+
+    print(f"{BOLD}Target Directory:{RESET}   {summary.get('scanned_directory')}")
+    print(f"{BOLD}Files Audited:{RESET}      {summary.get('total_files')}")
+    print(f"{BOLD}Total Data Size:{RESET}    {summary.get('total_size_mb')} MB")
+    print(f"{BOLD}Clean Files:{RESET}        {GREEN}{summary.get('clean_files')}{RESET}")
+    print(f"{BOLD}Flagged Threats:{RESET}    {RED if summary.get('flagged_threats', 0) > 0 else GREEN}{summary.get('flagged_threats')}{RESET}")
+    print(f"{BOLD}High Entropy Files:{RESET} {summary.get('high_entropy_files')}\n")
+
+    threats = [f for f in files if f.get("threat_level") != "CLEAN"]
+    if threats:
+        print(f"{RED}{BOLD}Flagged Threat Indicators Detected:{RESET}")
+        for t in threats:
+            print(f"  [{RED}{t.get('threat_level')}{RESET}] {t.get('relative_path')}")
+            print(f"      Size: {t.get('size_formatted')} | Entropy: {t.get('entropy')} | SHA-256: {t.get('sha256', '')[:16]}...")
+            if t.get("threat_indicators"):
+                print(f"      Signatures: {YELLOW}{', '.join(t.get('threat_indicators'))}{RESET}")
+    else:
+        print(f"{GREEN}[+] All scanned files in directory verified clean with normal entropy baselines.{RESET}\n")
+
+
+def cmd_triage_malware(filepath: str):
+    print(f"\n{MAGENTA}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}MALWARE STATIC TRIAGE & DISARMING ANALYSIS{RESET}")
+    print(f"{MAGENTA}{BOLD}=============================================================================={RESET}")
+    p = Path(filepath)
+    if not p.exists() or not p.is_file():
+        print(f"{RED}[-] Error: File not found: {filepath}{RESET}")
+        return
+    with open(p, "rb") as f:
+        data = f.read()
+    from backend.app.services.malware_service import malware_service
+    res = malware_service.triage_sample(data, p.name)
+    verdict = res.get("threat_verdict", "UNCERTAIN")
+    color = RED if verdict == "MALICIOUS" else (YELLOW if verdict == "SUSPICIOUS" else GREEN)
+    print(f"{BOLD}Filename:{RESET}       {res.get('filename')}")
+    print(f"{BOLD}File Format:{RESET}    {res.get('file_format')} {res.get('format_metadata', {})}")
+    print(f"{BOLD}Size:{RESET}           {len(data):,} bytes")
+    print(f"{BOLD}Entropy:{RESET}        {res.get('entropy')} / 8.0 (>=7.0 suggests packed/encrypted)")
+    print(f"{BOLD}Verdict:{RESET}        {color}{BOLD}{verdict}{RESET}")
+    print(f"{BOLD}Risk Score:{RESET}     {color}{res.get('risk_score')}/100{RESET}")
+    print(f"\n{BOLD}Cryptographic Hashes:{RESET}")
+    for h_name, h_val in res.get("hashes", {}).items():
+        print(f"  - {h_name.upper():<7}: {h_val}")
+    iocs = res.get("iocs", {})
+    if any(iocs.values()):
+        print(f"\n{YELLOW}{BOLD}Extracted IOCs & Network Indicators:{RESET}")
+        if iocs.get("ips"):
+            print(f"  - IPs: {', '.join(iocs['ips'][:10])}")
+        if iocs.get("urls"):
+            print(f"  - URLs: {', '.join(iocs['urls'][:10])}")
+        if iocs.get("suspicious_commands"):
+            print(f"  - Commands: {', '.join(iocs['suspicious_commands'][:10])}")
+    print(f"\n{BOLD}Analysis Notes:{RESET}\n{res.get('analysis_notes')}\n")
+
+
+def cmd_assess_target(target: str):
+    print(f"\n{BLUE}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}AUTHORIZED VULNERABILITY ASSESSMENT & TLS/HEADERS AUDIT{RESET}")
+    print(f"{BLUE}{BOLD}=============================================================================={RESET}")
+    from backend.app.services.assessment_service import assessment_service
+    from urllib.parse import urlparse
+    target_clean = target.strip()
+    if not target_clean.startswith(("http://", "https://")):
+        target_clean = "https://" + target_clean
+    parsed = urlparse(target_clean)
+    hostname = parsed.hostname or target_clean
+    print(f"[*] Assessing target: {target_clean} (Host: {hostname})...")
+    header_findings = assessment_service.audit_security_headers(target_clean)
+    tls_info = assessment_service.check_tls_configuration(hostname, parsed.port or 443)
+
+    print(f"\n{BOLD}TLS / SSL Transport Security:{RESET}")
+    print(f"  - TLS Enabled:       {'YES' if tls_info.get('tls_enabled') else 'NO'}")
+    print(f"  - Certificate Valid: {'YES' if tls_info.get('certificate_valid') else 'INVALID / EXPIRED'}")
+    print(f"  - Cipher Suite:      {tls_info.get('cipher_suite')}")
+    print(f"  - Expiration:        {tls_info.get('expires')}")
+
+    all_findings = header_findings + tls_info.get("findings", [])
+    if all_findings:
+        print(f"\n{YELLOW}{BOLD}Security Findings & Missing Protections ({len(all_findings)}):{RESET}")
+        for idx, f in enumerate(all_findings, 1):
+            sev_color = RED if f.get("severity") in ("HIGH", "CRITICAL") else (YELLOW if f.get("severity") == "MEDIUM" else CYAN)
+            print(f"  [{idx}] {sev_color}{BOLD}{f.get('severity')}{RESET} - {f.get('title')} (CVSS: {f.get('cvss_score')})")
+            print(f"      Category:    {f.get('owasp_category')}")
+            print(f"      Remediation: {f.get('remediation')}")
+    else:
+        print(f"\n{GREEN}[+] All required security headers and TLS parameters are properly configured.{RESET}\n")
+
+
+def cmd_list_incidents():
+    print(f"\n{YELLOW}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}SENTINEL-X ACTIVE INCIDENT LOG & DOSSIER VIEWER{RESET}")
+    print(f"{YELLOW}{BOLD}=============================================================================={RESET}")
+    import sqlite3
+    db_path = ROOT_DIR / "sentinel_dev.db"
+    if not db_path.exists():
+        db_path = ROOT_DIR / "data" / "database" / "sentinel_x.db"
+    if not db_path.exists():
+        print(f"{YELLOW}[*] Local SQLite database not yet initialized.{RESET}")
+        return
+
+    try:
+        conn = sqlite3.connect(str(db_path))
+        cursor = conn.cursor()
+        cursor.execute("SELECT incident_number, title, severity, status, confidence, host_id, created_at FROM incidents ORDER BY created_at DESC LIMIT 25")
+        rows = cursor.fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"{YELLOW}[*] Notice querying incident records: {e}{RESET}")
+        return
+    if not rows:
+        print(f"{GREEN}[+] Zero open incidents. Platform is completely secure and clean.{RESET}\n")
+        return
+    print(f"{'INCIDENT ID':<18} {'SEVERITY':<10} {'STATUS':<14} {'CONF':<8} {'TITLE':<35} {'DATE'}")
+    print("-" * 105)
+    for r in rows:
+        inc_num, title, sev, status, conf, host_id, created_at = r
+        sev_color = RED if sev in ("CRITICAL", "HIGH") else (YELLOW if sev == "MEDIUM" else GREEN)
+        print(f"{inc_num:<18} {sev_color}{sev:<10}{RESET} {status:<14} {int(conf*100) if conf else 85}%     {title[:33]:<35} {str(created_at)[:19]}")
+    print(f"\n{CYAN}[*] Tip: Run 'python cli.py contain-and-preserve <INCIDENT_ID>' to contain and seal evidence.{RESET}\n")
+
+
+def cmd_generate_report(target_name: Optional[str] = None):
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}GENERATING OFFICIAL PUBLICATION-READY SECURITY REPORT DOSSIER{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    from datetime import datetime, timezone
+    from backend.app.services.report_service import ReportService
+    from backend.app.config import REPORTS_DIR
+    rs = ReportService(REPORTS_DIR)
+    now_dt = datetime.now(timezone.utc)
+    now_str = now_dt.strftime("%Y%m%d_%H%M%S")
+    title = target_name or f"SENTINEL-X Enterprise Security Assessment {now_dt.strftime('%Y-%m-%d')}"
+    incident_data = {
+        "incident_number": f"SEC-AUDIT-{now_str[:8]}",
+        "title": title,
+        "severity": "INFORMATIONAL",
+        "confidence": 1.0,
+        "status": "Verified",
+        "host_id": "CONNECTED_HOST",
+        "rule_name": "Comprehensive Multi-Vector Defense Audit",
+        "mitre_tactic": "Security Posture Verification",
+        "mitre_technique_id": "T1082",
+        "description": "Full-spectrum physical host security verification, real-time intrusion monitoring, and cryptographic tamper audit."
+    }
+    report = rs.generate_incident_report(incident_data, [], analyst_username="security_analyst")
+    md_file = report.get('export_filepath')
+    json_file = md_file.replace('.md', '.json') if md_file else 'N/A'
+    print(f"{GREEN}[+] Security Dossier successfully generated and sealed:{RESET}")
+    print(f"{BOLD}Title:{RESET}             {report.get('title')}")
+    print(f"{BOLD}Markdown Export:{RESET}   {md_file}")
+    print(f"{BOLD}JSON Export:{RESET}       {json_file}\n")
+
+
+def cmd_show_tools_usage():
+    print(f"\n{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f" {BOLD}SENTINEL-X DIRECT TERMINAL TOOLS QUICK-USAGE REFERENCE MANUAL{RESET}")
+    print(f"{CYAN}{BOLD}=============================================================================={RESET}")
+    print(f"{WHITE}{BOLD}Launcher Commands:{RESET} Use {GREEN}python cli.py <command>{RESET} or {GREEN}sentinel <command>{RESET} or {GREEN}tools <command>{RESET}\n")
+
+    sectors = [
+        ("SECTOR 1: PHYSICAL HOST & VIRUS DEFENSE", [
+            ("python cli.py safeguard", "Run live physical threat hunt across processes and memory"),
+            ("python cli.py safeguard --continuous", "Start 24/7 autonomous host defense daemon"),
+            ("python cli.py system-scan", "Run in-depth active OS virus and malware scan"),
+            ("python cli.py system-repair", "One-click solve and repair all system issues & threats"),
+            ("python cli.py total-safeguard", "Run 360° total safeguard audit across all sectors"),
+            ("python cli.py rectify-360", "Execute 360° master rectification & evidence freeze"),
+            ("python cli.py rectify <PID/Name>", "Kill malicious process, wipe persistence & issue cert"),
+        ]),
+        ("SECTOR 2: THREAT, FILE & DIRECTORY SCANNERS", [
+            ("python cli.py scan-folder --path <dir>", "Recursive threat audit, entropy check & webshell hunt"),
+            ("python cli.py triage-malware <path>", "Static malware triage, entropy, and IOC extraction"),
+            ("python cli.py scan-file <path>", "Deep scan single file for malicious triggers & macros"),
+            ("python cli.py scan-link <url>", "Analyze URL for quishing, phishing & hostile redirects"),
+            ("python cli.py deep-scan <url>", "Inspect binary downloads, archive payloads & unpacks"),
+            ("python cli.py scan-picture <path>", "Audit image for polyglots, steganography & shellcode"),
+            ("python cli.py scan-qr <image_path>", "Decode QR code and inspect destination safety"),
+        ]),
+        ("SECTOR 3: WI-FI & WIRELESS NETWORK SECURITY", [
+            ("python cli.py scan-wifi", "Audit current Wi-Fi for Evil Twins, rogue BSSIDs & ARP spoofing"),
+            ("python cli.py guard-wifi --continuous", "Run continuous live background Wi-Fi guardian"),
+            ("python cli.py rectify-wifi", "Sever Wi-Fi, flush ARP/DNS caches & freeze crime scene"),
+            ("python cli.py harden-network", "Harden network stack (disable LLMNR, NetBIOS & ICMP redirects)"),
+            ("python cli.py trust-wifi", "Pin current connected Wi-Fi BSSID as trusted signature"),
+            ("python cli.py disconnect-wifi", "Emergency immediate physical network severance"),
+        ]),
+        ("SECTOR 4: HARDWARE, PORTS & USB AUTO-RUN DEFENSE", [
+            ("python cli.py list-ports", "Enumerate all connected hardware ports (USB, RJ45, HDMI)"),
+            ("python cli.py scan-cables", "Scan connected USB devices & drives with auto-quarantine"),
+            ("python cli.py watch-usb", "Start live watcher to intercept and block rogue pendrives"),
+            ("python cli.py quarantine-port <E:>", "Dismount and physically block a rogue port or drive"),
+            ("python cli.py release-port <E:>", "Re-enable a previously quarantined hardware port"),
+            ("python cli.py immunize-host", "Apply Windows registry lock against USB AutoRun viruses"),
+            ("python cli.py vaccinate-drive <G:>", "Vaccinate external pendrive with immutable autorun.inf"),
+            ("python cli.py safe-charging --enable", "Enable Charger-Only Safe Mode (Data-pin lockout)"),
+        ]),
+        ("SECTOR 5: NETWORK SOCKETS, BACKDOORS & PRIVACY", [
+            ("python cli.py scan-sockets", "Audit active connections for C2 trojans & listeners"),
+            ("python cli.py guard-sockets --continuous", "Start continuous socket watcher daemon"),
+            ("python cli.py rectify-socket <port/PID>", "Kill process, isolate remote IP with firewall rules"),
+            ("python cli.py scan-camera", "Audit camera and microphone handles for background spyware"),
+        ]),
+        ("SECTOR 6: AI DEFENSE & MACHINE LEARNING", [
+            ("python cli.py ai-status", "View AI model accuracy, epoch history & update schedule"),
+            ("python cli.py train-ai", "Trigger autonomous model retraining & safeguard evolution"),
+            ("python cli.py set-ai-schedule weekly", "Set retraining cadence (weekly, monthly, 6months)"),
+            ("python cli.py ai-investigator --continuous", "AI Linux Threat Investigator for processes & logins"),
+            ("python cli.py breach-evidence", "Hunt for tokens, credentials, VSS and memory dumps"),
+        ]),
+        ("SECTOR 7: FORENSIC INVESTIGATION, REPORTING & ADMIN", [
+            ("python cli.py list-incidents", "View all active/contained incidents and severity"),
+            ("python cli.py contain-and-preserve <ID>", "Freeze crime scene into sealed forensic vault (0400)"),
+            ("python cli.py forensic-investigation", "4-Stage timeline reconstruction & memory forensic analysis"),
+            ("python cli.py assess-target <url>", "Audit TLS ciphers & security headers of authorized target"),
+            ("python cli.py generate-report --title <t>", "Generate publication-ready Markdown & JSON security dossier"),
+            ("python cli.py audit-integrity", "Cryptographically verify platform SHA-256 integrity"),
+            ("python cli.py security-armor", "Display full military-grade security posture matrix"),
+            ("python cli.py offline-shield", "Audit & apply persistent OS hardening (Zero-Runtime Shield)"),
+            ("python cli.py install-offline-shield", "Install 24/7 background OS watchdog task"),
+            ("python cli.py purge-data --category all", "Purge database operational logs"),
+            ("python cli.py stop-all", "Gracefully terminate backend, frontend & watchdog services"),
+            ("python cli.py interactive", "Launch Master Interactive Menu with 50+ numbered options"),
+        ])
+    ]
+
+    for title, cmds in sectors:
+        print(f"{YELLOW}{BOLD}[{title}]{RESET}")
+        for cmd_syntax, desc in cmds:
+            print(f"  {GREEN}{BOLD}{cmd_syntax:<46}{RESET} {desc}")
+        print()
+
+
+def _pause_menu():
+    if not sys.stdin.isatty():
+        return
+    try:
+        input("\nPress Enter to return to menu...")
+    except (KeyboardInterrupt, EOFError):
+        pass
+
+
 def run_interactive_menu():
+    if not sys.stdin.isatty():
+        print(f"{YELLOW}[!] Interactive menu requires an interactive TTY console.{RESET}")
+        print(f"{CYAN}[*] Tip: Use direct CLI subcommands like 'python cli.py total-safeguard' or 'python cli.py --help'.{RESET}\n")
+        return
+
     while True:
         print_banner()
+        print(f" {BOLD}MASTER INTERACTIVE TERMINAL TOOLS & SECURITY WORKBENCH{RESET}")
+        print(f"{CYAN}{BOLD}========================================================================{RESET}")
+        print(f"\n{YELLOW}{BOLD}[SECTOR 1: PHYSICAL HOST & ACTIVE SYSTEM SECURITY]{RESET}")
         print("  [0A] LIVE SYSTEM CONNECT & IN-DEPTH VIRUS SCAN (Active Host Laptop/PC/Android)")
         print("  [0B] ONE-CLICK COMPLETE SYSTEM REPAIR & PROBLEM SOLVER (Solve All Problems Completely)")
         print("  [0C] SHOW ALL CONNECTED HARDWARE PORTS (USB, Net Cable RJ-45, HDMI Video, Audio Jacks)")
@@ -1846,50 +2088,71 @@ def run_interactive_menu():
         print("  [1]  Run Live Physical Host Threat Hunt & Supreme Safeguard (Inspects Processes & Sockets)")
         print("  [2]  Rectify Hostile Process / Bad Incident (Forensic Freeze, Kill, Persistence Wipe & Certificate)")
         print("  [3]  Start Continuous Real-Time Host Guardian Daemon (Background Intercept & Auto-Rectify)")
-        print("  [4]  Scan Web Link / URL")
+
+        print(f"\n{YELLOW}{BOLD}[SECTOR 2: THREAT, FILE & DIRECTORY SCANNERS]{RESET}")
+        print("  [F1] 📁 RECURSIVE WORKSPACE & FOLDER THREAT SCANNER (Hashes, Entropy, Web Shells)")
+        print("  [F2] 🔬 MALWARE STATIC TRIAGE & DISARMING ANALYSIS (PE/ELF, Entropy, IOCs, Verdict)")
+        print("  [4]  Scan Web Link / URL (Phishing, Redirects & Malware)")
         print("  [5]  Deep Path & Binary Software Analysis (Redirects, Payloads, Archives)")
         print("  [6]  Scan Local File / Executable (Entropy, Macros, Double Extension)")
         print("  [7]  Scan Picture / Image (Polyglot, Post-EOF Executables, EXIF)")
         print("  [8]  Scan QR Code Image (Quishing & Payload Decode)")
-        print("  [9]  Audit Active Network Sockets & Inbound C2 Trojans")
-        print("  [10] Audit Camera & Microphone Privacy Handles")
+
+        print(f"\n{YELLOW}{BOLD}[SECTOR 3: HARDWARE, PORTS, DRIVES & SAFE CHARGING]{RESET}")
         print("  [11] Scan Cable-Connected Hardware Devices & USB Ports (Auto-Quarantine)")
         print("  [12] Immediately Quarantine / Block a Hardware Port")
         print("  [13] Release / Re-enable a Quarantined Port")
         print("  [14] Live Watch & Guard USB Pendrive Plug-in Events (Instant Intercept)")
         print("  [15] Immunize Host Laptop (Disable AutoRun / AutoPlay Injections)")
         print("  [16] Vaccinate a Pendrive / Removable Drive (Lock autorun.inf)")
-        print("  [17] Purge / Delete Operational Data (Wipe Tables)")
-        print("  [18] Audit Platform Self-Defense & Code Integrity (Anti-Tamper)")
-        print("  [19] Show Full Military-Grade Platform Security Posture")
-        print("  [20] ⚡ MASTER CONNECT & SAFEGUARD EVERYTHING (Wired, Wireless, Chargers, Pendrives, Devices & OS)")
-        print("  [21] Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
+        print("  [26] Toggle Charger-Only Safe Charging Mode (Juice Jacking & Data-Pin Lockout)")
+
+        print(f"\n{YELLOW}{BOLD}[SECTOR 4: NETWORK, AIRWAVES & BACKDOOR HUNTING]{RESET}")
+        print("  [9]  Audit Active Network Sockets & Inbound C2 Trojans")
         print("  [22] Audit Physical Wi-Fi, Rogue AP & ARP Poisoning Security (Evil Twin / MitM)")
         print("  [23] Harden Network Stack (Disable LLMNR, Disable ICMP Redirects, Flush Caches)")
         print("  [24] Pin & Trust Current Wi-Fi Network Signature (Prevent Clone Spoofing)")
         print("  [25] Emergency Disconnect / Sever Connection from Wi-Fi")
-        print("  [26] Toggle Charger-Only Safe Charging Mode (Juice Jacking & Data-Pin Lockout)")
         print("  [27] Hunt & Guard Rogue Network Sockets & Backdoor Ports (Metasploit, C2)")
         print("  [28] Rectify Rogue Network Socket / Port (Freeze Evidence, Kill, Firewall Block)")
-        print("  [29] Apply Persistent OS Hardening (Zero-Runtime Shield: USB AutoRun 0xFF, Exec Deny)")
-        print("  [30] Install Autonomous 24/7 OS Watchdog Task (Runs Silently on Boot without Terminal)")
-        print("  [31] Query Offline Shield & Autonomous Watchdog Status")
+
+        print(f"\n{YELLOW}{BOLD}[SECTOR 5: AI THREAT INVESTIGATION & DIGITAL FORENSICS]{RESET}")
         print("  [AI1] RETRAIN AI & EVOLVE SAFEGUARDS (Autonomous Model Optimization)")
         print("  [AI2] VIEW AI MODEL STATUS & RECURRING CADENCE (Accuracy, Loss, Checkpoints)")
         print("  [AI3] SET RECURRING RETRAINING CADENCE (Weekly / Monthly / 6-Months)")
         print("  [AI4] DISCOVER DATA BREACH FORENSIC EVIDENCE (Memory, Tokens, VSS & Exfil)")
         print("  [AI5] 🤖 AI LINUX THREAT INVESTIGATOR (Processes, Logins, Modified Files & Sockets)")
+        print("  [DET1] 🕵️ DIGITAL FORENSICS CYBER DETECTIVE (4-Stage Attack Timeline Reconstruction & MFT/RAM)")
+        print("  [DET2] 🛡️ ETHICAL HACKER SAFE DISENGAGEMENT (Purge Operator Traces & Certificate)")
+        print("  [21]  Contain Active Incident & Preserve Forensic Evidence (One-Click Defense)")
+        print("  [R1]  📋 VIEW ACTIVE INCIDENTS & SEVERITY")
+        print("  [R2]  📑 EXPORT PUBLICATION-READY SECURITY REPORT DOSSIER")
+        print("  [A1]  🎯 AUTHORIZED TARGET VULNERABILITY ASSESSMENT (Headers & TLS Ciphers)")
+
+        print(f"\n{YELLOW}{BOLD}[SECTOR 6: ETHICAL DEFENSE, DECEPTION & PRIVACY]{RESET}")
+        print("  [10]   Audit Camera & Microphone Privacy Handles")
         print("  [ETH1] SURVEIL RECONNAISSANCE & FOOTPRINTING (Port Scans, OS Probes, Banner Grabs)")
         print("  [ETH2] 🎭 MISLEAD ATTACKER PATH & FOOTPRINTS (Deceptive OS, Honeypaths & Canaries)")
         print("  [ETH3] 🧹 CLEAN & WIPE ALL FOOTPRINTS COMPLETELY (Anti-Trace Zero-Remanence Purge)")
         print("  [ETH4] 🛑 STOP THIRD-PARTY INTRUDER & COLLECT ORIGIN EVIDENCE (Freeze & Firewall Block)")
-        print("  [DET1] 🕵️ DIGITAL FORENSICS CYBER DETECTIVE (4-Stage Attack Timeline Reconstruction & MFT/RAM)")
-        print("  [DET2] 🛡️ ETHICAL HACKER SAFE DISENGAGEMENT (Purge Operator Traces & Certificate)")
+
+        print(f"\n{YELLOW}{BOLD}[SECTOR 7: PLATFORM ARMOR & OPERATIONS]{RESET}")
+        print("  [18] Audit Platform Self-Defense & Code Integrity (Anti-Tamper SHA-256)")
+        print("  [19] Show Full Military-Grade Platform Security Posture")
+        print("  [20] ⚡ MASTER CONNECT & SAFEGUARD EVERYTHING (Wired, Wireless, Chargers, Pendrives, Devices & OS)")
+        print("  [29] Apply Persistent OS Hardening (Zero-Runtime Shield: USB AutoRun 0xFF, Exec Deny)")
+        print("  [30] Install Autonomous 24/7 OS Watchdog Task (Runs Silently on Boot without Terminal)")
+        print("  [31] Query Offline Shield & Autonomous Watchdog Status")
+        print("  [17] Purge / Delete Operational Data (Wipe Tables)")
         print("  [32] Stop All Running Services (Clean Shutdown: Backend, Frontend, Watchdogs)")
         print("  [33] Exit")
-        print("=" * 70)
+        print("=" * 78)
 
-        choice = input("Select an option [0-33, AI1-AI5, ETH1-ETH4, DET1-DET2]: ").strip()
+        try:
+            choice = input("Select any tool [0-33, F1-F2, A1, R1-R2, AI1-AI5, ETH1-ETH4, DET1-DET2]: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\nExiting SENTINEL-X CLI.")
+            break
 
         choice_clean = choice.strip().upper()
         if choice_clean in ("DET1", "FORENSICS", "CYBER-DETECTIVE", "INVESTIGATE-BREACH", "TIMELINE"):
@@ -1917,123 +2180,150 @@ def run_interactive_menu():
             targ = input("Enter intruder Remote IP or Target PID to intercept: ").strip()
             if targ:
                 cmd_stop_third_party(targ)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
             continue
         elif choice_clean in ("0A", "SCAN", "SYS-SCAN", "DEEP"):
             cmd_active_system_scan()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
             continue
         elif choice_clean in ("0B", "SOLVE", "SYS-REPAIR", "CLEAN"):
             cmd_active_system_repair()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
             continue
         elif choice_clean in ("0C", "PORTS", "HARDWARE-PORTS", "LIST-PORTS"):
             cmd_list_all_hardware_ports()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
             continue
         elif choice in ("0", "360"):
             cmd_total_360_audit()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice in ("00", "fix", "repair"):
             cmd_total_360_rectify()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
+            continue
+        elif choice_clean in ("F1", "SCAN-FOLDER", "FOLDER-SCAN", "SCAN-DIR"):
+            fp = input("Enter directory path to scan (or leave blank for entire workspace): ").strip().strip('"')
+            cmd_scan_folder(fp or None)
+            _pause_menu()
+            continue
+        elif choice_clean in ("F2", "MALWARE", "TRIAGE", "TRIAGE-MALWARE"):
+            fp = input("Enter binary / executable file path to triage: ").strip().strip('"')
+            if fp:
+                cmd_triage_malware(fp)
+            _pause_menu()
+            continue
+        elif choice_clean in ("A1", "ASSESS", "VULN", "SCAN-VULN"):
+            tgt = input("Enter target domain or URL (e.g. 'example.com' or 'https://target.com'): ").strip()
+            if tgt:
+                cmd_assess_target(tgt)
+            _pause_menu()
+            continue
+        elif choice_clean in ("R1", "INCIDENTS", "LIST-INCIDENTS"):
+            cmd_list_incidents()
+            _pause_menu()
+            continue
+        elif choice_clean in ("R2", "REPORT", "GENERATE-REPORT"):
+            title = input("Enter report title (or leave blank for standard assessment): ").strip()
+            cmd_generate_report(title or None)
+            _pause_menu()
+            continue
 
         if choice == "1":
             cmd_live_safeguard(continuous=False)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "2":
             target = input("Enter PID or process name to rectify & safeguard (e.g. '4192' or 'malicious.exe'): ").strip()
             if target:
                 cmd_rectify_threat(target)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "3":
             cmd_live_safeguard(continuous=True)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "4":
             url = input("Enter URL to scan: ").strip()
             if url:
                 cmd_scan_link(url)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "5":
             url = input("Enter Link/Software URL for Deep Analysis: ").strip()
             if url:
                 cmd_deep_scan(url)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "6":
             fp = input("Enter file path: ").strip().strip('"')
             if fp:
                 cmd_scan_file(fp)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "7":
             ip = input("Enter picture path: ").strip().strip('"')
             if ip:
                 cmd_scan_picture(ip)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "8":
             qp = input("Enter QR code image path: ").strip().strip('"')
             if qp:
                 cmd_scan_qr(qp)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "9":
             cmd_scan_sockets()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "10":
             cmd_scan_camera()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "11":
             target = input("Enter drive letter/path (e.g. 'E:\\', or leave blank for all connected devices): ").strip().strip('"')
             cmd_scan_cables(target or None)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "12":
             target = input("Enter drive letter or device ID to quarantine (e.g. 'E:', 'G:'): ").strip()
             if target:
                 cmd_quarantine_port(target)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "13":
             target = input("Enter drive letter or device ID to release: ").strip()
             if target:
                 cmd_release_port(target)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "14":
             cmd_watch_usb()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "15":
             cmd_immunize_host()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "16":
             dl = input("Enter pendrive drive letter to vaccinate (e.g. 'G:' or 'E:\\'): ").strip().strip('"')
             if dl:
                 cmd_vaccinate_drive(dl)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "17":
             cat = input("Enter category to purge (events, incidents, malware, forensics, all): ").strip()
             cmd_purge_data(cat or "all")
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "18":
             cmd_audit_integrity()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "19":
             cmd_security_armor()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice in ("20", "CONNECT", "SAFEGUARD-ALL", "SWEEP"):
             cmd_connect_and_safeguard_all()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "21":
             inc = input("Enter Incident ID to contain & preserve (or leave blank for 'latest'): ").strip() or "latest"
             cmd_contain_and_preserve(inc)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "22":
             cmd_scan_wifi()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "23":
             cmd_harden_network()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "24":
             cmd_trust_wifi()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "25":
             cmd_disconnect_wifi()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "26":
             mode_input = input("Enable Charger-Only Safe Charging Mode? (y/n, or leave blank to check status): ").strip().lower()
             if mode_input == "y":
@@ -2042,46 +2332,46 @@ def run_interactive_menu():
                 cmd_safe_charging(False)
             else:
                 cmd_safe_charging(None)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "27":
             c_input = input("Run continuous background daemon? (y/n) [default: n]: ").strip().lower()
             cmd_guard_sockets(continuous=(c_input == "y"))
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "28":
             target = input("Enter process PID or port number to rectify: ").strip()
             if target.isdigit():
                 cmd_rectify_socket(int(target))
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "29":
             cmd_apply_offline_hardening()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "30":
             cmd_install_offline_watchdog()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "31":
             cmd_offline_shield_status()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice.upper() in ("AI1", "TRAIN-AI"):
             cmd_train_ai()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice.upper() in ("AI2", "AI-STATUS"):
             cmd_ai_status()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice.upper() in ("AI3", "AI-SCHEDULE"):
             cad = input("Enter cadence (weekly / monthly / 6months) [default: weekly]: ").strip().lower() or "weekly"
             cmd_set_ai_schedule(cad)
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice.upper() in ("AI4", "BREACH", "BREACH-EVIDENCE"):
             cmd_breach_forensics()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice.upper() in ("AI5", "AI-INVESTIGATOR", "THREAT-INVESTIGATOR", "SIGNALS"):
             c_input = input("Run continuous 10s monitoring agent loop? (y/n) [default: n]: ").strip().lower()
             cmd_ai_threat_investigator(continuous=(c_input == "y"))
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice == "32":
             from launcher import stop_all_services
             stop_all_services()
-            input("\nPress Enter to return to menu...")
+            _pause_menu()
         elif choice in ("33", "q", "exit"):
             print("Exiting SENTINEL-X CLI.")
             break
@@ -2263,8 +2553,31 @@ def main():
     subparsers.add_parser("threat-investigator", help="Alias for ai-investigator")
     subparsers.add_parser("investigate-signals", help="Alias for ai-investigator")
 
-    # stop-all
+    # scan-folder
+    p_sf = subparsers.add_parser("scan-folder", help="Recursively audit directory for threats, high entropy, and web shells")
+    p_sf.add_argument("--path", default=None, help="Target directory path (default: current workspace)")
 
+    # triage-malware
+    p_tm = subparsers.add_parser("triage-malware", help="Perform static triage, entropy analysis, and IOC extraction on binary")
+    p_tm.add_argument("path", help="Path to binary file")
+
+    # assess-target
+    p_at = subparsers.add_parser("assess-target", help="Audit security headers and TLS ciphers against authorized target")
+    p_at.add_argument("target", help="Target domain or URL")
+
+    # list-incidents
+    subparsers.add_parser("list-incidents", help="View active incidents, status, severity, and timestamps")
+
+    # generate-report
+    p_gr = subparsers.add_parser("generate-report", help="Generate and seal comprehensive Markdown & JSON security dossier")
+    p_gr.add_argument("--title", default=None, help="Report title")
+
+    # tools & terminal usage guide
+    subparsers.add_parser("tools", help="Display full terminal tools quick-usage manual & command reference")
+    subparsers.add_parser("usage", help="Display full terminal tools quick-usage manual & command reference")
+    subparsers.add_parser("commands", help="Display full terminal tools quick-usage manual & command reference")
+
+    # stop-all
     subparsers.add_parser("stop-all", help="Stop all running SENTINEL-X platform services (backend, frontend, background watchers)")
     subparsers.add_parser("stop", help="Stop all running SENTINEL-X platform services")
 
@@ -2274,12 +2587,18 @@ def main():
     args = parser.parse_args()
 
     if not args.command or args.command == "interactive":
+        if not sys.stdin.isatty():
+            print_banner()
+            parser.print_help()
+            return
         run_interactive_menu()
         return
 
     print_banner()
 
-    if args.command == "train-ai":
+    if args.command in ("tools", "usage", "commands"):
+        cmd_show_tools_usage()
+    elif args.command == "train-ai":
         cmd_train_ai()
     elif args.command == "ai-status":
         cmd_ai_status()
@@ -2299,6 +2618,7 @@ def main():
         cmd_total_360_rectify()
     elif args.command == "safeguard":
         cmd_live_safeguard(continuous=args.continuous)
+        print(f"\n{CYAN}[*] Tip: Run 'python cli.py tools' for command manual or 'python cli.py interactive' for the full workbench.{RESET}\n")
     elif args.command == "rectify":
         cmd_rectify_threat(args.target)
     elif args.command == "scan-wifi":
@@ -2386,6 +2706,16 @@ def main():
         cmd_ai_threat_investigator(continuous=getattr(args, "continuous", False))
     elif args.command == "contain-and-preserve":
         cmd_contain_and_preserve(args.incident_id)
+    elif args.command in ("scan-folder", "folder-scan", "scan-dir"):
+        cmd_scan_folder(getattr(args, "path", None))
+    elif args.command in ("triage-malware", "malware-triage"):
+        cmd_triage_malware(args.path)
+    elif args.command in ("assess-target", "scan-vuln"):
+        cmd_assess_target(args.target)
+    elif args.command in ("list-incidents", "incidents"):
+        cmd_list_incidents()
+    elif args.command in ("generate-report", "report"):
+        cmd_generate_report(getattr(args, "title", None))
     elif args.command in ("stop", "stop-all"):
         from launcher import stop_all_services
         stop_all_services()

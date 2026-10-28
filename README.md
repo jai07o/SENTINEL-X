@@ -270,6 +270,8 @@ cyber_security/
 ├── pytest.ini                         # Pytest configuration and async test markers
 ├── start.bat                          # One-click Windows quick launcher (root)
 ├── run.bat                            # One-click Windows execution alias (root)
+├── sentinel.bat                       # Direct terminal CLI command runner (`sentinel <cmd>`)
+├── tools.bat                          # One-click Master Interactive Terminal Workbench (`tools`)
 ├── launcher.py                        # Unified interactive control center CLI
 ├── cli.py                             # Direct Terminal CLI Security Suite & 360 Safeguard commands
 ├── BUILD_STATUS.md                    # Implementation matrix and phase test logs

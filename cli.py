@@ -580,16 +580,22 @@ def cmd_connect_and_safeguard_all():
     from backend.app.services.active_system_service import active_system_guardian
     
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
             try:
                 import nest_asyncio
                 nest_asyncio.apply()
+                res = loop.run_until_complete(active_system_guardian.connect_and_safeguard_all())
             except Exception:
-                pass
-            res = loop.run_until_complete(active_system_guardian.connect_and_safeguard_all())
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    res = executor.submit(asyncio.run, active_system_guardian.connect_and_safeguard_all()).result()
         else:
-            res = loop.run_until_complete(active_system_guardian.connect_and_safeguard_all())
+            res = asyncio.run(active_system_guardian.connect_and_safeguard_all())
     except Exception:
         res = asyncio.run(active_system_guardian.connect_and_safeguard_all())
 
